@@ -41,7 +41,9 @@
 ;; a paragraph or sentence (i.e. at `left-margin' on a line following
 ;; `paragraph-separate', after `paragraph-start' at `left-margin', or
 ;; after `sentence-end') is automatically capitalized when a following
-;; whitespace or punctuation character is inserted.
+;; whitespace or punctuation character is inserted. The same is true
+;; of the first word of a comment or a string in any `prog-mode'
+;; buffers where `auto-capitalize-mode' is enabled.
 ;;
 ;; The `auto-capitalize-words' variable can be customized so that
 ;; commonly used proper nouns and acronyms are capitalized or upcased,
@@ -66,6 +68,20 @@
 ;; To enable (interactive) capitalization in all Text modes, add this
 ;; to your site-lisp/default.el or ~/.emacs file:
 ;; (add-hook 'text-mode-hook 'enable-auto-capitalize-mode)
+;;
+;; Or, with `use-package':
+;;     (use-package auto-capitalize
+;;     :init
+;;     (auto-capitalize-global-mode)
+;;
+;;     :hook
+;;     (prog-mode-hook . turn-on-auto-capitalize-mode)
+;;     (text-mode-hook . turn-on-auto-capitalize-mode)
+;;
+;;     :config
+;;     (modify-syntax-entry ?' ".   " text-mode-syntax-table)
+;;     (modify-syntax-entry ?’ ".   " text-mode-syntax-table))
+;;
 ;;
 ;; To prevent a word from ever being capitalized or upcased
 ;; (e.g. "http"), simply add it (in lowercase) to the
