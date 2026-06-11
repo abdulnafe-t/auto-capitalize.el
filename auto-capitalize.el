@@ -152,7 +152,7 @@
 ;; User options:
 
 (defcustom auto-capitalize-ask nil
-  "*If non-nil, ask before capitalize."
+  "*If non-nil, ask before capitalizing."
   :group 'auto-capitalize
   :type 'boolean)
 
@@ -181,21 +181,22 @@ non-nil value if the current word is within \"normal\" text."
                  (const nil)))
 
 (defcustom auto-capitalize-allowed-chars '(?\  ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
-  "Whether auto capitalize after you typed those characters.
-If you set nil, then don't restrict by this variable."
+  "List of chars that trigger auto-capitalization on preceding words.
+If set to nil, this variable is ignored when deciding whether to
+auto-capitalize a word."
   :group 'auto-capitalize
   :type '(choise (repeat (character :tag "Characters to start"))
                  (const nil)))
 
-(defcustom auto-capitalize-inhibit-buffers '("*scratch*")
-  "Inhibit auto capitalize mode in those buffer."
+(defcustom auto-capitalize-inhibit-buffers '("*scratch*") ; FIXME: doesn’t work?
+  "List of buffer names in which to suppress auto-capitalization."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Word list")))
 
 (defcustom auto-capitalize-predicate-functions nil
   "This hook is used to call predicate functions.
-The function should return t if the predicate is ok or
-return nil if it's failure."
+The function should return t if the predicate is ok or return nil if
+it's failure."
   :group 'auto-capitalize
   :type '(choise
           (repeat (function :tag "Predicate functions"))
