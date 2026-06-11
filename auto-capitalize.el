@@ -232,8 +232,6 @@ see `\\[auto-capitalize-mode]', `\\[turn-on-capitalize-mode]', or
        ;; activate after only specific characters you type
        (or (null auto-capitalize-allowed-chars)
            (member last-command-event auto-capitalize-allowed-chars))
-       ;; don't turn on like inferior-XXX-mode
-       (not (derived-mode-p 'comint-mode))
        ;; For user hook
        (run-hook-with-args-until-failure auto-capitalize-predicate-functions)
        ;; For specific major-mode
@@ -261,6 +259,11 @@ This sets `auto-capitalize' to t or nil (for this buffer) and ensures that
    (t
     (setq-local auto-capitalize-state t)
     (add-hook 'after-change-functions 'auto-capitalize-capitalize nil t))))
+
+;;;###autoload
+(define-globalized-minor-mode auto-capitalize-global-mode
+  auto-capitalize-mode turn-on-auto-capitalize-mode
+  :predicate '(not comint-mode))
 
 ;;;###autoload
 (defun turn-on-auto-capitalize-mode ()
