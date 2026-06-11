@@ -419,9 +419,20 @@ The M-BEG and M-END are used to substring LOWERCASE-WORD."
                        (1+ (match-beginning 0)))
                       (or (not
                            (re-search-backward abbrev-regexp nil t))
-                          (not
-                           (member (match-string 0) auto-capitalize-words))))))))
-       ;; inserting lowercase text?
+                           (not
+                            (member (match-string 0) auto-capitalize-words)))))))
+           ;; beginning of comment or string?
+           (save-excursion
+             (let ((ppss (syntax-ppss text-start)))
+               (and (nth 8 ppss)
+                    (= text-start
+                       (save-excursion
+                         (goto-char (nth 8 ppss))
+                         (while (and (not (eobp))
+                                     (not (eq (char-syntax (char-after)) ?w)))
+                           (forward-char 1))
+                         (point)))))))
+        ;; inserting lowercase text?
        (let ((case-fold-search nil))
          (goto-char word-start)
          (looking-at auto-capitalize-regex-lower))
