@@ -364,20 +364,19 @@ This should be installed as an `after-change-function'."
                                                    0))))))))
     (error error)))
 
-(defun auto-capitalize-user-specified (lowercase-word m-beg m-end)
+(defun auto-capitalize-user-specified (m-beg m-end)
   "Find LOWERCASE-WORD and capitalize it.
 The M-BEG and M-END are used to substring LOWERCASE-WORD."
-  (when (not (member (setq lowercase-word
-                           (buffer-substring m-beg m-end))
-                     auto-capitalize-words))
-    ;; not preserving lower case
-    ;; capitalize!
-    (undo-boundary)
-    (replace-match (cl-find lowercase-word
-                            auto-capitalize-words
-                            :key 'downcase
-                            :test 'string-equal)
-                   t t)))
+  (let ((lowercase-word (buffer-substring m-beg m-end)))
+    (unless (member lowercase-word auto-capitalize-words)
+      ;; not preserving lower case
+      ;; capitalize!
+      (undo-boundary)
+      (replace-match (cl-find lowercase-word
+                              auto-capitalize-words
+                              :key 'downcase
+                              :test 'string-equal)
+                     t t))))
 
 (defun auto-capitalize-capitalizable-p (text-start word-start)
   ""
@@ -454,8 +453,7 @@ The M-BEG and M-END are used to substring LOWERCASE-WORD."
     (unless (auto-capitalize--avoid-word-p)
       (save-match-data
         (let* ((word-start (point))
-               (text-start (auto-capitalize--backward))
-               lowercase-word)
+               (text-start (auto-capitalize--backward)))
           (cond ((and auto-capitalize-words
                       (let ((case-fold-search nil))
                         (goto-char word-start)
@@ -465,8 +463,7 @@ The M-BEG and M-END are used to substring LOWERCASE-WORD."
                                             auto-capitalize-words
                                             "\\|")
                                  "\\)\\>"))))
-                 (auto-capitalize-user-specified
-                  lowercase-word (match-beginning 1) (match-end 1)))
+                 (auto-capitalize-user-specified (match-beginning 1) (match-end 1)))
                 ((auto-capitalize-capitalizable-p
                   text-start word-start)
                  ;; capitalize!
