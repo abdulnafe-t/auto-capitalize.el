@@ -244,12 +244,14 @@ see `\\[auto-capitalize-mode]', `\\[turn-on-capitalize-mode]', or
            t))))
 
 ;;;###autoload
-(easy-mmode-define-minor-mode auto-capitalize-mode
+(define-minor-mode auto-capitalize-mode
   "Toggle `auto-capitalize' minor mode in this buffer.
 With optional prefix ARG, turn `auto-capitalize' mode on iff ARG is positive.
 This sets `auto-capitalize' to t or nil (for this buffer) and ensures that
 `auto-capitalize' is installed in `after-change-functions' (for all buffers)."
-  nil " ACap" nil
+  :init-value nil
+  :lighter " ACap"
+  :keymap nil
   (cond
    ;; Turn off
    ((or (not auto-capitalize-mode) buffer-read-only
