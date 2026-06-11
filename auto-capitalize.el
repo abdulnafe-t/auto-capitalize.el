@@ -10,7 +10,8 @@
 ;; Original Author: Kevin Rodgers <ihs_4664@yahoo.com>
 ;; (Please don’t contact original author if you found a bug in this
 ;; package)
-;; Maintainer: Yuta Yamada <cokesboy at gmail.com>
+;; Past maintainer: Yuta Yamada <cokesboy at gmail.com>
+;; Maintainer: Abdulnafé Toulaïmat <abdulnafe.toulaimat@gmail.com>
 ;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
 
 ;; Created: 20 May 1998
@@ -100,7 +101,7 @@
 ;; ;; Use "_" instead of "." to define apostrophe as a symbol:
 ;; (modify-syntax-entry ?' ".   " text-mode-syntax-table) ; was "w   "
 
-;;; Some minor changes made by me (after I copied from emacswiki):
+;;; Some minor changes made by me (Yuta Yamada) (after I copied from emacswiki):
 ;;
 ;; 1 Apply Emacs 24.3 (due to ‘last-command-char’ -> ‘last-command-event’)
 ;; 2 Add default predicate function.  It does:
@@ -545,11 +546,6 @@ The M-BEG and M-END are used to substring LOWERCASE-WORD."
 ;; 6 Sep 2013: Apply SKK package and split functions
 ;; -- Yuta
 
+
 (provide 'auto-capitalize)
-
-;; Local Variables:
-;; coding: utf-8
-;; mode: emacs-lisp
-;; End:
-
 ;;; auto-capitalize.el ends here
