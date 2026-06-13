@@ -144,18 +144,19 @@
 (require 'cl-lib) ; cl-find, cl-minusp
 (require 'rx)
 
-(defgroup auto-capitalize nil "auto-capitalize customization group"
+(defgroup auto-capitalize nil
+  "auto-capitalize customization group"
   :group 'convenience)
 
 ;; User options:
 
 (defcustom auto-capitalize-ask nil
-  "*If non-nil, ask before capitalizing."
+  "If non-nil, always ask before capitalizing."
   :group 'auto-capitalize
   :type 'boolean)
 
 (defcustom auto-capitalize-yank nil
-  "*If non-nil, the first word of yanked sentences are automatically capitalized."
+  "If non-nil, the first word of yanked sentences are automatically capitalized."
   :group 'auto-capitalize
   :type 'boolean)
 
