@@ -427,7 +427,7 @@ The M-BEG and M-END are used to substring LOWERCASE-WORD."
 
            ;; beginning of a comment?
            (and
-            (re-search-backward comment-start-skip)
+            (re-search-backward comment-start-skip nil t)
             (= (match-end 0) word-start)))
 
        ;; inserting lowercase text?
