@@ -148,6 +148,7 @@
   "auto-capitalize customization group"
   :group 'convenience)
 
+
 ;; User options:
 
 (defcustom auto-capitalize-ask nil
@@ -160,7 +161,6 @@
   :group 'auto-capitalize
   :type 'boolean)
 
-;; User variables:
 (define-obsolete-variable-alias
   'auto-capitalize-words 'auto-capitalize-exceptions "3.0")
 
@@ -226,11 +226,12 @@ The file name would be something like .aspell.en.pws."
           (const nil)
           (file)))
 
+
+;; Internal variables:
+
 (defvar auto-capitalize-avoid-words-regex
   (rx (not (syntax word)) (or "e.g." "i.e." "vs.") (0+ " "))
   "Regex to avoid words.")
-
-;; Internal variables:
 
 (defconst auto-capitalize-version "$Revision: 2.20 $"
   "This version of auto-capitalize.el.")
@@ -250,6 +251,7 @@ see `auto-capitalize-mode',`auto-capitalize-global-mode',
 (defvar auto-capitalize-regex-verify
   "\\<\\([[:upper:]]?[[:lower:]]+\\.\\)+\\=")
 
+
 ;; Commands:
 
 (defun auto-capitalize-default-predicate-function ()
@@ -309,6 +311,8 @@ This will install `auto-capitalize-capitalize' in
 This sets `auto-capitalize' to t."
   (interactive)
   (auto-capitalize-mode 1))
+
+;; Internal functions:
 
 ;;;###autoload
 (defun turn-off-auto-capitalize-mode ()
