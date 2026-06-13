@@ -178,7 +178,7 @@ modified."
 In auto-capitalize mode, it is called with no arguments and should return a
 non-nil value if the current word is within \"normal\" text."
   :group 'auto-capitalize
-  :type '(choise (function :tag "Predicate function")
+  :type '(choice (function :tag "Predicate function")
                  (const nil)))
 
 (defcustom auto-capitalize-allowed-chars '(?\  ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
@@ -186,10 +186,10 @@ non-nil value if the current word is within \"normal\" text."
 If set to nil, this variable is ignored when deciding whether to
 auto-capitalize a word."
   :group 'auto-capitalize
-  :type '(choise (repeat (character :tag "Characters to start"))
+  :type '(choice (repeat (character :tag "Characters to start"))
                  (const nil)))
 
-(defcustom auto-capitalize-inhibit-buffers '("*scratch*") ; FIXME: doesn’t work?
+(defcustom auto-capitalize-inhibit-buffers '("*scratch*")
   "List of buffer names in which to suppress auto-capitalization."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Word list")))
@@ -199,7 +199,7 @@ auto-capitalize a word."
 The function should return t if the predicate is ok or return nil if
 it's failure."
   :group 'auto-capitalize
-  :type '(choise
+  :type '(choice
           (repeat (function :tag "Predicate functions"))
           (const nil)))
 
@@ -207,7 +207,7 @@ it's failure."
   "You can set a file path of aspell to use capitalized words of aspell.
 The file name would be something like .aspell.en.pws."
   :group 'auto-capitalize
-  :type '(choise
+  :type '(choice
           (const nil)
           (file)))
 
