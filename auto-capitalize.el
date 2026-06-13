@@ -176,9 +176,17 @@ added in lowercase will never be automatically capitalized."
   :type '(repeat (string :tag "Word list")))
 
 (defcustom auto-capitalize-predicate 'auto-capitalize-default-predicate-function
-  "If non-nil, a function that determines whether to enable capitalization.
-In auto-capitalize mode, it is called with no arguments and should return a
-non-nil value if the current word is within \"normal\" text."
+  "If non-nil, a function that determines whether to enable capitalization
+in the current context.
+
+In auto-capitalize mode, it is called with no arguments and should
+return a non-nil value if the current word is within \"normal\" text.
+
+The default, `auto-capitalize-default-predicate-function' (which see),
+returns non-nil in a large number of contexts, most notably in strings
+and comments in `prog-mode' buffers, but also by calling all functions
+in `auto-capitalize-predicate-functions' (which see) and checking that
+they all return non-nil in the current context."
   :group 'auto-capitalize
   :type '(choice (function :tag "Predicate function")
                  (const nil)))
@@ -197,15 +205,17 @@ auto-capitalize a word."
 (defcustom auto-capitalize-inhibit-buffers '("*scratch*")
   "List of buffer names in which to suppress auto-capitalization."
   :group 'auto-capitalize
-  :type '(repeat (string :tag "Word list")))
+  :type '(repeat (string :tag "Buffer name")))
 
 (defcustom auto-capitalize-predicate-functions nil
-  "This hook is used to call predicate functions.
-The function should return t if the predicate is ok or return nil if
-it's failure."
+  "This is a hook whose functions are called by
+`auto-capitalize-default-predicate-function' (which see). They should
+take no arguments, and return non-nil if auto-capitalization should
+happen in the current context."
   :group 'auto-capitalize
   :type '(choice
-          (repeat (function :tag "Predicate functions"))
+          (repeat (function :tag "Predicate that returns non-nil if auto-capitalization should happen in
+the current context."))
           (const nil)))
 
 (defcustom auto-capitalize-aspell-file nil
@@ -227,12 +237,14 @@ The file name would be something like .aspell.en.pws."
 
 (defvar-local auto-capitalize-state nil
   "If non-nil, the first word of a sentence is automatically capitalized.
-If non-nil but not t, query the user before capitalizing a word.
-This variable automatically becomes buffer-local when set in any fashion\;
-see `\\[auto-capitalize-mode]', `\\[turn-on-capitalize-mode]', or
-`\\[enable-auto-capitalize-mode]'.")
+If non-nil but not t, query the user before capitalizing a word. This
+variable automatically becomes buffer-local when set in any fashion\;
+see `auto-capitalize-mode',`auto-capitalize-global-mode',
+`turn-on-auto-capitalize-mode', or `enable-auto-capitalize-mode'.")
 
-(defvar auto-capitalize--match-data nil)
+(defvar auto-capitalize--match-data nil
+  "Internal variable used to hold match data across recursive calls in
+`auto-capitalize-capitalize' (which see).")
 
 (defvar auto-capitalize-regex-lower "[[:lower:]]+")
 (defvar auto-capitalize-regex-verify
@@ -267,10 +279,11 @@ see `\\[auto-capitalize-mode]', `\\[turn-on-capitalize-mode]', or
 
 ;;;###autoload
 (define-minor-mode auto-capitalize-mode
-  "Toggle `auto-capitalize' minor mode in this buffer.
-With optional prefix ARG, turn `auto-capitalize' mode on iff ARG is positive.
-This sets `auto-capitalize' to t or nil (for this buffer) and ensures that
-`auto-capitalize' is installed in `after-change-functions' (for all buffers)."
+  "Toggle `auto-capitalize' minor mode in the current buffer.
+
+This will install `auto-capitalize-capitalize' in
+`after-change-functions' in the current buffer."
+
   :init-value nil
   :lighter " ACap"
   :keymap nil
@@ -327,7 +340,7 @@ This sets `auto-capitalize-state' to t."
     (error error)))
 
 (defun auto-capitalize-capitalize (beg end length)
-  "If `auto-capitalize' mode is on, then capitalize the previous word.
+  "If `auto-capitalize-mode' is enabled, then capitalize the previous word.
 The previous word is capitalized (or upcased) if it is a member of the
 `auto-capitalize-exceptions' list; or if it begins a paragraph or sentence.
 
@@ -339,7 +352,8 @@ yanked sentences will be capitalized as well.
 Capitalization can be disabled in specific contexts via the
 `auto-capitalize-predicate' variable.
 
-This should be installed as an `after-change-function'."
+This should be installed as an `after-change-function', which
+`auto-capitalize-mode' does when it is enabled."
   (condition-case error
       (when (and auto-capitalize-state
                  (or (null auto-capitalize-predicate)
