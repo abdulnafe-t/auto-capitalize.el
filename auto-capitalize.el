@@ -104,7 +104,7 @@
 ;; 1 Apply Emacs 24.3 (due to ‘last-command-char’ -> ‘last-command-event’)
 ;; 2 Add default predicate function.  It does:
 ;;   * Only allow auto capitalization after specific character you
-;;     typed.  (see ‘auto-capitalize-allowed-chars’)
+;;     typed.  (see ‘auto-capitalize-trigger-chars’)
 ;;   * Configurable on-and-off in specific buffers
 ;;     (see ‘auto-capitalize-inhibit-buffers’)
 ;;   * Work with prog-mode based major-mode.  Only turned on if the
@@ -182,12 +182,15 @@ non-nil value if the current word is within \"normal\" text."
   :type '(choice (function :tag "Predicate function")
                  (const nil)))
 
-(defcustom auto-capitalize-allowed-chars '(?\  ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
-  "List of chars that trigger auto-capitalization on preceding words.
+(define-obsolete-variable-alias
+  'auto-capitalize-allowed-chars 'auto-capitalize-trigger-chars "3.0")
+
+(defcustom auto-capitalize-trigger-chars '(?\  ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
+  "List of chars that trigger auto-capitalization on the preceding word.
 If set to nil, this variable is ignored when deciding whether to
 auto-capitalize a word."
   :group 'auto-capitalize
-  :type '(choice (repeat (character :tag "Characters to start"))
+  :type '(choice (repeat (character :tag "Characters that trigger capitalization on the preceding word"))
                  (const nil)))
 
 (defcustom auto-capitalize-inhibit-buffers '("*scratch*")
@@ -251,8 +254,8 @@ see `\\[auto-capitalize-mode]', `\\[turn-on-capitalize-mode]', or
                  (memq (char-before (max (point-min) (- (point) 2)))
                        '(?\  ?\( ?.))))
        ;; activate after only specific characters you type
-       (or (null auto-capitalize-allowed-chars)
-           (member last-command-event auto-capitalize-allowed-chars))
+       (or (null auto-capitalize-trigger-chars)
+           (member last-command-event auto-capitalize-trigger-chars))
        ;; For user hook
        (run-hook-with-args-until-failure auto-capitalize-predicate-functions)
        ;; For specific major-mode
