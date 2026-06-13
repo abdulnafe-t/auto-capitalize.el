@@ -254,31 +254,6 @@ see `auto-capitalize-mode',`auto-capitalize-global-mode',
 
 ;; Commands:
 
-(defun auto-capitalize-default-predicate-function ()
-  "Return t if condition is ok."
-  (and (not buffer-read-only)
-       (not (minibufferp))
-       ;; activate if prog-mode and cursor is in string or comment.
-       (if (derived-mode-p 'prog-mode)
-           (and (derived-mode-p 'prog-mode)
-                (save-excursion (nth 8 (syntax-ppss))))
-         t)
-       ;; don’t capitalize if previous string is something like [a-z].[a-z].
-       ;; (it’s mainly to prevent capitalize after i.e. or e.g.)
-       (not (and (eq last-command-event ?.)
-                 (memq (char-before (max (point-min) (- (point) 2)))
-                       '(?\  ?\( ?.))))
-       ;; activate after only specific characters you type
-       (or (null auto-capitalize-trigger-chars)
-           (member last-command-event auto-capitalize-trigger-chars))
-       ;; For user hook
-       (run-hook-with-args-until-failure auto-capitalize-predicate-functions)
-       ;; For specific major-mode
-       (let ((fname (intern (format "auto-capitalize-predicate-%s" major-mode))))
-         (if (fboundp fname)
-             (funcall fname)
-           t))))
-
 ;;;###autoload
 (define-minor-mode auto-capitalize-mode
   "Toggle `auto-capitalize' minor mode in the current buffer.
@@ -308,8 +283,52 @@ This will install `auto-capitalize-capitalize' in
 
 ;; Internal functions:
 
+(defun auto-capitalize-default-predicate-function ()
+  "Return non-nil if auto-capitalization should happen in the current context.
 
+Specifically, check the following conditions for the current buffer, and
+return non-nil if they are all non-nil:
 
+1) It is not read-only
+
+2) it is not a minibuffer
+
+3) if in `prog-mode', the current text is either a comment or a string
+
+4) if the previous word isn’t \"e.g.\" or \"i.e.\" or the like
+
+5) the last typed character was one of
+`auto-capitalize-trigger-chars' (skipped if that list is empty)
+
+6) none of the functions in `auto-capitalize-predicate-functions' (if
+any) return non-nil
+
+7) if a major-mode-specific predicate,
+`auto-capitalize-predicate-<major-mode>', is defined and returns
+non-nil."
+
+  (and (not buffer-read-only)
+       (not (minibufferp))
+       ;; activate if prog-mode and cursor is in string or comment.
+       (if (derived-mode-p 'prog-mode)
+           (and (derived-mode-p 'prog-mode)
+                (save-excursion (nth 8 (syntax-ppss))))
+         t)
+       ;; don’t capitalize if previous string is something like [a-z].[a-z].
+       ;; (it’s mainly to prevent capitalize after i.e. or e.g.)
+       (not (and (eq last-command-event ?.)
+                 (memq (char-before (max (point-min) (- (point) 2)))
+                       '(?\  ?\( ?.))))
+       ;; activate after only specific characters you type
+       (or (null auto-capitalize-trigger-chars)
+           (member last-command-event auto-capitalize-trigger-chars))
+       ;; For user hook
+       (run-hook-with-args-until-failure auto-capitalize-predicate-functions)
+       ;; For specific major-mode
+       (let ((fname (intern (format "auto-capitalize-predicate-%s" major-mode))))
+         (if (fboundp fname)
+             (funcall fname)
+           t))))
 
 (defun auto-capitalize-condition (beg end length)
   "Check condition."
