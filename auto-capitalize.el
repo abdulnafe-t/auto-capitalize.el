@@ -4,9 +4,8 @@
 ;; Copyright   2026 Abdulnafé Toulaïmat
 
 ;; This project was copied from emacswiki page
-;; (https://www.emacswiki.org/emacs/auto-capitalize.el) and I changed
-;; some details. Big difference is this package requires Emacs 24.3 or
-;; higher version.
+;; (https://www.emacswiki.org/emacs/auto-capitalize.el) and I (Yuta Yamada) changed some
+;; details. Big difference is this package requires Emacs 24.3 or higher version.
 
 ;; Original Author: Kevin Rodgers <ihs_4664@yahoo.com>
 ;; (Please don’t contact original author if you found a bug in this
