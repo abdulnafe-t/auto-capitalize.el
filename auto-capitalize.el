@@ -382,7 +382,7 @@ The M-BEG and M-END are used to substring LOWERCASE-WORD."
 (defun auto-capitalize-capitalizable-p (text-start word-start)
   ""
   (goto-char text-start)
-  (and (or (equal text-start (point-min)) ; (bobp)
+  (and (or (bobp)
 
            ;; beginning of paragraph?
            (and (= (current-column) left-margin)
