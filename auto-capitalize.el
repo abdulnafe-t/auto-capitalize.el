@@ -38,6 +38,9 @@
 ;; of the first word of a comment or a string in any `prog-mode' buffers where
 ;; `auto-capitalize-mode' is enabled.
 ;;
+;; The `auto-capitalize-yank' option controls whether words in yanked text
+;; should by capitalized in the same way.
+;;
 ;; To install auto-capitalize.el, copy it to a `load-path' directory, then add
 ;; this to your .emacs:
 ;
@@ -113,6 +116,12 @@
 
 (defcustom auto-capitalize-ask nil
   "If non-nil, always ask before capitalizing."
+  :group 'auto-capitalize
+  :type 'boolean)
+
+(defcustom auto-capitalize-yank nil
+  "If non-nil, the first word of yanked sentences are automatically
+capitalized."
   :group 'auto-capitalize
   :type 'boolean)
 
@@ -248,8 +257,10 @@ return non-nil if they are all non-nil:
                  (memq (char-before (max (point-min) (- (point) 2)))
                        '(?\  ?\( ?. ?\"))))
 
-       ;; activate after only specific characters you type
+       ;; activate after only specific characters you type, or after yanking
+       ;; text instead of typing
        (or (null auto-capitalize-trigger-chars)
+           (not (eq this-command 'self-insert-command))
            (member last-command-event auto-capitalize-trigger-chars))))
 
 (defun auto-capitalize-inserted-non-word-p (beg end length)
@@ -277,7 +288,9 @@ The previous word is capitalized (or upcased) if it is a member of the
 sentence.
 
 Capitalization occurs only if the current command was invoked via a
-self-inserting non-word character (e.g. whitespace or punctuation).
+self-inserting non-word character (e.g. whitespace or punctuation)\; but
+if the `auto-capitalize-yank' option is set, then the first word of
+yanked sentences will be capitalized as well.
 
 Capitalization can be disabled in specific contexts via the
 `auto-capitalize-predicate-functions' hook.
@@ -294,7 +307,27 @@ This should be installed as an `after-change-function', which
                ;; self-inserting, non-word character
                (when (and (> beg (point-min))
                           (equal (char-syntax (char-after (1- beg))) ?w))
-                 (auto-capitalize-maybe-capitalize-preceding-word)))))
+                 (auto-capitalize-maybe-capitalize-preceding-word)))
+              ((and auto-capitalize-yank
+                    ;; `yank' sets `this-command' to t, and the
+                    ;; after-change-functions are run before it has been
+                    ;; reset:
+                    (or (eq this-command 'yank)
+                        (and (= length 0) ; insertion?
+                             (eq this-command 't))))
+               (save-excursion
+                 (goto-char beg)
+                 (save-match-data
+                   (while (re-search-forward "\\Sw" end t)
+                     (setq auto-capitalize--match-data (match-data))
+                     ;; recursion!
+                     (let* ((this-command 'self-insert-command)
+                            (non-word-char (char-after (match-beginning 0)))
+                            (last-command-event non-word-char))
+                       (set-match-data auto-capitalize--match-data)
+                       (auto-capitalize-capitalize (match-beginning 0)
+                                                   (match-end 0)
+                                                   0))))))))
     (error error)))
 
 (defun auto-capitalize-handle-fixed-case (m-beg m-end)
