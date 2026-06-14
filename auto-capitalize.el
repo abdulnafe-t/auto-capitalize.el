@@ -125,6 +125,11 @@ capitalized."
   :group 'auto-capitalize
   :type 'boolean)
 
+(defcustom auto-capitalize-strings t
+  "If non-nil, strings in prog-mode buffers will be capitalized."
+  :group 'auto-capitalize
+  :type 'boolean)
+
 (defcustom auto-capitalize-comments t
   "If non-nil, comments in prog-mode buffers will be capitalized."
   :group 'auto-capitalize
@@ -372,56 +377,56 @@ string
 queried."
 
   (goto-char text-start)
-  (and (or (bobp)
+  (and (or (if (derived-mode-p 'prog-mode)
+               ;; In prog-mode: only check string/comment start (respecting flags)
+               (or (and auto-capitalize-strings
+                        (progn
+                          (goto-char word-start)
+                          (when-let* ((string-start
+                                       (nth 8 (syntax-ppss))))
+                            (eq (1+ string-start) word-start))))
+                   (and auto-capitalize-comments
+                        (progn
+                          (goto-char word-start)
+                          (re-search-backward comment-start-skip nil t))
+                        (= (match-end 0) word-start)))
 
-           ;; beginning of paragraph?
-           (and (= (current-column) left-margin)
-                (or (save-excursion
-                      (and (zerop (forward-line -1))
-                           (looking-at paragraph-separate)))
-                    (save-excursion
-                      (and (re-search-backward paragraph-start
-                                               nil t)
-                           (= (match-end 0) text-start)
-                           (= (current-column) left-margin)))))
+             ;; Not in prog-mode: check paragraph/sentence/bobp
+             (or (bobp)
 
-           ;; beginning of sentence?
-           (save-excursion
-             (save-restriction
-               (narrow-to-region (point-min) word-start)
-               (and (re-search-backward (sentence-end)
-                                        nil t)
-                    (= (match-end 0) text-start)
-                    ;; verify: preceded by whitespace?
-                    (let ((previous-char (char-before text-start)))
-                      ;; In some modes, newline (^J, aka LFD) is comment-end,
-                      ;; not whitespace:
-                      (or (eq ?\n previous-char)
-                          (eq ?\  (char-syntax previous-char))))
-                    ;; verify: not preceded by an abbreviation?
-                    (let ((case-fold-search nil)
-                          (abbrev-regexp auto-capitalize-abbrev-regexp))
-                      (goto-char
-                       (1+ (match-beginning 0)))
-                      (or (not
-                           (re-search-backward abbrev-regexp nil t))
-                          (not
-                           (member (match-string 0) auto-capitalize-fixed-case-words)))))))
+                 ;; beginning of paragraph?
+                 (and (= (current-column) left-margin)
+                      (or (save-excursion
+                            (and (zerop (forward-line -1))
+                                 (looking-at paragraph-separate)))
+                          (save-excursion
+                            (and (re-search-backward paragraph-start
+                                                     nil t)
+                                 (= (match-end 0) text-start)
+                                 (= (current-column) left-margin)))))
 
-           ;; beginning of a string?
-           (and (derived-mode-p 'prog-mode)
-                (or
-                 (progn
-                   (goto-char word-start)
-                   (when-let* ((string-start
-                                (nth 8 (syntax-ppss))))
-                     (eq (1+ string-start) word-start)))
-
-                 ;; beginning of a comment?
-                 (and
-                  auto-capitalize-comments
-                  (re-search-backward comment-start-skip nil t)
-                  (= (match-end 0) word-start)))))
+                 ;; beginning of sentence?
+                 (save-excursion
+                   (save-restriction
+                     (narrow-to-region (point-min) word-start)
+                     (and (re-search-backward (sentence-end)
+                                              nil t)
+                          (= (match-end 0) text-start)
+                          ;; verify: preceded by whitespace?
+                          (let ((previous-char (char-before text-start)))
+                            ;; In some modes, newline (^J, aka LFD) is comment-end,
+                            ;; not whitespace:
+                            (or (eq ?\n previous-char)
+                                (eq ?\  (char-syntax previous-char))))
+                          ;; verify: not preceded by an abbreviation?
+                          (let ((case-fold-search nil)
+                                (abbrev-regexp auto-capitalize-abbrev-regexp))
+                            (goto-char
+                             (1+ (match-beginning 0)))
+                            (or (not
+                                 (re-search-backward abbrev-regexp nil t))
+                                (not
+                                 (member (match-string 0) auto-capitalize-fixed-case-words))))))))))
 
        ;; inserting lowercase text?
        (let ((case-fold-search nil))
