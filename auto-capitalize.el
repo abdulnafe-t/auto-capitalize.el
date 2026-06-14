@@ -121,7 +121,8 @@
 ;; the emacswiki (https://www.emacswiki.org/emacs/auto-capitalize.el). I have
 ;; tried to streamline the code, building on the refactoring process that Yuta
 ;; Yamada had already started, and removing/replacing old artifacts with their
-;; modern equivalent.
+;; modern equivalent. I have also modified the package’s interface to make it
+;; simpler to use.
 
 ;; Package interface:
 
@@ -150,12 +151,20 @@ capitalized."
   :type 'boolean)
 
 (defcustom auto-capitalize-strings t
-  "If non-nil, strings in prog-mode buffers will be capitalized."
+  "If non-nil, strings in prog-mode buffers will be capitalized.
+
+This variable is checked by `auto-capitalize-check-context', meaning it
+should behave the same way regardless of what predicates are in
+`auto-capitalize-predicate-functions'."
   :group 'auto-capitalize
   :type 'boolean)
 
 (defcustom auto-capitalize-comments t
-  "If non-nil, comments in prog-mode buffers will be capitalized."
+  "If non-nil, comments in prog-mode buffers will be capitalized.
+
+This variable is checked by `auto-capitalize-check-context', meaning it
+should behave the same way regardless of what predicates are in
+`auto-capitalize-predicate-functions'."
   :group 'auto-capitalize
   :type 'boolean)
 
@@ -402,13 +411,16 @@ queried."
 
   (goto-char text-start)
   (and (or (if (derived-mode-p 'prog-mode)
-               ;; In prog-mode: only check string/comment start (respecting flags)
+
+               ;; Beginning of a string?
                (or (and auto-capitalize-strings
                         (progn
                           (goto-char word-start)
                           (when-let* ((string-start
                                        (nth 8 (syntax-ppss))))
                             (eq (1+ string-start) word-start))))
+
+                   ;; beginning of a comment?
                    (and auto-capitalize-comments
                         (progn
                           (goto-char word-start)
