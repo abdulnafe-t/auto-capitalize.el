@@ -318,8 +318,7 @@ non-nil."
 
        (save-excursion
          (backward-word)
-         (skip-syntax-backward " ")
-         (not (looking-back (regexp-opt auto-capitalize-not-sentence-endings)
+         (not (looking-back (concat (regexp-opt auto-capitalize-not-sentence-endings) "[ \t]*")
                             (line-beginning-position) t)))
 
        ;; activate after only specific characters you type
