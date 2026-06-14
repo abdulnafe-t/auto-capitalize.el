@@ -86,7 +86,7 @@ If all tests pass, voilà! Your word gets capitalized automatically.
 
 * Alternatives
 
-The modern auto-capitalization landscape in Emacs seems to have coalesced around [[https://elpa.gnu.org/packages/captain.html][captain]], which you can get from elpa. =auto-capitalize.el= is an alternative, based on the classic package with the same name from all the way back in 1998. The main user-facing difference between this package and captain is that this package tries hard to define defaults, so that you never have to write your own predicates if you don’t want to. Captain, on this other hand, is far lighter and more efficient.
+The modern auto-capitalization landscape in Emacs seems to have coalesced around [[https://elpa.gnu.org/packages/captain.html][captain]], which you can get from elpa. =auto-capitalize.el= is an alternative, based on the classic package with the same name from all the way back in 1998. The main user-facing difference between this package and captain is that this package tries hard to define defaults, so that you never have to write your own predicates if you don’t want to. Captain, on the other hand, is far lighter and more efficient.
 
 * Credit
 
