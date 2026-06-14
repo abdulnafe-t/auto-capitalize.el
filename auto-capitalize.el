@@ -374,7 +374,7 @@ This should be installed as an `after-change-function', which
                ;; self-inserting, non-word character
                (when (and (> beg (point-min))
                           (equal (char-syntax (char-after (1- beg))) ?w))
-                 (auto-capitalize-capitalize-preceded-word)))
+                 (auto-capitalize-maybe-capitalize-preceding-word)))
               ((and auto-capitalize-yank
                     ;; `yank' sets `this-command' to t, and the
                     ;; after-change-functions are run before it has been
@@ -497,13 +497,23 @@ queried."
                   (buffer-substring (match-beginning 0) (match-end 0))))
     (message "")))
 
-(defun auto-capitalize-capitalize-preceded-word ()
-  "Capitalize preceded by a word character."
+(defun auto-capitalize-maybe-capitalize-preceding-word ()
+  "Capitalize the word preceding point if either of the following conditions hold:
+
+1) it appears capitalized in `auto-capitalize-fixed-case-words'
+
+2) `auto-capitalize-check-context' returns non-nil."
+
   (save-excursion
     (forward-word -1)
     (save-match-data
       (let* ((word-start (point))
-             (text-start (auto-capitalize--backward)))
+             (text-start
+	      (progn
+		(while (or (minusp (skip-chars-backward "\""))
+			   (minusp (skip-syntax-backward "\"(")))
+		  t)
+		(point))))
         (cond ((and auto-capitalize-fixed-case-words
                     (let ((case-fold-search nil))
                       (goto-char word-start)
@@ -520,13 +530,6 @@ queried."
                (undo-boundary)
                (goto-char word-start)
                (capitalize-word 1)))))))
-
-(defun auto-capitalize--backward ()
-  "Return point of text start."
-  (while (or (cl-minusp (skip-chars-backward "\""))
-             (cl-minusp (skip-syntax-backward "\"(")))
-    t)
-  (point))
 
 (defun auto-capitalize--get-buffer-string (file)
   "Get buffer string from FILE."
