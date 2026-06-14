@@ -44,7 +44,7 @@
 ;; is true of the first word of a comment or a string in any `prog-mode' buffers where
 ;; `auto-capitalize-mode' is enabled.
 ;;
-;; The `auto-capitalize-exceptions' variable can be customized so that commonly used proper
+;; The `auto-capitalize-fixed-case-words' variable can be customized so that commonly used proper
 ;; nouns and acronyms are capitalized or upcased, respectively.
 ;;
 ;; The `auto-capitalize-yank' option controls whether words in yanked text should by
@@ -90,12 +90,12 @@
 ;;
 ;; To prevent a word from ever being capitalized or upcased
 ;; (e.g. "http"), simply add it (in lowercase) to the
-;; `auto-capitalize-exceptions' list.
+;; `auto-capitalize-fixed-case-words' list.
 ;;
 ;; Conversely, to get a word to always get capitalized, regardless of context, insert it,
 ;; in uppercase to the same list.
 ;;
-;; If a word is included, in upper case, in `auto-capitalize-exceptions', and you want to
+;; If a word is included, in upper case, in `auto-capitalize-fixed-case-words', and you want to
 ;; prevent it from getting capitalized one time, type the word, then use `quoted-insert'
 ;; (bound to `C-q' by default) followed by the next punctuation or space character.
 
@@ -162,9 +162,9 @@
   :type 'boolean)
 
 (define-obsolete-variable-alias
-  'auto-capitalize-words 'auto-capitalize-exceptions "3.0")
+  'auto-capitalize-words 'auto-capitalize-fixed-case-words "3.0")
 
-(defcustom auto-capitalize-exceptions '("I");  "Stallman" "GNU" "http"
+(defcustom auto-capitalize-fixed-case-words '("I");  "Stallman" "GNU" "http"
   "If non-nil, a list of words that will always be in the case they appear
 in here.
 
@@ -346,7 +346,8 @@ non-nil."
 (defun auto-capitalize-capitalize (beg end length)
   "If `auto-capitalize-mode' is enabled, then capitalize the previous word.
 The previous word is capitalized (or upcased) if it is a member of the
-`auto-capitalize-exceptions' list; or if it begins a paragraph or sentence.
+`auto-capitalize-fixed-case-words' list; or if it begins a paragraph or
+sentence.
 
 Capitalization occurs only if the current command was invoked via a
 self-inserting non-word character (e.g. whitespace or punctuation)\; but
@@ -392,12 +393,11 @@ This should be installed as an `after-change-function', which
 (defun auto-capitalize-user-specified (m-beg m-end)
   "Find the word between M-BEG and M-END and capitalize it."
   (let ((lowercase-word (buffer-substring m-beg m-end)))
-    (unless (member lowercase-word auto-capitalize-exceptions)
-      ;; not preserving lower case
+    (unless (member lowercase-word auto-capitalize-fixed-case-words)
       ;; capitalize!
       (undo-boundary)
       (replace-match (cl-find lowercase-word
-                              auto-capitalize-exceptions
+                              auto-capitalize-fixed-case-words
                               :key 'downcase
                               :test 'string-equal)
                      t t))))
@@ -439,7 +439,7 @@ This should be installed as an `after-change-function', which
                       (or (not
                            (re-search-backward abbrev-regexp nil t))
                           (not
-                           (member (match-string 0) auto-capitalize-exceptions)))))))
+                           (member (match-string 0) auto-capitalize-fixed-case-words)))))))
 
            ;; beginning of a string?
            (and (derived-mode-p 'prog-mode)
@@ -483,13 +483,13 @@ This should be installed as an `after-change-function', which
       (save-match-data
         (let* ((word-start (point))
                (text-start (auto-capitalize--backward)))
-          (cond ((and auto-capitalize-exceptions
+          (cond ((and auto-capitalize-fixed-case-words
                       (let ((case-fold-search nil))
                         (goto-char word-start)
                         (looking-at
                          (concat "\\("
                                  (mapconcat 'downcase
-                                            auto-capitalize-exceptions
+                                            auto-capitalize-fixed-case-words
                                             "\\|")
                                  "\\)\\>"))))
                  (auto-capitalize-user-specified (match-beginning 1) (match-end 1)))
@@ -529,11 +529,11 @@ This should be installed as an `after-change-function', which
     (error (format "The file %s doesn't exist" file))))
 
 (defun auto-capitalize-merge-aspell-words (&optional file)
-  "Extract words from FILE and merge ti to ‘auto-capitalize-exceptions’."
+  "Extract words from FILE and merge ti to ‘auto-capitalize-fixed-case-words’."
   (let ((f (or auto-capitalize-aspell-file file)))
     (when (file-exists-p f)
-      (setq auto-capitalize-exceptions
-            (append auto-capitalize-exceptions
+      (setq auto-capitalize-fixed-case-words
+            (append auto-capitalize-fixed-case-words
                     (auto-capitalize--get-aspell-capital-words f))))))
 
 ;; Org mode
