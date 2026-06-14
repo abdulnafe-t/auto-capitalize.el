@@ -214,14 +214,6 @@ context."
 
 ;; Internal variables:
 
-
-(defvar-local auto-capitalize-state nil
-  "If non-nil, the first word of a sentence is automatically capitalized.
-If non-nil but not t, query the user before capitalizing a word. This
-variable automatically becomes buffer-local when set in any fashion\;
-see `auto-capitalize-mode',`auto-capitalize-global-mode',
-`turn-on-auto-capitalize-mode', or `enable-auto-capitalize-mode'.")
-
 (defvar auto-capitalize--match-data nil
   "Internal variable used to hold match data across recursive calls in
 `auto-capitalize-capitalize' (which see).")
@@ -248,12 +240,10 @@ This will install `auto-capitalize-capitalize' in
    ((or (not auto-capitalize-mode)
         buffer-read-only
         (member (buffer-name) auto-capitalize-inhibit-buffers))
-    (setq-local auto-capitalize-state nil)
     (remove-hook 'after-change-functions 'auto-capitalize-capitalize t)
     (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-default-predicate-function nil t))
    ;; Turn on
    (t
-    (setq-local auto-capitalize-state t)
     (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
     (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-default-predicate-function nil t))))
 
@@ -341,7 +331,7 @@ Capitalization can be disabled in specific contexts via the
 This should be installed as an `after-change-function', which
 `auto-capitalize-mode' does when it is enabled."
   (condition-case error
-      (when (and auto-capitalize-state
+      (when (and auto-capitalize-mode
                  (or (null auto-capitalize-predicate-functions)
                      (run-hook-with-args-until-failure 'auto-capitalize-predicate-functions)))
 
@@ -461,7 +451,7 @@ queried."
        (let ((case-fold-search nil))
          (goto-char word-start)
          (looking-at auto-capitalize-regex-lower))
-       (and auto-capitalize-state
+       (and auto-capitalize-mode
             (or (not auto-capitalize-ask)
                 (auto-capitalize--ask)))))
 
@@ -525,7 +515,7 @@ see) when `org' is loaded."
 
 (defun turn-on-auto-capitalize-mode ()
   "Turn on `auto-capitalize' mode in this buffer.
-This sets `auto-capitalize' to t."
+This sets `auto-capitalize-mode' to t."
   (interactive)
   (auto-capitalize-mode 1))
 
@@ -537,7 +527,7 @@ This sets `auto-capitalize-mode' to nil."
 
 (defun enable-auto-capitalize-mode ()
   "Enable `auto-capitalize' mode in this buffer.
-This sets `auto-capitalize-state' to t."
+This sets `auto-capitalize-ask' to t."
   (interactive)
   (setq auto-capitalize-ask t))
 
