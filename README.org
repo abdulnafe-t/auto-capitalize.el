@@ -1,0 +1,97 @@
+#+title: =auto-capitalize.el=
+#+author: Abdulnafé Toulaïmat
+#+language: en_US
+
+Automatically capitalize text as you type.
+
+* Installation
+
+Put =auto-capitalize.el= somewhere in your load-path, then put this in your .emacs:
+
+#+begin_src elisp
+  (require 'auto-capitalize)
+  (auto-capitalize-global-mode)
+#+end_src
+
+ This turns on capitalization in all =text-mode= buffers, as well as in comments and strings
+ in =prog-mode= buffers.
+
+ Additionally, if you want to automatically capitalize abbreviations such as "I’ve", "I’m", etc., put this in your .emacs:
+
+ #+begin_src elisp
+   (modify-syntax-entry ?' ". " text-mode-syntax-table) ; For ASCII-style apostrophe
+   (modify-syntax-entry ?’ ". " text-mode-syntax-table) ; For UNICODE curly apostrophe
+ #+end_src
+
+ If you use =use-package=, you can use this snippet instead:
+
+ #+begin_src elisp
+   (use-package auto-capitalize
+     :init
+     (auto-capitalize-global-mode)
+     :config
+     (modify-syntax-entry ?' ".   " text-mode-syntax-table)
+     (modify-syntax-entry ?’ ".   " text-mode-syntax-table))
+ #+end_src
+
+ and that’s it! The last word you typed will get automatically capitalized as soon as you insert the subsequent space or punctuation mark.
+
+* Customization
+
+Things should just work for most users, with sensible defaults. However, there are many customization options in the =auto-capitalize= group.
+
+At a high-level, you don’t need to know the ins-and-outs of how the package works. There are convenient user options that should let you get the behavior you want:
+
+If you only want capitalization in certain modes instead of globally, replace =auto-capitalize-global-mode= in the snippets above with =auto-capitalize-mode=, which is the buffer-local version. You can add that to any mode’s hook you want. For example, to only enable =auto-capitalize.el= in text-mode buffers, but not prog-mode, you could say:
+
+    #+begin_src elisp
+   (use-package auto-capitalize
+     :hook
+     text-mode
+     :config
+     (modify-syntax-entry ?' ".   " text-mode-syntax-table)
+     (modify-syntax-entry ?’ ".   " text-mode-syntax-table))
+ #+end_src
+
+The user option =auto-capitalize-inhibit-buffers= is a list of buffer names where you want to disable auto-capitalization. 
+    
+You can set the following boolean options for more fine-grained control:
+   
+   | Variable                 | Default value | Description                                             |
+   |--------------------------+---------------+---------------------------------------------------------|
+   | =auto-capitalize-strings=  | t             | Capitalize strings in prog-mode buffers                 |
+   | =auto-capitalize-comments= | t             | Capitalize comments in prog-mode buffers                |
+   | =auto-capitalize-ask=      | nil           | Ask the user before automatically capitalizing anything |
+   | =auto-capitalize-yank=     | nil           | Capitalize yanked text as well as typed text            |
+
+More explanations are in each variable’s respective doc string.
+   
+There is also =auto-capitalize-fixed-case-words=, which is a list of words whose case will always be forced to be exactly how it is in the list. For example, the english pronoun "I" -  the only default entry - means that lowercase "i" followed by any character in =auto-capitalize-trigger-chars= will be replaced with "I". You can, of course, customize =auto-capitalize-trigger-chars= as well!
+
+Capitalization is skipped if the word to be capitalized happens to be right after one of the entries in =auto-capitalize-not-sentence-endings=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not upcase the "y".
+
+Finally, for true control, there is the core of how the package works: =auto-capitalize-predicate-functions= is a hook whose functions are called, in turn, and if all return non-nil, then capitalization occurs. By default, this only contains =auto-capitalize-default-predicate-function=, and, once org mode is loaded, =auto-capitalize-org-mode-predicate=. You can write your own predicates and add them to the hook to specify exactly when capitalization should occur (or not occur).
+
+* How it works
+
+The package is relatively complex. I have done my best to give things descriptive names, but a general explanation of how things work might be useful. Refer to each function’s doc string for a full description of the logic flow.
+
+The main entry point is =auto-capitalize-capitalize=. The minor-mode’s adds it to =after-change-functions=, so it gets called as you type. It then runs the first layer of logic: it calls all functions in =auto-capitalize-predicate-functions=, and if they all return non-nil, either calls =auto-capitalize-maybe-capitalize-preceding-word= if you are simply typing, or recursively analyzes the text if you are yanking (and =auto-capitalize-yank= is non-nil).
+
+=auto-capitalize-maybe-capitalize-preceding-word= and =auto-capitalize-handle-fixed-case= are the functions actually responsible for capitalizing words. In the former, the first step is to check if the latter is defined, and if it is, to call it. The latter then checks if the word is in =auto-capitalize-fixed-case-words=, in which case it simply replaces it with its entry in the list.
+
+Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= then calls =auto-capitalize-check-context=. It checks to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence, or a paragraph, or a comment in prog-mode (if =auto-capitalize-comments= is non-nil), etc.
+
+If all tests pass, voilà! Your word gets capitalized automatically.
+
+* Alternatives
+
+The modern auto-capitalization landscape seems to have coalesced around [[https://elpa.gnu.org/packages/captain.html][captain]], which you can get from elpa. =auto-capitalize.el= is an alternative, based on the classic package from all the way back in 1998. The main difference is that this package tries hard to define sensible defaults, so that you never have to write your own predicates if you don’t want to. 
+
+* Credit
+
+The original =auto-capitalize.el= was written by Kevin Rodgers. It got shared around the emacs world and ended up on the [[https://www.emacswiki.org/emacs/auto-capitalize.el][emacswiki]], and from there it found its way to MELPA. But MELPA removed it for security reasons, along with other packages whose upstream was the wiki, back in [[https://github.com/melpa/melpa/pull/5008#issue-258144843][2018]].
+
+The [[https://github.com/yuutayamada/auto-capitalize-el][fork by Yuta Yamada]] on GitHub is the basis for this package. Although it appears largely unmaintained now, the work he put into refactoring it was the starting point from which I continued to streamline and modernize the codebase. 
+
+This package is not fully compatible with either the original or Yuta Yamada’s fork: the interface is different, and XEmacs support is dropped entirely. But hopefully you won’t need any crazy configuration to get it working right :)
