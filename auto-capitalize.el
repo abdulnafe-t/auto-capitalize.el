@@ -457,6 +457,13 @@ queried."
                (goto-char word-start)
                (capitalize-word 1)))))))
 
+
+;; Org mode: We need to handle org-mode source blocks specifically, since they are code,
+;; but are technically still part of a text-mode buffer.
+;;
+;; This has the downside of preventing strings/comments in such blocks from getting
+;; capitalized correctly.
+
 (declare-function org-in-src-block-p "org")
 
 (defun auto-capitalize-org-mode-predicate ()
