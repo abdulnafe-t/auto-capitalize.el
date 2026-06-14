@@ -327,8 +327,13 @@ non-nil."
              (funcall fname)
            t))))
 
-(defun auto-capitalize-condition (beg end length)
-  "Check condition."
+(defun auto-capitalize-inserted-non-word-p (beg end length)
+  "Check to see that the last event was a `self-insert-command' of a
+non-word character.
+
+BEG, END, and LENGTH are the position in the buffer where the change
+started, where it ended, and the length of that section before the
+change, respectively, as defined by `after-change-functions'."
   (condition-case error
       (or (and (or (eq this-command 'self-insert-command)
                    (let ((key (this-command-keys)))
@@ -360,7 +365,7 @@ This should be installed as an `after-change-function', which
       (when (and auto-capitalize-state
                  (or (null auto-capitalize-predicate)
                      (funcall auto-capitalize-predicate)))
-        (cond ((auto-capitalize-condition beg end length)
+        (cond ((auto-capitalize-inserted-non-word-p beg end length)
                ;; self-inserting, non-word character
                (when (and (> beg (point-min))
                           (equal (char-syntax (char-after (1- beg))) ?w))
