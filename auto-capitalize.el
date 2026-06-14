@@ -405,8 +405,27 @@ included, in lowercase, in `auto-capitalize-fixed-case-words'."
                               :test 'string-equal)
                      t t))))
 
-(defun auto-capitalize-capitalizable-p (text-start word-start)
-  ""
+(defun auto-capitalize-check-context (text-start word-start)
+  "Check the context around TEXT-START and return non-nil if the word
+beginning at WORD-START should be capitalized. In practice, TEXT-START
+is almost always one character before WORD-START.
+
+This function returns non-nil if the last command was an insertion of a
+lower-case character, and any of the following conditions hold:
+
+1) TEXT-START is at the beginning of the buffer
+
+2) TEXT-START is the first char of a paragraph
+
+3) TEXT-START is the first char of a sentence (identified through
+`sentence-end', which see)
+
+4) in `prog-mode' buffers, the text of interest is inside a comment or a
+string
+
+5) `auto-capitalize-ask' is non-nil and the user answered \"y\" when
+queried."
+
   (goto-char text-start)
   (and (or (bobp)
 
@@ -496,7 +515,7 @@ included, in lowercase, in `auto-capitalize-fixed-case-words'."
                                             "\\|")
                                  "\\)\\>"))))
                  (auto-capitalize-handle-fixed-case (match-beginning 1) (match-end 1)))
-                ((auto-capitalize-capitalizable-p
+                ((auto-capitalize-check-context
                   text-start word-start)
                  ;; capitalize!
                  (undo-boundary)
