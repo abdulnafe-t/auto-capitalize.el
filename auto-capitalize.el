@@ -11,7 +11,6 @@
 ;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
 
 ;; Created: 20 May 1998
-;; Version: 3.0
 ;; Package-Version: 3.0
 ;; Keywords: text, wp, convenience
 ;; URL: https://github.com/abdulnafe-t/auto-capitalize-el
@@ -33,21 +32,23 @@
 
 ;;; Commentary:
 
-;; When the `auto-capitalize' minor mode is enabled, the first word at the beginning of a
-;; paragraph or sentence is automatically capitalized when a following whitespace or
-;; punctuation character is inserted. The same is true of the first word of a comment or a
-;; string in any `prog-mode' buffers where `auto-capitalize-mode' is enabled.
+;; When the `auto-capitalize' minor mode is enabled, the first word at the
+;; beginning of a paragraph or sentence is automatically capitalized when a
+;; following whitespace or punctuation character is inserted. The same is true
+;; of the first word of a comment or a string in any `prog-mode' buffers where
+;; `auto-capitalize-mode' is enabled.
 ;;
-;; The `auto-capitalize-yank' option controls whether words in yanked text should by
-;; capitalized in the same way.
+;; The `auto-capitalize-yank' option controls whether words in yanked text
+;; should by capitalized in the same way.
 ;;
-;; To install auto-capitalize.el, copy it to a `load-path' directory, then add this to
-;; your .emacs:
+;; To install auto-capitalize.el, copy it to a `load-path' directory, then add
+;; this to your .emacs:
 ;
 ;;     (require 'auto-capitalize)
 ;;
-;; Then, to turn on (unconditional) capitalization in all `text-mode' buffers, as well as
-;; in comments and strings in `prog-mode' buffers, add this to your .emacs:
+;; Then, to turn on (unconditional) capitalization in all `text-mode' buffers,
+;; as well as in comments and strings in `prog-mode' buffers, add this to your
+;; .emacs:
 ;;
 ;;     (auto-capitalize-global-mode)
 ;;
@@ -64,32 +65,39 @@
 ;;         (prog-mode-hook . auto-capitalize-mode)
 ;;         (text-mode-hook . auto-capitalize-mode))
 ;;
-;; to only enable the mode in specific modes (such as text- and prog-mode in this case).
+;; to only enable the mode in specific modes (such as text- and prog-mode in
+;; this case).
 ;;
-;; To trigger capitalization for contractions (such as I’ve, I’m, etc.) in text-mode
-;;     buffers, add the following to your init.el:
+;; To trigger capitalization for contractions (such as I’ve, I’m, etc.) in
+;;     text-mode buffers, add the following to your init.el:
 ;;
-;;     (modify-syntax-entry ?' ". " text-mode-syntax-table) ; For ASCII-style apostrophe
-;;     (modify-syntax-entry ?’ ". " text-mode-syntax-table) ; For UNICODE curly apostrophe
+;;     ; For ASCII-style apostrophe
+;;     (modify-syntax-entry ?' ". " text-mode-syntax-table)
 ;;
-;; The decision on whether or not a word should be capitalized is handled by predicate
-;; functions: `auto-capitalize-capitalize' calls all functions in
-;; `auto-capitalize-predicate-functions' in turn, until one returns nil. If they all
-;; return non-nil, it proceeds with capitalization.
+;;     ; For UNICODE curly apostrophe
+;;     (modify-syntax-entry ?’ ". " text-mode-syntax-table)
 ;;
-;; By default, this hook only contains `auto-capitalize-default-predicate-function' and,
-;; once org is loaded, `auto-capitalize-org-mode-predicate'. You can always write your own
+;; The decision on whether or not a word should be capitalized is handled by
+;; predicate functions: `auto-capitalize-capitalize' calls all functions in
+;; `auto-capitalize-predicate-functions' in turn, until one returns nil. If they
+;; all return non-nil, it proceeds with capitalization.
+;;
+;; By default, this hook only contains
+;; `auto-capitalize-default-predicate-function' and, once org is loaded,
+;; `auto-capitalize-org-mode-predicate'. You can always write your own
 ;; predicates and add them to this hook.
 ;;
-;; The `auto-capitalize-fixed-case-words' variable can be customized to specify certain
-;;words that should always be in a specific case, regardless of their position in the
-;;text. Any word that is added to this list in lowercase will be skipped when
-;;capitalizing, while any word that is added in uppercase (or mixed case) will be replaced
-;;in text by its version in the list. By default, this contains the english pronoun "I".
+;; The `auto-capitalize-fixed-case-words' variable can be customized to specify
+;;certain words that should always be in a specific case, regardless of their
+;;position in the text. Any word that is added to this list in lowercase will be
+;;skipped when capitalizing, while any word that is added in uppercase (or mixed
+;;case) will be replaced in text by its version in the list. By default, this
+;;contains the english pronoun "I".
 ;;
-;; If a word is included, in upper case, in `auto-capitalize-fixed-case-words', and you want to
-;; prevent it from getting capitalized one time, type the word, then use `quoted-insert'
-;; (bound to `C-q' by default) followed by the next punctuation or space character.
+;; If a word is included, in upper case, in `auto-capitalize-fixed-case-words',
+;; and you want to prevent it from getting capitalized one time, type the word,
+;; then use `quoted-insert' (bound to `C-q' by default) followed by the next
+;; punctuation or space character.
 
 ;; Package interface:
 
@@ -112,7 +120,8 @@
   :type 'boolean)
 
 (defcustom auto-capitalize-yank nil
-  "If non-nil, the first word of yanked sentences are automatically capitalized."
+  "If non-nil, the first word of yanked sentences are automatically
+capitalized."
   :group 'auto-capitalize
   :type 'boolean)
 
@@ -146,10 +155,12 @@ after them to get capitalized, unless it appears, capitalized, in
 If set to nil, this variable is ignored when deciding whether to
 auto-capitalize a word."
   :group 'auto-capitalize
-  :type '(choice (repeat (character :tag "Characters that trigger capitalization on the preceding word"))
-                 (const nil)))
+  :type
+  '(choice (repeat (character
+                    :tag "Characters that trigger capitalization on the preceding word"))
+           (const nil)))
 
-(defcustom auto-capitalize-inhibit-buffers '("*scratch*")
+(defcustom auto-capitalize-inhibit-buffers nil
   "List of buffer names in which to suppress auto-capitalization."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Buffer name")))
@@ -157,7 +168,8 @@ auto-capitalize a word."
 (define-obsolete-variable-alias
   'auto-capitalize-predicate 'auto-capitalize-predicate-functions "3.0")
 
-(defcustom auto-capitalize-predicate-functions (list #'auto-capitalize-default-predicate-function)
+(defcustom auto-capitalize-predicate-functions
+  (list #'auto-capitalize-default-predicate-function)
   "This is a hook whose functions are called by
 `auto-capitalize-capitalize' (which see). They should take no arguments,
 and return non-nil if auto-capitalization should happen in the current
@@ -196,11 +208,13 @@ This will install `auto-capitalize-capitalize' in
         buffer-read-only
         (member (buffer-name) auto-capitalize-inhibit-buffers))
     (remove-hook 'after-change-functions 'auto-capitalize-capitalize t)
-    (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-default-predicate-function nil t))
+    (add-hook 'auto-capitalize-predicate-functions
+              #'auto-capitalize-default-predicate-function nil t))
    ;; Turn on
    (t
     (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
-    (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-default-predicate-function nil t))))
+    (add-hook 'auto-capitalize-predicate-functions
+              #'auto-capitalize-default-predicate-function nil t))))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-capitalize-global-mode
@@ -211,7 +225,8 @@ This will install `auto-capitalize-capitalize' in
 ;; Internal functions:
 
 (defun auto-capitalize-default-predicate-function ()
-  "Return non-nil if auto-capitalization should happen in the current context.
+  "Return non-nil if auto-capitalization should happen in the current
+context.
 
 Specifically, check the following conditions for the current buffer, and
 return non-nil if they are all non-nil:
@@ -235,14 +250,18 @@ return non-nil if they are all non-nil:
                 (save-excursion (nth 8 (syntax-ppss))))
          t)
 
-       ;; do not activate after any word in `auto-capitalize-not-sentence-endings'
+       ;; do not activate after any word in
+       ;; `auto-capitalize-not-sentence-endings'
        (save-excursion
          (backward-word)
-         (not (looking-back (concat (regexp-opt auto-capitalize-not-sentence-endings) "[[:space:][:punct:]]*")
-                            (line-beginning-position) t)))
+         (not (looking-back
+               (concat
+                (regexp-opt auto-capitalize-not-sentence-endings)
+                "[[:space:][:punct:]]*")
+               (line-beginning-position) t)))
 
-       ;; don’t capitalize words that look like [a-z].[a-z]. (it’s mainly to prevent
-       ;; capitalizing "i.e." or "e.g.")
+       ;; don’t capitalize words that look like "[a-z].[a-z].". This is
+       ;; mainly to prevent capitalizing "i.e." or "e.g.")
        (not (and (eq last-command-event ?.)
                  (memq (char-before (max (point-min) (- (point) 2)))
                        '(?\  ?\( ?. ?\"))))
@@ -288,7 +307,8 @@ This should be installed as an `after-change-function', which
   (condition-case error
       (when (and auto-capitalize-mode
                  (or (null auto-capitalize-predicate-functions)
-                     (run-hook-with-args-until-failure 'auto-capitalize-predicate-functions)))
+                     (run-hook-with-args-until-failure
+                      'auto-capitalize-predicate-functions)))
 
         (cond ((auto-capitalize-inserted-non-word-p beg end length)
                ;; self-inserting, non-word character
