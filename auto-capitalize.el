@@ -37,47 +37,38 @@
 
 ;;; Commentary:
 
-;; In `auto-capitalize' minor mode, the first word at the beginning of a paragraph or
-;; sentence (i.e. at `left-margin' on a line following `paragraph-separate', after
-;; `paragraph-start' at `left-margin', or after `sentence-end') is automatically
-;; capitalized when a following whitespace or punctuation character is inserted. The same
-;; is true of the first word of a comment or a string in any `prog-mode' buffers where
-;; `auto-capitalize-mode' is enabled.
-;;
-;; The `auto-capitalize-fixed-case-words' variable can be customized so that commonly used proper
-;; nouns and acronyms are capitalized or upcased, respectively.
+;; When the `auto-capitalize' minor mode is enabled, the first word at the beginning of a
+;; paragraph or sentence is automatically capitalized when a following whitespace or
+;; punctuation character is inserted. The same is true of the first word of a comment or a
+;; string in any `prog-mode' buffers where `auto-capitalize-mode' is enabled.
 ;;
 ;; The `auto-capitalize-yank' option controls whether words in yanked text should by
 ;; capitalized in the same way.
 ;;
-;; To install auto-capitalize.el, copy it to a `load-path' directory, `M-x
-;; byte-compile-file' it, and add this to your site-lisp/default.el or ~/.emacs file:
-;; (autoload 'auto-capitalize-mode "auto-capitalize" "Toggle `auto-capitalize' minor mode
-;; in this buffer." t) (autoload 'turn-on-auto-capitalize-mode "auto-capitalize" "Turn on
-;; `auto-capitalize' minor mode in this buffer." t) (autoload 'enable-auto-capitalize-mode
-;; "auto-capitalize" "Enable `auto-capitalize' minor mode in this buffer." t)
+;; To install auto-capitalize.el, copy it to a `load-path' directory, then add this to
+;; your .emacs:
+;
+;;     (require 'auto-capitalize)
 ;;
-;; To turn on (unconditional) capitalization in all Text modes, add this to your
-;; site-lisp/default.el or ~/.emacs file: (add-hook 'text-mode-hook
-;; 'turn-on-auto-capitalize-mode) To enable (interactive) capitalization in all Text
-;; modes, add this to your site-lisp/default.el or ~/.emacs file: (add-hook
-;; 'text-mode-hook 'enable-auto-capitalize-mode)
+;; Then, to turn on (unconditional) capitalization in all `text-mode' buffers, as well as
+;; in comments and strings in `prog-mode' buffers, add this to your .emacs:
+;;
+;;     (auto-capitalize-global-mode)
 ;;
 ;; Or, with `use-package':
 ;;
-;; (use-package auto-capitalize
-;;     :init
-;;     (auto-capitalize-global-mode))
+;;     (use-package auto-capitalize
+;;         :init
+;;         (auto-capitalize-global-mode))
 ;;
 ;; to enable the mode globally, or
 ;;
-;; (use-package auto-capitalize
+;;     (use-package auto-capitalize
+;;         :hook
+;;         (prog-mode-hook . auto-capitalize-mode)
+;;         (text-mode-hook . auto-capitalize-mode))
 ;;
-;;     :hook
-;;     (prog-mode-hook . auto-capitalize-mode)
-;;     (text-mode-hook . auto-capitalize-mode))
-;;
-;; to only enable the mode in specific modes (text- and prog-mode here).
+;; to only enable the mode in specific modes (such as text- and prog-mode in this case).
 ;;
 ;; To trigger capitalization for contractions (such as I’ve, I’m, etc.) in text-mode
 ;;     buffers, add the following to your init.el:
@@ -85,56 +76,24 @@
 ;;     (modify-syntax-entry ?' ". " text-mode-syntax-table) ; For ASCII-style apostrophe
 ;;     (modify-syntax-entry ?’ ". " text-mode-syntax-table) ; For UNICODE curly apostrophe
 ;;
-;; To prevent a word from ever being capitalized or upcased
-;; (e.g. "http"), simply add it (in lowercase) to the
-;; `auto-capitalize-fixed-case-words' list.
+;; The decision on whether or not a word should be capitalized is handled by predicate
+;; functions: `auto-capitalize-capitalize' calls all functions in
+;; `auto-capitalize-predicate-functions' in turn, until one returns nil. If they all
+;; return non-nil, it proceeds with capitalization.
 ;;
-;; Conversely, to get a word to always get capitalized, regardless of context, insert it,
-;; in uppercase to the same list.
+;; By default, this hook only contains `auto-capitalize-default-predicate-function' and,
+;; once org is loaded, `auto-capitalize-org-mode-predicate'. You can always write your own
+;; predicates and add them to this hook.
+;;
+;; The `auto-capitalize-fixed-case-words' variable can be customized to specify certain
+;;words that should always be in a specific case, regardless of their position in the
+;;text. Any word that is added to this list in lowercase will be skipped when
+;;capitalizing, while any word that is added in uppercase (or mixed case) will be replaced
+;;in text by its version in the list. By default, this contains the english pronoun "I".
 ;;
 ;; If a word is included, in upper case, in `auto-capitalize-fixed-case-words', and you want to
 ;; prevent it from getting capitalized one time, type the word, then use `quoted-insert'
 ;; (bound to `C-q' by default) followed by the next punctuation or space character.
-
-;;; Some minor changes made by me (Yuta Yamada) (after I copied from emacswiki):
-;;
-;; 1 Apply Emacs 24.3 (due to ‘last-command-char’ -> ‘last-command-event’)
-;; 2 Add default predicate function.  It does:
-;;   * Only allow auto capitalization after specific character you
-;;     typed.  (see ‘auto-capitalize-trigger-chars’)
-;;   * Configurable on-and-off in specific buffers
-;;     (see ‘auto-capitalize-inhibit-buffers’)
-;;   * Work with prog-mode based major-mode.  Only turned on if the
-;;     cursor is inside comment or string.
-;;   * Added some package specific predicates.
-;; 3 fixed some warnings.
-;; 4 use of lexical-biding.
-;; 5 use capitalized words of aspell’s dictionary
-;;   (see ‘auto-capitalize-aspell-file’)
-;;
-;; Note that I only used this package in Ubuntu and only Emacs (not
-;; XEmacs). So I might be wrongly changed something because original
-;; version had some XEmacs specific conditions.  (Pull Requests are
-;; welcome)
-;;
-;;; Code:
-
-;; TODO: is this still true?
-;; Rationale:
-;;
-;; The implementation of auto-capitalize via an after-change-function is
-;; somewhat complicated, but two simpler designs don't work due to
-;; quirks in Emacs' implementation itself:
-;;
-;; One idea is to advise `self-insert-command' to `upcase'
-;; `last-command-event' before it is run, but command_loop_1 optimizes
-;; out the call to the Lisp binding with its C binding
-;; (Fself_insert_command), which prevents any advice from being run.
-;;
-;; Another idea is to use a before-change-function to `upcase'
-;; `last-command-event', but the change functions are called by
-;; internal_self_insert, which has already had `last-command-event'
-;; passed to it as a C function parameter by command_loop_1.
 
 ;; Package interface:
 
@@ -536,7 +495,95 @@ This sets `auto-capitalize-ask' to t."
 (make-obsolete 'enable-auto-capitalize-mode   'auto-capitalize-mode "3.0")
 
 
-;; Old comments:
+;; Old package description, by Yuta Yamada:
+
+;; In `auto-capitalize' minor mode, the first word at the beginning of
+;; a paragraph or sentence (i.e. at `left-margin' on a line following
+;; `paragraph-separate', after `paragraph-start' at `left-margin', or
+;; after `sentence-end') is automatically capitalized when a following
+;; whitespace or punctuation character is inserted.
+;;
+;; The `auto-capitalize-words' variable can be customized so that
+;; commonly used proper nouns and acronyms are capitalized or upcased,
+;; respectively.
+;;
+;; The `auto-capitalize-yank' option controls whether words in yanked
+;; text should by capitalized in the same way.
+;;
+;; To install auto-capitalize.el, copy it to a `load-path' directory,
+;; `M-x byte-compile-file' it, and add this to your
+;; site-lisp/default.el or ~/.emacs file:
+;; (autoload 'auto-capitalize-mode "auto-capitalize"
+;;   "Toggle `auto-capitalize' minor mode in this buffer." t)
+;; (autoload 'turn-on-auto-capitalize-mode "auto-capitalize"
+;;   "Turn on `auto-capitalize' minor mode in this buffer." t)
+;; (autoload 'enable-auto-capitalize-mode "auto-capitalize"
+;;   "Enable `auto-capitalize' minor mode in this buffer." t)
+;;
+;; To turn on (unconditional) capitalization in all Text modes, add
+;; this to your site-lisp/default.el or ~/.emacs file:
+;; (add-hook 'text-mode-hook 'turn-on-auto-capitalize-mode)
+;; To enable (interactive) capitalization in all Text modes, add this
+;; to your site-lisp/default.el or ~/.emacs file:
+;; (add-hook 'text-mode-hook 'enable-auto-capitalize-mode)
+;;
+;; To prevent a word from ever being capitalized or upcased
+;; (e.g. "http"), simply add it (in lowercase) to the
+;; `auto-capitalize-words' list.
+;;
+;; To prevent a word in the `auto-capitalize-words' list from being
+;; capitalized or upcased in a particular context (e.g.
+;; "GNU.emacs.sources"), insert the following whitespace or
+;; punctuation character with `M-x quoted-insert' (e.g. `gnu C-q .').
+;;
+;; To enable contractions based on a word in the
+;; `auto-capitalize-words' list to be capitalized or upcased
+;; (e.g. "I'm") in the middle of a sentence in Text mode, define the
+;; apostrophe as a punctuation character or as a symbol that joins two
+;; words:
+;; ;; Use "_" instead of "." to define apostrophe as a symbol:
+;; (modify-syntax-entry ?' ".   " text-mode-syntax-table) ; was "w   "
+
+;;; Some minor changes made by me (after I copied from emacswiki):
+;;
+;; 1 Apply Emacs 24.3 (due to ‘last-command-char’ -> ‘last-command-event’)
+;; 2 Add default predicate function.  It does:
+;;   * Only allow auto capitalization after specific character you
+;;     typed.  (see ‘auto-capitalize-allowed-chars’)
+;;   * Configurable on-and-off in specific buffers
+;;     (see ‘auto-capitalize-inhibit-buffers’)
+;;   * Work with prog-mode based major-mode.  Only turned on if the
+;;     cursor is inside comment or string.
+;;   * Added some package specific predicates.
+;; 3 fixed some warnings.
+;; 4 use of lexical-biding.
+;; 5 use capitalized words of aspell’s dictionary
+;;   (see ‘auto-capitalize-aspell-file’)
+;;
+;; Note that I only used this package in Ubuntu and only Emacs (not
+;; XEmacs). So I might be wrongly changed something because original
+;; version had some XEmacs specific conditions.  (Pull Requests are
+;; welcome)
+;;
+
+;; Rationale:
+;;
+;; The implementation of auto-capitalize via an after-change-function is
+;; somewhat complicated, but two simpler designs don't work due to
+;; quirks in Emacs' implementation itself:
+;;
+;; One idea is to advise `self-insert-command' to `upcase'
+;; `last-command-event' before it is run, but command_loop_1 optimizes
+;; out the call to the Lisp binding with its C binding
+;; (Fself_insert_command), which prevents any advice from being run.
+;;
+;; Another idea is to use a before-change-function to `upcase'
+;; `last-command-event', but the change functions are called by
+;; internal_self_insert, which has already had `last-command-event'
+;; passed to it as a C function parameter by command_loop_1.
+
+
+;; Old emacswiki comments:
 
 ;; 1 Jun 2009: It does not work with Aquamacs 1.7/GNUEmacs 22. Only the first word in the buffer
 ;; (or the first word typed after mode activation) is capitalized.
