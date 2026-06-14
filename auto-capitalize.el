@@ -479,31 +479,6 @@ see) when `org' is loaded."
   (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-org-mode-predicate))
 
 
-;; Deprecated functions:
-
-(defun turn-on-auto-capitalize-mode ()
-  "Turn on `auto-capitalize' mode in this buffer.
-This sets `auto-capitalize-mode' to t."
-  (interactive)
-  (auto-capitalize-mode 1))
-
-(defun turn-off-auto-capitalize-mode ()
-  "Turn off `auto-capitalize' mode in this buffer.
-This sets `auto-capitalize-mode' to nil."
-  (interactive)
-  (auto-capitalize-mode -1))
-
-(defun enable-auto-capitalize-mode ()
-  "Enable `auto-capitalize' mode in this buffer.
-This sets `auto-capitalize-ask' to t."
-  (interactive)
-  (setq auto-capitalize-ask t))
-
-(make-obsolete 'turn-on-auto-capitalize-mode  'auto-capitalize-mode "3.0")
-(make-obsolete 'turn-off-auto-capitalize-mode 'auto-capitalize-mode "3.0")
-(make-obsolete 'enable-auto-capitalize-mode   'auto-capitalize-mode "3.0")
-
-
 ;; Old package description, by Yuta Yamada:
 
 ;; In `auto-capitalize' minor mode, the first word at the beginning of
