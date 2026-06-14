@@ -37,7 +37,7 @@
 ;; following whitespace or punctuation character is inserted. The same is true
 ;; of the first word of a comment or a string in any `prog-mode' buffers where
 ;; `auto-capitalize-mode' is enabled.
-;;
+
 ;; The `auto-capitalize-yank' option controls whether words in yanked text
 ;; should by capitalized in the same way.
 ;;
@@ -77,6 +77,10 @@
 ;;     ; For UNICODE curly apostrophe
 ;;     (modify-syntax-entry ?’ ". " text-mode-syntax-table)
 ;;
+;; Alternatively, you can specify buffer names where you do not want
+;; auto-capitalization to occur. See the documentation of
+;; `auto-capitalization-inhibit-buffers'.
+;;
 ;; The decision on whether or not a word should be capitalized is handled by
 ;; predicate functions: `auto-capitalize-capitalize' calls all functions in
 ;; `auto-capitalize-predicate-functions' in turn, until one returns nil. If they
@@ -87,21 +91,41 @@
 ;; `auto-capitalize-org-mode-predicate'. You can always write your own
 ;; predicates and add them to this hook.
 ;;
+;; Alternatively, if you do not want to write a whole new predicate, you can
+;; always customize some of the custom variables in the `auto-capitalize' group.
+;; Examples include `auto-capitalize-strings', which controls whether strings in
+;; prog-mode should be auto-capitalized, and its comment analogue
+;; `auto-capitalize-comments'.
+;;
 ;; The `auto-capitalize-fixed-case-words' variable can be customized to specify
-;;certain words that should always be in a specific case, regardless of their
-;;position in the text. Any word that is added to this list in lowercase will be
-;;skipped when capitalizing, while any word that is added in uppercase (or mixed
-;;case) will be replaced in text by its version in the list. By default, this
-;;contains the english pronoun "I".
+;; certain words that should always be in a specific case, regardless of their
+;; position in the text. Any word that is added to this list in lowercase will
+;; be skipped when capitalizing, while any word that is added in uppercase (or
+;; mixed case) will be replaced in text by its version in the list. By default,
+;; this contains the english pronoun "I".
 ;;
 ;; If a word is included, in upper case, in `auto-capitalize-fixed-case-words',
 ;; and you want to prevent it from getting capitalized one time, type the word,
 ;; then use `quoted-insert' (bound to `C-q' by default) followed by the next
 ;; punctuation or space character.
+;;
+;; Note that `auto-capitalize-fixed-case-words' ignores other checks: all words
+;; included therein will be replaced in all applicable contexts. For example,
+;; regardless of the value of `auto-capitalize-strings', "I" will always get
+;; capitalized in a string, if "I" is included in the list.
+
+
+;; This package is a revamp of Yuta Yamada’s version
+;; (https://github.com/yuutayamada/auto-capitalize-el), which is itself a fork
+;; of the original auto-capitalize.el, written by Kevin Rodgers and shared on
+;; the emacswiki (https://www.emacswiki.org/emacs/auto-capitalize.el). I have
+;; tried to streamline the code, building on the refactoring process that Yuta
+;; Yamada had already started, and removing/replacing old artifacts with their
+;; modern equivalent.
 
 ;; Package interface:
 
-(require 'cl-lib) ; cl-find, cl-minusp
+(require 'cl-lib) ; cl-find
 (require 'regexp-opt) ; regexp-opt
 
 (defconst auto-capitalize-version "3.0"
