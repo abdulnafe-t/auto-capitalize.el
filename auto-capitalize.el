@@ -413,67 +413,70 @@ In addition, if `auto-capitalize-ask' is non-nil, query the user and
 only capitalize if the user answered \"y\"."
 
   (goto-char text-start)
-  (and (or (if (derived-mode-p 'prog-mode)
+  (and
+   ;; inserting lowercase text?
+   (let ((case-fold-search nil))
+     (goto-char word-start)
+     (looking-at auto-capitalize-regex-lower))
 
-               ;; Beginning of a string?
-               (or (and auto-capitalize-strings
-                        (progn
-                          (goto-char word-start)
-                          (when-let* ((string-start
-                                       (nth 8 (syntax-ppss))))
-                            (eq (1+ string-start) word-start))))
+   ;; the user answered y when asked?
+   (or (not auto-capitalize-ask)
+       (auto-capitalize--ask))
 
-                   ;; beginning of a comment?
-                   (and auto-capitalize-comments
-                        (progn
-                          (goto-char word-start)
-                          (re-search-backward comment-start-skip nil t))
-                        (= (match-end 0) word-start)))
 
-             ;; Not in prog-mode: check paragraph/sentence/bobp
-             (or (bobp)
+   (or (if (derived-mode-p 'prog-mode)
 
-                 ;; beginning of paragraph?
-                 (and (= (current-column) left-margin)
-                      (or (save-excursion
-                            (and (zerop (forward-line -1))
-                                 (looking-at paragraph-separate)))
-                          (save-excursion
-                            (and (re-search-backward paragraph-start
-                                                     nil t)
-                                 (= (match-end 0) text-start)
-                                 (= (current-column) left-margin)))))
+           ;; beginning of a string?
+           (or (and auto-capitalize-strings
+                    (progn
+                      (goto-char word-start)
+                      (when-let* ((string-start
+                                   (nth 8 (syntax-ppss))))
+                        (eq (1+ string-start) word-start))))
 
-                 ;; beginning of sentence?
-                 (save-excursion
-                   (save-restriction
-                     (narrow-to-region (point-min) word-start)
-                     (and (re-search-backward (sentence-end)
-                                              nil t)
-                          (= (match-end 0) text-start)
-                          ;; verify: preceded by whitespace?
-                          (let ((previous-char (char-before text-start)))
-                            ;; In some modes, newline (^J, aka LFD) is comment-end,
-                            ;; not whitespace:
-                            (or (eq ?\n previous-char)
-                                (eq ?\  (char-syntax previous-char))))
-                          ;; verify: not preceded by an abbreviation?
-                          (let ((case-fold-search nil)
-                                (abbrev-regexp auto-capitalize-abbrev-regexp))
-                            (goto-char
-                             (1+ (match-beginning 0)))
-                            (or (not
-                                 (re-search-backward abbrev-regexp nil t))
-                                (not
-                                 (member (match-string 0) auto-capitalize-fixed-case-words))))))))))
+               ;; beginning of a comment?
+               (and auto-capitalize-comments
+                    (progn
+                      (goto-char word-start)
+                      (re-search-backward comment-start-skip nil t))
+                    (= (match-end 0) word-start)))
 
-       ;; inserting lowercase text?
-       (let ((case-fold-search nil))
-         (goto-char word-start)
-         (looking-at auto-capitalize-regex-lower))
-       (and auto-capitalize-mode
-            (or (not auto-capitalize-ask)
-                (auto-capitalize--ask)))))
+         ;; not in prog-mode: check paragraph/sentence/bobp
+         (or (bobp)
+
+             ;; beginning of paragraph?
+             (and (= (current-column) left-margin)
+                  (or (save-excursion
+                        (and (zerop (forward-line -1))
+                             (looking-at paragraph-separate)))
+                      (save-excursion
+                        (and (re-search-backward paragraph-start
+                                                 nil t)
+                             (= (match-end 0) text-start)
+                             (= (current-column) left-margin)))))
+
+             ;; beginning of sentence?
+             (save-excursion
+               (save-restriction
+                 (narrow-to-region (point-min) word-start)
+                 (and (re-search-backward (sentence-end)
+                                          nil t)
+                      (= (match-end 0) text-start)
+                      ;; verify: preceded by whitespace?
+                      (let ((previous-char (char-before text-start)))
+                        ;; In some modes, newline (^J, aka LFD) is comment-end,
+                        ;; not whitespace:
+                        (or (eq ?\n previous-char)
+                            (eq ?\  (char-syntax previous-char))))
+                      ;; verify: not preceded by an abbreviation?
+                      (let ((case-fold-search nil)
+                            (abbrev-regexp auto-capitalize-abbrev-regexp))
+                        (goto-char
+                         (1+ (match-beginning 0)))
+                        (or (not
+                             (re-search-backward abbrev-regexp nil t))
+                            (not
+                             (member (match-string 0) auto-capitalize-fixed-case-words))))))))))))
 
 (defun auto-capitalize--ask ()
   "Ask the user whether the last typed word should be capitalized or not."
