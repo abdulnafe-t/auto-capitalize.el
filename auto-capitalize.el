@@ -492,6 +492,7 @@ queried."
                 (auto-capitalize--ask)))))
 
 (defun auto-capitalize--ask ()
+  "Ask the user whether the last typed word should be capitalized or not."
   (prog1 (y-or-n-p
           (format "Capitalize \"%s\"? "
                   (buffer-substring (match-beginning 0) (match-end 0))))
