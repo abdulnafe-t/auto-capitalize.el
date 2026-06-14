@@ -316,10 +316,17 @@ non-nil."
                 (save-excursion (nth 8 (syntax-ppss))))
          t)
 
+       ;; do not activate after any word in `auto-capitalize-not-sentence-endings'
        (save-excursion
          (backward-word)
          (not (looking-back (concat (regexp-opt auto-capitalize-not-sentence-endings) "[ \t]*")
                             (line-beginning-position) t)))
+
+       ;; don’t capitalize words that look like [a-z].[a-z]. (it’s mainly to prevent
+       ;; capitalizing "i.e." or "e.g.")
+       (not (and (eq last-command-event ?.)
+                 (memq (char-before (max (point-min) (- (point) 2)))
+                       '(?\  ?\( ?. ?\"))))
 
        ;; activate after only specific characters you type
        (or (null auto-capitalize-trigger-chars)
