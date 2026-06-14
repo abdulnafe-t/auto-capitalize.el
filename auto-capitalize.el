@@ -223,13 +223,6 @@ happen in the current context."
 the current context."))
           (const nil)))
 
-(defcustom auto-capitalize-aspell-file nil
-  "You can set a file path of aspell to use capitalized words of aspell.
-The file name would be something like .aspell.en.pws."
-  :group 'auto-capitalize
-  :type '(choice
-          (const nil)
-          (file)))
 
 
 ;; Internal variables:
@@ -538,35 +531,6 @@ queried."
                (goto-char word-start)
                (capitalize-word 1)))))))
 
-(defun auto-capitalize--get-buffer-string (file)
-  "Get buffer string from FILE."
-  (let* ((current        (current-buffer))
-         (aspell-buffer  (find-file-noselect file))
-         words)
-    (switch-to-buffer aspell-buffer)
-    (setq words (buffer-substring-no-properties (point-min) (point-max)))
-    (switch-to-buffer current)
-    words))
-
-(defun auto-capitalize--get-aspell-capital-words (file)
-  "Return list of words from FILE."
-  (if (file-exists-p file)
-      (cl-loop with personal-dict = (auto-capitalize--get-buffer-string file)
-               with words = (split-string personal-dict "\n")
-               with case-fold-search = nil
-               for word in words
-               if (string-match "[A-Z]" word)
-               collect word)
-    (error (format "The file %s doesn't exist" file))))
-
-(defun auto-capitalize-merge-aspell-words (&optional file)
-  "Extract words from FILE and merge ti to ‘auto-capitalize-fixed-case-words’."
-  (let ((f (or auto-capitalize-aspell-file file)))
-    (when (file-exists-p f)
-      (setq auto-capitalize-fixed-case-words
-            (append auto-capitalize-fixed-case-words
-                    (auto-capitalize--get-aspell-capital-words f))))))
-
 ;; Org mode
 (with-eval-after-load "org"
   (defun auto-capitalize-predicate-org-mode ()
@@ -605,15 +569,10 @@ This sets `auto-capitalize-state' to t."
   (interactive)
   (setq auto-capitalize-ask t))
 
-(defun auto-capitalize-setup ()
-  "Setup auto-capitalize."
-  (auto-capitalize-merge-aspell-words)
-  (add-hook 'after-change-major-mode-hook 'auto-capitalize-mode))
-
 (make-obsolete 'turn-on-auto-capitalize-mode  'auto-capitalize-mode "3.0")
 (make-obsolete 'turn-off-auto-capitalize-mode 'auto-capitalize-mode "3.0")
 (make-obsolete 'enable-auto-capitalize-mode   'auto-capitalize-mode "3.0")
-(make-obsolete 'auto-capitalize-setup         'auto-capitalize-global-mode "3.0")
+
 
 ;; Old comments:
 
