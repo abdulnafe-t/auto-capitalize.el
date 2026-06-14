@@ -3,10 +3,6 @@
 ;; Copyright   1998,2001,2002,2005 Kevin Rodgers
 ;; Copyright   2026 Abdulnafé Toulaïmat
 
-;; This project was copied from emacswiki page
-;; (https://www.emacswiki.org/emacs/auto-capitalize.el) and I (Yuta Yamada) changed some
-;; details. Big difference is this package requires Emacs 24.3 or higher version.
-
 ;; Original Author: Kevin Rodgers <ihs_4664@yahoo.com>
 ;; (Please don’t contact original author if you found a bug in this
 ;; package)
@@ -480,6 +476,11 @@ see) when `org' is loaded."
 
 
 ;; Old package description, by Yuta Yamada:
+
+;; This project was copied from emacswiki page
+;; (https://www.emacswiki.org/emacs/auto-capitalize.el) and I changed
+;; some details. Big difference is this package requires Emacs 24.3 or
+;; higher version.
 
 ;; In `auto-capitalize' minor mode, the first word at the beginning of
 ;; a paragraph or sentence (i.e. at `left-margin' on a line following
