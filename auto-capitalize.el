@@ -512,15 +512,6 @@ queried."
         t
       (not (and (fboundp 'org-in-src-block-p) (org-in-src-block-p))))))
 
-;; SKK (ddskk)
-(with-eval-after-load "skk"
-  (add-to-list
-   'auto-capitalize-predicate-functions
-   (lambda ()
-     (or (not (bound-and-true-p skk-mode))
-         (and (bound-and-true-p skk-mode)
-              (fboundp 'skk-current-input-mode)
-              (eq 'latin (skk-current-input-mode)))))))
 
 
 ;; Deprecated functions:
