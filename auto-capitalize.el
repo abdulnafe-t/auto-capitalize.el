@@ -141,12 +141,15 @@
 (require 'cl-lib) ; cl-find, cl-minusp
 (require 'regexp-opt) ; regexp-opt
 
-(defgroup auto-capitalize nil
-  "auto-capitalize customization group"
-  :group 'convenience)
+(defconst auto-capitalize-version "3.0"
+  "The version of auto-capitalize.el.")
 
 
 ;; User options:
+
+(defgroup auto-capitalize nil
+  "auto-capitalize customization group"
+  :group 'convenience)
 
 (defcustom auto-capitalize-ask nil
   "If non-nil, always ask before capitalizing."
@@ -211,8 +214,6 @@ context."
 
 ;; Internal variables:
 
-(defconst auto-capitalize-version "3.0"
-  "The version of auto-capitalize.el.")
 
 (defvar-local auto-capitalize-state nil
   "If non-nil, the first word of a sentence is automatically capitalized.
@@ -530,7 +531,7 @@ This sets `auto-capitalize' to t."
 
 (defun turn-off-auto-capitalize-mode ()
   "Turn off `auto-capitalize' mode in this buffer.
-This sets `auto-capitalize' to nil."
+This sets `auto-capitalize-mode' to nil."
   (interactive)
   (auto-capitalize-mode -1))
 
