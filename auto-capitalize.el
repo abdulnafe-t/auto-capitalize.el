@@ -125,9 +125,6 @@ capitalized."
   :group 'auto-capitalize
   :type 'boolean)
 
-(define-obsolete-variable-alias
-  'auto-capitalize-words 'auto-capitalize-fixed-case-words "3.0")
-
 (defcustom auto-capitalize-fixed-case-words '("I");  "Stallman" "GNU" "http"
   "If non-nil, a list of words that will always be in the case they appear
 in here.
@@ -147,9 +144,6 @@ after them to get capitalized, unless it appears, capitalized, in
   :group 'auto-capitalize
   :type '(repeat (string :tag "Non-sentence ending word.")))
 
-(define-obsolete-variable-alias
-  'auto-capitalize-allowed-chars 'auto-capitalize-trigger-chars "3.0")
-
 (defcustom auto-capitalize-trigger-chars '(?\  ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
   "List of chars that trigger auto-capitalization on the preceding word.
 If set to nil, this variable is ignored when deciding whether to
@@ -164,9 +158,6 @@ auto-capitalize a word."
   "List of buffer names in which to suppress auto-capitalization."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Buffer name")))
-
-(define-obsolete-variable-alias
-  'auto-capitalize-predicate 'auto-capitalize-predicate-functions "3.0")
 
 (defcustom auto-capitalize-predicate-functions
   (list #'auto-capitalize-default-predicate-function)
