@@ -74,8 +74,8 @@
 ;; (use-package auto-capitalize
 ;;
 ;;     :hook
-;;     (prog-mode-hook . turn-on-auto-capitalize-mode)
-;;     (text-mode-hook . turn-on-auto-capitalize-mode))
+;;     (prog-mode-hook . auto-capitalize-mode)
+;;     (text-mode-hook . auto-capitalize-mode))
 ;;
 ;; to only enable the mode in specific modes (text- and prog-mode here).
 ;;
