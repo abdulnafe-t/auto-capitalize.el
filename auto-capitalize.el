@@ -390,8 +390,9 @@ This should be installed as an `after-change-function', which
                                                    0))))))))
     (error error)))
 
-(defun auto-capitalize-user-specified (m-beg m-end)
-  "Find the word between M-BEG and M-END and capitalize it."
+(defun auto-capitalize-handle-fixed-case (m-beg m-end)
+  "Find the word between M-BEG and M-END and capitalize it, unless it is
+included, in lowercase, in `auto-capitalize-fixed-case-words'."
   (let ((lowercase-word (buffer-substring m-beg m-end)))
     (unless (member lowercase-word auto-capitalize-fixed-case-words)
       ;; capitalize!
@@ -492,7 +493,7 @@ This should be installed as an `after-change-function', which
                                             auto-capitalize-fixed-case-words
                                             "\\|")
                                  "\\)\\>"))))
-                 (auto-capitalize-user-specified (match-beginning 1) (match-end 1)))
+                 (auto-capitalize-handle-fixed-case (match-beginning 1) (match-end 1)))
                 ((auto-capitalize-capitalizable-p
                   text-start word-start)
                  ;; capitalize!
