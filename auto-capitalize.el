@@ -269,9 +269,10 @@ return non-nil if they are all non-nil:
 
 2) it is not a minibuffer
 
-3) if in `prog-mode', the current text is either a comment or a string
+3) if in `prog-mode', the current text is either a comment or a
+string (skipped if not in `prog-mode')
 
-4) if the previous word isn’t \"e.g.\", \"i.e.\" or the like
+4) if the previous word isn’t in `auto-capitalize-not-sentence-endings'
 
 5) the last typed character was one of
 `auto-capitalize-trigger-chars' (skipped if that list is empty)."
@@ -312,7 +313,8 @@ non-word character.
 
 BEG, END, and LENGTH are the position in the buffer where the change
 started, where it ended, and the length of that section before the
-change, respectively, as defined by `after-change-functions'."
+change, respectively, as defined by the documentation of
+`after-change-functions' (which see)."
   (condition-case error
       (or (and (or (eq this-command 'self-insert-command)
                    (let ((key (this-command-keys)))
@@ -326,20 +328,20 @@ change, respectively, as defined by `after-change-functions'."
 
 (defun auto-capitalize-capitalize (beg end length)
   "If `auto-capitalize-mode' is enabled, then capitalize the previous word.
-The previous word is capitalized (or upcased) if it is a member of the
-`auto-capitalize-fixed-case-words' list; or if it begins a paragraph or
-sentence.
+The previous word is capitalized (or upcased) if it appears capitalized
+in `auto-capitalize-fixed-case-words' list, or if it begins a paragraph
+or sentence.
 
 Capitalization occurs only if the current command was invoked via a
-self-inserting non-word character (e.g. whitespace or punctuation)\; but
-if the `auto-capitalize-yank' option is set, then the first word of
-yanked sentences will be capitalized as well.
+self-inserting non-word character (e.g. whitespace or punctuation), but
+if the `auto-capitalize-yank' option is non-nil, then the first word of
+yanked sentences will be capitalized as well, if appropriate.
 
 Capitalization can be disabled in specific contexts via the
 `auto-capitalize-predicate-functions' hook.
 
 This should be installed as an `after-change-function', which
-`auto-capitalize-mode' does when it is enabled."
+`auto-capitalize-mode' does automatically when it is enabled."
   (condition-case error
       (when (and auto-capitalize-mode
                  (or (null auto-capitalize-predicate-functions)
@@ -404,10 +406,11 @@ lower-case character, and any of the following conditions hold:
 `sentence-end', which see)
 
 4) in `prog-mode' buffers, the text of interest is inside a comment or a
-string
+string, and the corresponding option, `auto-capitalize-comments' or
+`auto-capitalize-strings' is non-nil.
 
-5) `auto-capitalize-ask' is non-nil and the user answered \"y\" when
-queried."
+In addition, if `auto-capitalize-ask' is non-nil, query the user and
+only capitalize if the user answered \"y\"."
 
   (goto-char text-start)
   (and (or (if (derived-mode-p 'prog-mode)
