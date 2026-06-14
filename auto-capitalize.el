@@ -295,11 +295,11 @@ return non-nil if they are all non-nil:
 `auto-capitalize-trigger-chars' (skipped if that list is empty)
 
 6) none of the functions in `auto-capitalize-predicate-functions' (if
-any) return non-nil
+any) return nil
 
-7) if a major-mode-specific predicate,
-`auto-capitalize-predicate-<major-mode>', is defined and returns
-non-nil."
+7) the major-mode-specific
+predicate,`auto-capitalize-predicate-<major-mode>', returns non-nil (if
+it is defined)."
 
   (and (not buffer-read-only)
        (not (minibufferp))
