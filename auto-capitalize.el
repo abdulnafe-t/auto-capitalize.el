@@ -505,13 +505,19 @@ queried."
                (goto-char word-start)
                (capitalize-word 1)))))))
 
-;; Org mode
-(with-eval-after-load "org"
-  (defun auto-capitalize-predicate-org-mode ()
-    (if (not (eq major-mode 'org-mode))
-        t
-      (not (and (fboundp 'org-in-src-block-p) (org-in-src-block-p))))))
+(declare-function org-in-src-block-p "org")
 
+(defun auto-capitalize-org-mode-predicate ()
+  "Returns non-nil if not in org mode, or if inside an org source block.
+
+This predicate is added to `auto-capitalize-predicate-functions' (which
+see) when `org' is loaded."
+  (or (not (eq major-mode 'org-mode))
+      (not (org-in-src-block-p))))
+
+;; Org mode src blocks
+(with-eval-after-load "org"
+  (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-org-mode-predicate))
 
 
 ;; Deprecated functions:
