@@ -328,11 +328,13 @@ included, in lowercase, in `auto-capitalize-fixed-case-words'."
     (unless (member lowercase-word auto-capitalize-fixed-case-words)
       ;; capitalize!
       (undo-boundary)
-      (replace-match (cl-find lowercase-word
-                              auto-capitalize-fixed-case-words
-                              :key 'downcase
-                              :test 'string-equal)
-                     t t))))
+      (when (or (not auto-capitalize-ask)
+                (auto-capitalize--ask))
+        (replace-match (cl-find lowercase-word
+                                auto-capitalize-fixed-case-words
+                                :key 'downcase
+                                :test 'string-equal)
+                       t t)))))
 
 (defun auto-capitalize-check-context (text-start word-start)
   "Check the context around TEXT-START and return non-nil if the word
