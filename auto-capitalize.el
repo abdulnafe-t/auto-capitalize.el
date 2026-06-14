@@ -139,7 +139,7 @@
 ;; Package interface:
 
 (require 'cl-lib) ; cl-find, cl-minusp
-(require 'rx)
+(require 'regexp-opt) ; regexp-opt
 
 (defgroup auto-capitalize nil
   "auto-capitalize customization group"
@@ -171,6 +171,14 @@ if no other condition would get them capitalized. Conversely, a word
 added in lowercase will never be automatically capitalized."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Word list")))
+
+(defcustom auto-capitalize-not-sentence-endings '("e.g." "i.e." "vs.")
+  "List of words that shouldn’t count as sentence ending, even though they
+contain a period. This means that they will not cause a word that comes
+after them to get capitalized, unless it appears, capitalized, in
+`auto-capitalize-fixed-case-words'."
+  :group 'auto-capitalize
+  :type '(repeat (string :tag "Non-sentence ending word.")))
 
 (defcustom auto-capitalize-predicate 'auto-capitalize-default-predicate-function
   "If non-nil, a function that determines whether to enable capitalization
@@ -225,10 +233,6 @@ The file name would be something like .aspell.en.pws."
 
 
 ;; Internal variables:
-
-(defvar auto-capitalize-avoid-words-regex
-  (rx (not (syntax word)) (or "e.g." "i.e." "vs.") (0+ " "))
-  "Regex to avoid words.")
 
 (defconst auto-capitalize-version "3.0"
   "The version of auto-capitalize.el.")
@@ -292,7 +296,7 @@ return non-nil if they are all non-nil:
 
 3) if in `prog-mode', the current text is either a comment or a string
 
-4) if the previous word isn’t \"e.g.\" or \"i.e.\" or the like
+4) if the previous word isn’t \"e.g.\", \"i.e.\" or the like
 
 5) the last typed character was one of
 `auto-capitalize-trigger-chars' (skipped if that list is empty)
@@ -311,11 +315,13 @@ non-nil."
            (and (derived-mode-p 'prog-mode)
                 (save-excursion (nth 8 (syntax-ppss))))
          t)
-       ;; don’t capitalize if previous string is something like [a-z].[a-z].
-       ;; (it’s mainly to prevent capitalize after i.e. or e.g.)
-       (not (and (eq last-command-event ?.)
-                 (memq (char-before (max (point-min) (- (point) 2)))
-                       '(?\  ?\( ?.))))
+
+       (save-excursion
+         (backward-word)
+         (skip-syntax-backward " ")
+         (not (looking-back (regexp-opt auto-capitalize-not-sentence-endings)
+                            (line-beginning-position) t)))
+
        ;; activate after only specific characters you type
        (or (null auto-capitalize-trigger-chars)
            (member last-command-event auto-capitalize-trigger-chars))
@@ -491,36 +497,29 @@ queried."
                   (buffer-substring (match-beginning 0) (match-end 0))))
     (message "")))
 
-(defun auto-capitalize--avoid-word-p ()
-  "Return non-nil if previous word is matched ‘auto-capitalize-avoid-words’."
-  (if auto-capitalize-avoid-words-regex
-      (looking-back auto-capitalize-avoid-words-regex nil)
-    nil))
-
 (defun auto-capitalize-capitalize-preceded-word ()
   "Capitalize preceded by a word character."
   (save-excursion
     (forward-word -1)
-    (unless (auto-capitalize--avoid-word-p)
-      (save-match-data
-        (let* ((word-start (point))
-               (text-start (auto-capitalize--backward)))
-          (cond ((and auto-capitalize-fixed-case-words
-                      (let ((case-fold-search nil))
-                        (goto-char word-start)
-                        (looking-at
-                         (concat "\\("
-                                 (mapconcat 'downcase
-                                            auto-capitalize-fixed-case-words
-                                            "\\|")
-                                 "\\)\\>"))))
-                 (auto-capitalize-handle-fixed-case (match-beginning 1) (match-end 1)))
-                ((auto-capitalize-check-context
-                  text-start word-start)
-                 ;; capitalize!
-                 (undo-boundary)
-                 (goto-char word-start)
-                 (capitalize-word 1))))))))
+    (save-match-data
+      (let* ((word-start (point))
+             (text-start (auto-capitalize--backward)))
+        (cond ((and auto-capitalize-fixed-case-words
+                    (let ((case-fold-search nil))
+                      (goto-char word-start)
+                      (looking-at
+                       (concat "\\("
+                               (mapconcat 'downcase
+                                          auto-capitalize-fixed-case-words
+                                          "\\|")
+                               "\\)\\>"))))
+               (auto-capitalize-handle-fixed-case (match-beginning 1) (match-end 1)))
+              ((auto-capitalize-check-context
+                text-start word-start)
+               ;; capitalize!
+               (undo-boundary)
+               (goto-char word-start)
+               (capitalize-word 1)))))))
 
 (defun auto-capitalize--backward ()
   "Return point of text start."
