@@ -180,22 +180,6 @@ after them to get capitalized, unless it appears, capitalized, in
   :group 'auto-capitalize
   :type '(repeat (string :tag "Non-sentence ending word.")))
 
-(defcustom auto-capitalize-predicate 'auto-capitalize-default-predicate-function
-  "If non-nil, a function that determines whether to enable capitalization
-in the current context.
-
-In auto-capitalize mode, it is called with no arguments and should
-return a non-nil value if the current word is within \"normal\" text.
-
-The default, `auto-capitalize-default-predicate-function' (which see),
-returns non-nil in a large number of contexts, most notably in strings
-and comments in `prog-mode' buffers, but also by calling all functions
-in `auto-capitalize-predicate-functions' (which see) and checking that
-they all return non-nil in the current context."
-  :group 'auto-capitalize
-  :type '(choice (function :tag "Predicate function")
-                 (const nil)))
-
 (define-obsolete-variable-alias
   'auto-capitalize-allowed-chars 'auto-capitalize-trigger-chars "3.0")
 
@@ -212,17 +196,17 @@ auto-capitalize a word."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Buffer name")))
 
-(defcustom auto-capitalize-predicate-functions nil
-  "This is a hook whose functions are called by
-`auto-capitalize-default-predicate-function' (which see). They should
-take no arguments, and return non-nil if auto-capitalization should
-happen in the current context."
-  :group 'auto-capitalize
-  :type '(choice
-          (repeat (function :tag "Predicate that returns non-nil if auto-capitalization should happen in
-the current context."))
-          (const nil)))
+(define-obsolete-variable-alias
+  'auto-capitalize-predicate 'auto-capitalize-predicate-functions "3.0")
 
+(defcustom auto-capitalize-predicate-functions (list #'auto-capitalize-default-predicate-function)
+  "This is a hook whose functions are called by
+`auto-capitalize-capitalize' (which see). They should take no arguments,
+and return non-nil if auto-capitalization should happen in the current
+context."
+  :group 'auto-capitalize
+  :type 'hook
+  :options (list #'auto-capitalize-default-predicate-function))
 
 
 ;; Internal variables:
@@ -260,14 +244,17 @@ This will install `auto-capitalize-capitalize' in
   :keymap nil
   (cond
    ;; Turn off
-   ((or (not auto-capitalize-mode) buffer-read-only
+   ((or (not auto-capitalize-mode)
+        buffer-read-only
         (member (buffer-name) auto-capitalize-inhibit-buffers))
     (setq-local auto-capitalize-state nil)
-    (remove-hook 'after-change-functions 'auto-capitalize-capitalize t))
+    (remove-hook 'after-change-functions 'auto-capitalize-capitalize t)
+    (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-default-predicate-function nil t))
    ;; Turn on
    (t
     (setq-local auto-capitalize-state t)
-    (add-hook 'after-change-functions 'auto-capitalize-capitalize nil t))))
+    (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
+    (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-default-predicate-function nil t))))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-capitalize-global-mode
@@ -292,14 +279,7 @@ return non-nil if they are all non-nil:
 4) if the previous word isn’t \"e.g.\", \"i.e.\" or the like
 
 5) the last typed character was one of
-`auto-capitalize-trigger-chars' (skipped if that list is empty)
-
-6) none of the functions in `auto-capitalize-predicate-functions' (if
-any) return nil
-
-7) the major-mode-specific
-predicate,`auto-capitalize-predicate-<major-mode>', returns non-nil (if
-it is defined)."
+`auto-capitalize-trigger-chars' (skipped if that list is empty)."
 
   (and (not buffer-read-only)
        (not (minibufferp))
@@ -323,14 +303,7 @@ it is defined)."
 
        ;; activate after only specific characters you type
        (or (null auto-capitalize-trigger-chars)
-           (member last-command-event auto-capitalize-trigger-chars))
-       ;; For user hook
-       (run-hook-with-args-until-failure auto-capitalize-predicate-functions)
-       ;; For specific major-mode
-       (let ((fname (intern (format "auto-capitalize-predicate-%s" major-mode))))
-         (if (fboundp fname)
-             (funcall fname)
-           t))))
+           (member last-command-event auto-capitalize-trigger-chars))))
 
 (defun auto-capitalize-inserted-non-word-p (beg end length)
   "Check to see that the last event was a `self-insert-command' of a
@@ -362,14 +335,15 @@ if the `auto-capitalize-yank' option is set, then the first word of
 yanked sentences will be capitalized as well.
 
 Capitalization can be disabled in specific contexts via the
-`auto-capitalize-predicate' variable.
+`auto-capitalize-predicate-functions' hook.
 
 This should be installed as an `after-change-function', which
 `auto-capitalize-mode' does when it is enabled."
   (condition-case error
       (when (and auto-capitalize-state
-                 (or (null auto-capitalize-predicate)
-                     (funcall auto-capitalize-predicate)))
+                 (or (null auto-capitalize-predicate-functions)
+                     (run-hook-with-args-until-failure 'auto-capitalize-predicate-functions)))
+
         (cond ((auto-capitalize-inserted-non-word-p beg end length)
                ;; self-inserting, non-word character
                (when (and (> beg (point-min))
