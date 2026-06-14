@@ -8,7 +8,7 @@
 ;; package)
 ;; Past maintainer: Yuta Yamada <cokesboy at gmail.com>
 ;; Maintainer: Abdulnafé Toulaïmat <abdulnafe.toulaimat@gmail.com>
-;; Package-Requires: ((emacs "24.3") (cl-lib "0.5"))
+;; Package-Requires: ((emacs "26.1"))
 
 ;; Created: 20 May 1998
 ;; Package-Version: 3.0
@@ -124,6 +124,8 @@
 ;; modern equivalent. I have also modified the package’s interface to make it
 ;; simpler to use.
 
+;;; Code:
+
 ;; Package interface:
 
 (require 'cl-lib) ; cl-find
@@ -136,7 +138,7 @@
 ;; User options:
 
 (defgroup auto-capitalize nil
-  "auto-capitalize customization group"
+  "Customization group for the auto-capitalize package."
   :group 'convenience)
 
 (defcustom auto-capitalize-ask nil
@@ -145,13 +147,12 @@
   :type 'boolean)
 
 (defcustom auto-capitalize-yank nil
-  "If non-nil, the first word of yanked sentences are automatically
-capitalized."
+  "If non-nil, the first words of yanked sentences are auto-capitalized."
   :group 'auto-capitalize
   :type 'boolean)
 
 (defcustom auto-capitalize-strings t
-  "If non-nil, strings in prog-mode buffers will be capitalized.
+  "If non-nil, strings in `prog-mode' buffers will be capitalized.
 
 This variable is checked by `auto-capitalize-check-context', meaning it
 should behave the same way regardless of what predicates are in
@@ -160,7 +161,7 @@ should behave the same way regardless of what predicates are in
   :type 'boolean)
 
 (defcustom auto-capitalize-comments t
-  "If non-nil, comments in prog-mode buffers will be capitalized.
+  "If non-nil, comments in `prog-mode' buffers will be capitalized.
 
 This variable is checked by `auto-capitalize-check-context', meaning it
 should behave the same way regardless of what predicates are in
@@ -168,9 +169,8 @@ should behave the same way regardless of what predicates are in
   :group 'auto-capitalize
   :type 'boolean)
 
-(defcustom auto-capitalize-fixed-case-words '("I");  "Stallman" "GNU" "http"
-  "If non-nil, a list of words that will always be in the case they appear
-in here.
+(defcustom auto-capitalize-fixed-case-words '("I") ;  "Stallman" "GNU" "http"
+  "If non-nil, a list of words that will always be in the case they appear in here.
 
 If `auto-capitalize' mode is on, these words will be automatically
 capitalized or upcased as listed (mixed case is allowable as well), even
@@ -180,9 +180,9 @@ added in lowercase will never be automatically capitalized."
   :type '(repeat (string :tag "Word list")))
 
 (defcustom auto-capitalize-not-sentence-endings '("e.g." "i.e." "vs.")
-  "List of words that shouldn’t count as sentence ending, even though they
-contain a period. This means that they will not cause a word that comes
-after them to get capitalized, unless it appears, capitalized, in
+  "List of words that shouldn’t count as sentence ending.
+This means that they will not cause a word that comes after them to get
+capitalized, unless it appears, capitalized, in
 `auto-capitalize-fixed-case-words'."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Non-sentence ending word.")))
@@ -204,10 +204,9 @@ auto-capitalize a word."
 
 (defcustom auto-capitalize-predicate-functions
   (list #'auto-capitalize-default-predicate)
-  "This is a hook whose functions are called by
-`auto-capitalize-capitalize' (which see). They should take no arguments,
-and return non-nil if auto-capitalization should happen in the current
-context."
+  "This is a hook which is called by `auto-capitalize-capitalize' (which see).
+They should take no arguments, and return non-nil if auto-capitalization
+should happen in the current context."
   :group 'auto-capitalize
   :type 'hook
   :options (list #'auto-capitalize-default-predicate))
@@ -216,8 +215,7 @@ context."
 ;; Internal variables:
 
 (defvar auto-capitalize--match-data nil
-  "Internal variable used to hold match data across recursive calls in
-`auto-capitalize-capitalize' (which see).")
+  "Holds match data across recursive calls in `auto-capitalize-capitalize'.")
 
 (defconst auto-capitalize-regex-lower "[[:lower:]]+")
 (defconst auto-capitalize-abbrev-regexp
@@ -259,8 +257,7 @@ This will install `auto-capitalize-capitalize' in
 ;; Internal functions:
 
 (defun auto-capitalize-default-predicate ()
-  "Return non-nil if auto-capitalization should happen in the current
-context.
+  "Return non-nil if auto-capitalization should happen in the current context.
 
 Specifically, check the following conditions for the current buffer, and
 return non-nil if they are all non-nil:
@@ -308,8 +305,7 @@ string (skipped if not in `prog-mode')
            (member last-command-event auto-capitalize-trigger-chars))))
 
 (defun auto-capitalize-inserted-non-word-p (beg end length)
-  "Check to see that the last event was a `self-insert-command' of a
-non-word character.
+  "Return non-nil if the last event was an insertion of a non-word character.
 
 BEG, END, and LENGTH are the position in the buffer where the change
 started, where it ended, and the length of that section before the
@@ -327,26 +323,26 @@ change, respectively, as defined by the documentation of
     (error error)))
 
 (defun auto-capitalize-capitalize (beg end length)
-  "If `auto-capitalize-mode' is enabled, then capitalize the previous word.
-The previous word is capitalized (or upcased) if it appears capitalized
-in `auto-capitalize-fixed-case-words' list, or if it begins a paragraph
-or sentence.
+  "If `auto-capitalize-mode' is enabled, then start the capitalization logic.
 
-Capitalization occurs only if the current command was invoked via a
-self-inserting non-word character (e.g. whitespace or punctuation), but
-if the `auto-capitalize-yank' option is non-nil, then the first word of
-yanked sentences will be capitalized as well, if appropriate.
+This function is installed as an `after-change-function' by
+`auto-capitalize-mode'. As such its three arguments are:
 
-Capitalization can be disabled in specific contexts via the
-`auto-capitalize-predicate-functions' hook.
+BEG, END: buffer positions where the changed text starts and ends,
+respectively.
 
-This should be installed as an `after-change-function', which
-`auto-capitalize-mode' does automatically when it is enabled."
+LENGTH: the length (in chars) of the pre-change text replaced by that
+range. In practice, this is almost always zero, except when yanking text
+and `auto-capitalize-yank' is non-nil.
+
+This function serves as a dispatcher of other functions to decide if the
+word before point (or the first word in yanked text) should be
+capitalized."
+
   (condition-case error
-      (when (and auto-capitalize-mode
-                 (or (null auto-capitalize-predicate-functions)
-                     (run-hook-with-args-until-failure
-                      'auto-capitalize-predicate-functions)))
+      (when (or (null auto-capitalize-predicate-functions)
+                (run-hook-with-args-until-failure
+                 'auto-capitalize-predicate-functions))
 
         (cond ((auto-capitalize-inserted-non-word-p beg end length)
                ;; self-inserting, non-word character
@@ -376,8 +372,14 @@ This should be installed as an `after-change-function', which
     (error error)))
 
 (defun auto-capitalize-handle-fixed-case (m-beg m-end)
-  "Find the word between M-BEG and M-END and capitalize it, unless it is
-included, in lowercase, in `auto-capitalize-fixed-case-words'."
+  "Find the word between M-BEG and M-END and replace it with its fixed-case entry.
+
+If the word between M-BEG and M-END is included, with its current case,
+in `auto-capitalize-fixed-case-words', replace its occurrence in the
+buffer with the one in the list. For example, using the default value of
+the variable `auto-capitalize-fixed-case-words', typing \"i \" produces
+\"I \"."
+
   (let ((lowercase-word (buffer-substring m-beg m-end)))
     (unless (member lowercase-word auto-capitalize-fixed-case-words)
       ;; capitalize!
@@ -391,9 +393,10 @@ included, in lowercase, in `auto-capitalize-fixed-case-words'."
                        t t)))))
 
 (defun auto-capitalize-check-context (text-start word-start)
-  "Check the context around TEXT-START and return non-nil if the word
-beginning at WORD-START should be capitalized. In practice, TEXT-START
-is almost always one character before WORD-START.
+  "Return non-nil if the word beginning at WORD-START should be capitalized.
+
+In practice, TEXT-START is almost always one character before
+WORD-START.
 
 This function returns non-nil if the last command was an insertion of a
 lower-case character, and any of the following conditions hold:
@@ -402,8 +405,8 @@ lower-case character, and any of the following conditions hold:
 
 2) TEXT-START is the first char of a paragraph
 
-3) TEXT-START is the first char of a sentence (identified through
-`sentence-end', which see)
+3) TEXT-START is the first char of a sentence (identified through the
+function `sentence-end', which see)
 
 4) in `prog-mode' buffers, the text of interest is inside a comment or a
 string, and the corresponding option, `auto-capitalize-comments' or
@@ -536,9 +539,7 @@ see) when `org' is loaded."
   (or (not (eq major-mode 'org-mode))
       (not (org-in-src-block-p))))
 
-;; Org mode src blocks
-(with-eval-after-load "org"
-  (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-org-mode-predicate))
+(add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-org-mode-predicate)
 
 
 ;; Old package description, by Yuta Yamada:
