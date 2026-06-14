@@ -87,7 +87,7 @@
 ;; all return non-nil, it proceeds with capitalization.
 ;;
 ;; By default, this hook only contains
-;; `auto-capitalize-default-predicate-function' and, once org is loaded,
+;; `auto-capitalize-default-predicate' and, once org is loaded,
 ;; `auto-capitalize-org-mode-predicate'. You can always write your own
 ;; predicates and add them to this hook.
 ;;
@@ -203,14 +203,14 @@ auto-capitalize a word."
   :type '(repeat (string :tag "Buffer name")))
 
 (defcustom auto-capitalize-predicate-functions
-  (list #'auto-capitalize-default-predicate-function)
+  (list #'auto-capitalize-default-predicate)
   "This is a hook whose functions are called by
 `auto-capitalize-capitalize' (which see). They should take no arguments,
 and return non-nil if auto-capitalization should happen in the current
 context."
   :group 'auto-capitalize
   :type 'hook
-  :options (list #'auto-capitalize-default-predicate-function))
+  :options (list #'auto-capitalize-default-predicate))
 
 
 ;; Internal variables:
@@ -243,12 +243,12 @@ This will install `auto-capitalize-capitalize' in
         (member (buffer-name) auto-capitalize-inhibit-buffers))
     (remove-hook 'after-change-functions 'auto-capitalize-capitalize t)
     (add-hook 'auto-capitalize-predicate-functions
-              #'auto-capitalize-default-predicate-function nil t))
+              #'auto-capitalize-default-predicate nil t))
    ;; Turn on
    (t
     (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
     (add-hook 'auto-capitalize-predicate-functions
-              #'auto-capitalize-default-predicate-function nil t))))
+              #'auto-capitalize-default-predicate nil t))))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-capitalize-global-mode
@@ -258,7 +258,7 @@ This will install `auto-capitalize-capitalize' in
 
 ;; Internal functions:
 
-(defun auto-capitalize-default-predicate-function ()
+(defun auto-capitalize-default-predicate ()
   "Return non-nil if auto-capitalization should happen in the current
 context.
 
