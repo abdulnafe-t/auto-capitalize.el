@@ -85,9 +85,6 @@
 ;;     (modify-syntax-entry ?' ". " text-mode-syntax-table) ; For ASCII-style apostrophe
 ;;     (modify-syntax-entry ?’ ". " text-mode-syntax-table) ; For UNICODE curly apostrophe
 ;;
-;; This effectively makes the apostrophe a word component, meaning it stops being a word
-;; boundary, and "I’ve", "I’m" etc get counted as a single word.
-;;
 ;; To prevent a word from ever being capitalized or upcased
 ;; (e.g. "http"), simply add it (in lowercase) to the
 ;; `auto-capitalize-fixed-case-words' list.
