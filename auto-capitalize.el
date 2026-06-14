@@ -319,7 +319,7 @@ non-nil."
        ;; do not activate after any word in `auto-capitalize-not-sentence-endings'
        (save-excursion
          (backward-word)
-         (not (looking-back (concat (regexp-opt auto-capitalize-not-sentence-endings) "[ \t]*")
+         (not (looking-back (concat (regexp-opt auto-capitalize-not-sentence-endings) "[[:space:][:punct:]]*")
                             (line-beginning-position) t)))
 
        ;; don’t capitalize words that look like [a-z].[a-z]. (it’s mainly to prevent
