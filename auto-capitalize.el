@@ -247,8 +247,8 @@ see `auto-capitalize-mode',`auto-capitalize-global-mode',
   "Internal variable used to hold match data across recursive calls in
 `auto-capitalize-capitalize' (which see).")
 
-(defvar auto-capitalize-regex-lower "[[:lower:]]+")
-(defvar auto-capitalize-regex-verify
+(defconst auto-capitalize-regex-lower "[[:lower:]]+")
+(defconst auto-capitalize-abbrev-regexp
   "\\<\\([[:upper:]]?[[:lower:]]+\\.\\)+\\=")
 
 
@@ -433,7 +433,7 @@ This should be installed as an `after-change-function', which
                           (eq ?\  (char-syntax previous-char))))
                     ;; verify: not preceded by an abbreviation?
                     (let ((case-fold-search nil)
-                          (abbrev-regexp auto-capitalize-regex-verify))
+                          (abbrev-regexp auto-capitalize-abbrev-regexp))
                       (goto-char
                        (1+ (match-beginning 0)))
                       (or (not
