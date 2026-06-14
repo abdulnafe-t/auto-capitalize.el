@@ -125,6 +125,11 @@ capitalized."
   :group 'auto-capitalize
   :type 'boolean)
 
+(defcustom auto-capitalize-comments t
+  "If non-nil, comments in prog-mode buffers will be capitalized."
+  :group 'auto-capitalize
+  :type 'boolean)
+
 (defcustom auto-capitalize-fixed-case-words '("I");  "Stallman" "GNU" "http"
   "If non-nil, a list of words that will always be in the case they appear
 in here.
@@ -414,6 +419,7 @@ queried."
 
                  ;; beginning of a comment?
                  (and
+                  auto-capitalize-comments
                   (re-search-backward comment-start-skip nil t)
                   (= (match-end 0) word-start)))))
 
