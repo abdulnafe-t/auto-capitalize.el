@@ -57,12 +57,13 @@ The user option =auto-capitalize-inhibit-buffers= is a list of buffer names wher
     
 You can set the following boolean options for more fine-grained control:
    
-   | Variable                 | Default value | Description                                             |
-   |--------------------------+---------------+---------------------------------------------------------|
-   | =auto-capitalize-strings=  | =t=             | Capitalize strings in prog-mode buffers                 |
-   | =auto-capitalize-comments= | =t=             | Capitalize comments in prog-mode buffers                |
-   | =auto-capitalize-ask=      | =nil=           | Ask the user before automatically capitalizing anything |
-   | =auto-capitalize-yank=     | =nil=           | Capitalize yanked text as well as typed text            |
+   | Variable                         | Default value | Description                                                                       |
+   |----------------------------------+---------------+-----------------------------------------------------------------------------------|
+   | =auto-capitalize-strings=          | =t=             | Capitalize strings in prog-mode buffers                                           |
+   | =auto-capitalize-comments=         | =t=             | Capitalize comments in prog-mode buffers                                          |
+   | =auto-capitalize-ask=              | =nil=           | Ask the user before automatically capitalizing anything                           |
+   | =auto-capitalize-yank=             | =nil=           | Capitalize yanked text as well as typed text                                      |
+   | =auto-capitalize-outline-headings= | =t=             | Capitalize the first word of headings in text-mode-derived buffers (Org, TeX,...) |
 
 More explanations are in each variable’s respective doc string.
    
@@ -83,6 +84,12 @@ The main entry point is =auto-capitalize-capitalize=. The minor-mode adds it to 
 Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= then calls =auto-capitalize-check-context=. It checks to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence or a paragraph in text-mode, or a comment in prog-mode (if =auto-capitalize-comments= is non-nil), etc.
 
 If all tests pass, voilà! Your word gets capitalized automatically.
+
+* Known issues
+
+=auto-capitalize-outline-headings= doesn’t work in =markdown-mode= buffers. This is because of the value that mode sets =outline-regexp= to, which differs in approach from other text modes. We could add support for it in the future, but that would add some complexity to the code (which is already quite messy).
+
+Of course, if you see a way to make it work, PRs would be more than welcome :)
 
 * Alternatives
 

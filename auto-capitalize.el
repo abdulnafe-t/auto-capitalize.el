@@ -171,6 +171,14 @@ should behave the same way regardless of what predicates are in
   :group 'auto-capitalize
   :type 'boolean)
 
+(defcustom auto-capitalize-outline-headings t
+  "If non-nil, the headings in `text-mode' buffers will be capitalized.
+
+The check is done using the buffer-local value of `outline-regexp',
+which see."
+  :group 'auto-capitalize
+  :type 'boolean)
+
 (defcustom auto-capitalize-fixed-case-words '("I") ;  "Stallman" "GNU" "http"
   "If non-nil, a list of words that will always be in the case they appear in here.
 
@@ -428,8 +436,10 @@ only capitalize if the user answered \"y\"."
    (or (not auto-capitalize-ask)
        (auto-capitalize--ask))
 
+
    (or (and (derived-mode-p 'prog-mode)
             (save-excursion
+
               ;; beginning of a string?
               (or (and auto-capitalize-strings
                        (progn
@@ -443,6 +453,15 @@ only capitalize if the user answered \"y\"."
                          (goto-char word-start)
                          (re-search-backward comment-start-skip nil t))
                        (= (match-end 0) word-start)))))
+
+       (and (derived-mode-p 'text-mode)
+            auto-capitalize-outline-headings
+            (save-excursion
+              (goto-char (line-beginning-position))
+              (when (looking-at outline-regexp)
+                (goto-char (match-end 0))
+                (skip-syntax-forward "^w" (line-end-position))
+                (= (point) word-start))))
 
 
        (or (bobp)
