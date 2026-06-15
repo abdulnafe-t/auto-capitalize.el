@@ -8,7 +8,8 @@
 ;; package)
 ;; Past maintainer: Yuta Yamada <cokesboy at gmail.com>
 ;; Maintainer: Abdulnafé Toulaïmat <abdulnafe.toulaimat@gmail.com>
-;; Package-Requires: ((emacs "26.1"))
+;; Package-Requires: ((emacs "25.1")
+;;                    (compat "31.0"))
 
 ;; Created: 20 May 1998
 ;; Package-Version: 3.0
@@ -128,8 +129,9 @@
 
 ;; Package interface:
 
-(require 'cl-lib) ; cl-find
+(require 'cl-lib)     ; cl-find
 (require 'regexp-opt) ; regexp-opt
+(require 'compat)     ; when-let*
 
 (defconst auto-capitalize-version "3.0"
   "The version of auto-capitalize.el.")
