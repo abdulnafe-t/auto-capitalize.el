@@ -78,7 +78,6 @@
 ;; regardless of the value of `auto-capitalize-strings', "I" will always get
 ;; capitalized in a string, if "I" is included in the list.
 
-
 ;; This package is a revamp of Yuta Yamada’s version
 ;; (https://github.com/yuutayamada/auto-capitalize-el), which is itself a fork
 ;; of the original auto-capitalize.el, written by Kevin Rodgers and shared on
@@ -636,7 +635,6 @@ see) when `org' is loaded."
 
 ;; 6 Sep 2013: Apply SKK package and split functions
 ;; -- Yuta
-
 
 (provide 'auto-capitalize)
 ;;; auto-capitalize.el ends here
