@@ -36,74 +36,37 @@
 ;; When the `auto-capitalize' minor mode is enabled, the first word at the
 ;; beginning of a paragraph or sentence is automatically capitalized when a
 ;; following whitespace or punctuation character is inserted. The same is true
-;; of the first word of a comment or a string in any `prog-mode' buffers where
-;; `auto-capitalize-mode' is enabled.
+;; of the first word of a comment or a string in any `prog-mode' buffer, or
+;; indeed any buffer where comments are defined by the major mode (Org,
+;; TeX,...).
 
 ;; The `auto-capitalize-yank' option controls whether words in yanked text
 ;; should by capitalized in the same way.
 ;;
-;; To install auto-capitalize.el, copy it to a `load-path' directory, then add
-;; this to your .emacs:
-;
-;;     (require 'auto-capitalize)
-;;
-;; Then, to turn on (unconditional) capitalization in all `text-mode' buffers,
-;; as well as in comments and strings in `prog-mode' buffers, add this to your
-;; .emacs:
-;;
-;;     (auto-capitalize-global-mode)
-;;
-;; Or, with `use-package':
-;;
-;;     (use-package auto-capitalize
-;;         :init
-;;         (auto-capitalize-global-mode))
-;;
-;; to enable the mode globally, or
-;;
-;;     (use-package auto-capitalize
-;;         :hook
-;;         (prog-mode-hook . auto-capitalize-mode)
-;;         (text-mode-hook . auto-capitalize-mode))
-;;
-;; to only enable the mode in specific modes (such as text- and prog-mode in
-;; this case).
-;;
-;; To trigger capitalization for contractions (such as I’ve, I’m, etc.) in
-;;     text-mode buffers, add the following to your init.el:
-;;
-;;     ; For ASCII-style apostrophe
-;;     (modify-syntax-entry ?' ". " text-mode-syntax-table)
-;;
-;;     ; For UNICODE curly apostrophe
-;;     (modify-syntax-entry ?’ ". " text-mode-syntax-table)
-;;
-;; Alternatively, you can specify buffer names where you do not want
-;; auto-capitalization to occur. See the documentation of
-;; `auto-capitalization-inhibit-buffers'.
+;; You can specify buffer names where you do not want auto-capitalization to
+;; occur. See the documentation of `auto-capitalization-inhibit-buffers'.
 ;;
 ;; The decision on whether or not a word should be capitalized is handled by
 ;; predicate functions: `auto-capitalize-capitalize' calls all functions in
 ;; `auto-capitalize-predicate-functions' in turn, until one returns nil. If they
 ;; all return non-nil, it proceeds with capitalization.
 ;;
-;; By default, this hook only contains
-;; `auto-capitalize-default-predicate' and, once org is loaded,
-;; `auto-capitalize-org-mode-predicate'. You can always write your own
-;; predicates and add them to this hook.
+;; By default, this hook only contains `auto-capitalize-default-predicate' and,
+;; once `org' is loaded, `auto-capitalize-org-mode-predicate'. You can always
+;; write your own predicates and add them to this hook.
 ;;
 ;; Alternatively, if you do not want to write a whole new predicate, you can
-;; always customize some of the custom variables in the `auto-capitalize' group.
+;; always customize some of the user options in the `auto-capitalize' group.
 ;; Examples include `auto-capitalize-strings', which controls whether strings in
 ;; prog-mode should be auto-capitalized, and its comment analogue
 ;; `auto-capitalize-comments'.
 ;;
-;; The `auto-capitalize-fixed-case-words' variable can be customized to specify
-;; certain words that should always be in a specific case, regardless of their
-;; position in the text. Any word that is added to this list in lowercase will
-;; be skipped when capitalizing, while any word that is added in uppercase (or
-;; mixed case) will be replaced in text by its version in the list. By default,
-;; this contains the english pronoun "I".
+;; `auto-capitalize-fixed-case-words' can be customized to specify certain words
+;; that should always be in a specific case, regardless of their position in the
+;; text. Any word that is added to this list in lowercase will be skipped when
+;; capitalizing, while any word that is added in uppercase (or mixed case) will
+;; be replaced in text by its version in the list. By default, this list
+;; contains the english pronoun "I" only.
 ;;
 ;; If a word is included, in upper case, in `auto-capitalize-fixed-case-words',
 ;; and you want to prevent it from getting capitalized one time, type the word,
