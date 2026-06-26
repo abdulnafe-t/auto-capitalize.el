@@ -429,8 +429,9 @@ only capitalize if the user answered \"y\"."
   (and
    ;; inserting lowercase text?
    (let ((case-fold-search nil))
-     (goto-char word-start)
-     (looking-at auto-capitalize-regex-lower))
+     (save-excursion
+       (goto-char word-start)
+       (looking-at auto-capitalize-regex-lower)))
 
    ;; the user answered y when asked?
    (or (not auto-capitalize-ask)
