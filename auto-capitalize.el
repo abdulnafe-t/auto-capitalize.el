@@ -474,7 +474,12 @@ only capitalize if the user answered \"y\"."
                     (save-excursion
                       (and (re-search-backward paragraph-start nil t)
                            (= (match-end 0) text-start)
-                           (= (current-column) left-margin)))))
+                           (= (current-column) left-margin)))
+
+                    ;; beginning of line after an outline heading?
+                    (save-excursion
+                      (and (zerop (forward-line -1))
+                           (looking-at outline-regexp)))))
 
            ;; beginning of sentence?
            (save-excursion
