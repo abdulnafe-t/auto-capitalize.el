@@ -522,7 +522,7 @@ only capitalize if the user answered \"y\"."
 
 This predicate is added to `auto-capitalize-predicate-functions' (which
 see) when `org' is loaded."
-  (or (not (eq major-mode 'org-mode))
+  (or (not (derived-mode-p 'org-mode))
       (not (org-in-src-block-p))))
 
 (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-org-mode-predicate)
