@@ -445,14 +445,18 @@ only capitalize if the user answered \"y\"."
                        (progn
                          (goto-char word-start)
                          (when-let* ((string-start (nth 8 (syntax-ppss))))
-                           (eq (1+ string-start) word-start))))
+                           (eq (1+ string-start) word-start)))))))
 
-                  ;; beginning of a comment?
-                  (and auto-capitalize-comments
-                       (progn
-                         (goto-char word-start)
-                         (re-search-backward comment-start-skip nil t))
-                       (= (match-end 0) word-start)))))
+       ;; beginning of a comment?
+       ;; This check is not limited to prog-mode, since modes like Org
+       ;; and TeX have their own comment syntax, but are technically derived form
+       ;; ‘text-mode’.
+       (save-excursion
+         (and auto-capitalize-comments
+              (progn
+                (goto-char word-start)
+                (re-search-backward comment-start-skip nil t))
+              (= (match-end 0) word-start)))
 
        (and (derived-mode-p 'text-mode)
             auto-capitalize-outline-headings

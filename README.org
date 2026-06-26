@@ -1,6 +1,7 @@
 #+title: =auto-capitalize.el=
 #+author: Abdulnafé Toulaïmat
 #+language: en_US
+#+options: f:t
 
 Automatically capitalize text as you type.
 
@@ -14,7 +15,7 @@ Put =auto-capitalize.el= somewhere in your load-path, then put this in your =.em
 #+end_src
 
  This turns on capitalization in all =text-mode= buffers, as well as in comments and strings
- in =prog-mode= buffers.
+ in =prog-mode= buffers [fn:1].
 
  Additionally, if you want to automatically capitalize abbreviations such as "I’ve", "I’m", etc., put this in your =.emacs=:
 
@@ -58,7 +59,7 @@ You can set the following boolean options for more fine-grained control:
    | Variable                         | Default value | Description                                                                       |
    |----------------------------------+---------------+-----------------------------------------------------------------------------------|
    | =auto-capitalize-strings=          | =t=             | Capitalize strings in prog-mode buffers                                           |
-   | =auto-capitalize-comments=         | =t=             | Capitalize comments in prog-mode buffers                                          |
+   | =auto-capitalize-comments=         | =t=             | Capitalize comments in modes that define comments (prog-mode, org-mode, etc)      |
    | =auto-capitalize-ask=              | =nil=           | Ask the user before automatically capitalizing anything                           |
    | =auto-capitalize-yank=             | =nil=           | Capitalize yanked text as well as typed text                                      |
    | =auto-capitalize-outline-headings= | =t=             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...) |
@@ -85,9 +86,18 @@ If all tests pass, voilà! Your word gets capitalized automatically.
 
 * Known issues
 
-=auto-capitalize-outline-headings= doesn’t work in =markdown-mode= buffers. This is because of the value that mode sets =outline-regexp= to, which differs in approach from other text modes. We could add specific support for it in the future, but that would add some complexity to the code (which is already quite messy).
+- =auto-capitalize-outline-headings= doesn’t work in =markdown-mode= buffers. This is because of the value that mode sets =outline-regexp= to, which differs in approach from other text modes. We could add specific support for it in the future, but that would add some complexity to the code (which is already quite messy).
 
-It also only affects the first word in a heading for now. This means that, if this variable is nil, in a heading containing more than one sentence, the very first word will get ignored, while the first word after a full stop (or any member of =auto-capitalize-trigger-chars=) will get capitalized.
+  It also only affects the first word in a heading for now. This means that, if this variable is nil, then the very first word of a heading containing more than one sentence will get ignored, while the first word after a full stop (or after any member of =auto-capitalize-trigger-chars=) will get capitalized.
+
+- Quoted text in =TeX-mode= buffers, such as
+
+  #+begin_src TeX
+``some text here``
+  #+end_src
+
+  does not get capitalized. Again, this only affects the first word ("some" in the example), as the other rules apply as usual (beginning of a sentence, comment, etc).
+
 
 Of course, if you have ideas on how to solve any of these issues or otherwise improve the package, PRs are more than welcome :)
 
@@ -102,3 +112,7 @@ The original =auto-capitalize.el= was written by Kevin Rodgers. It got shared ar
 The [[https://github.com/yuutayamada/auto-capitalize-el][fork by Yuta Yamada]] on GitHub is the basis for this package. Although it appears largely unmaintained now, the work he put into refactoring it was the starting point from which I continued to streamline and modernize the codebase, at least at the surface level. The package’s core mechanics are definitely dated and improvements are possible.
 
 Note that this package is not fully compatible with either the original or Yuta Yamada’s fork: the interface is different, and XEmacs support is dropped entirely. But hopefully you won’t need any crazy configuration to get it working right :)
+
+* Footnotes
+
+[fn:1] Or where it makes sense, for instance Org and TeX have comments, but are technically derived from =text-mode=.
