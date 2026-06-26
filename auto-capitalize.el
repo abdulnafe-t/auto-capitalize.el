@@ -453,6 +453,7 @@ only capitalize if the user answered \"y\"."
        ;; ‘text-mode’.
        (save-excursion
          (and auto-capitalize-comments
+              comment-start-skip
               (progn
                 (goto-char word-start)
                 (re-search-backward comment-start-skip nil t))
