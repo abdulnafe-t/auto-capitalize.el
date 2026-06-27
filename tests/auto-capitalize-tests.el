@@ -98,5 +98,31 @@
     (should (equal (buffer-string)
                    "\\section{A }"))))
 
+
+;;;; Tests for `emacs-lisp-mode'
+;; `emacs-lisp-mode' is used as a proxy for `prog-mode'
+
+(ert-deftest auto-capitalize-prog-comments ()
+  "Capitalize the first word in `prog-mode' comments.
+
+Test both cases depending on the value of the user option
+`auto-capitalize-comments'."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (auto-capitalize-mode 1)
+    (setq-local auto-capitalize-comments t)
+    (ert-simulate-command '(comment-dwim 2))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   ";; A "))
+    (erase-buffer)
+    (setq-local auto-capitalize-comments nil)
+    (ert-simulate-command '(comment-dwim 2))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   ";; a "))))
+
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
