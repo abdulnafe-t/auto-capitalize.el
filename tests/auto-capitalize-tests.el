@@ -86,5 +86,17 @@
     (should (equal (buffer-string)
                    "A \\% b "))))
 
+(ert-deftest auto-capitalize-tex-sections ()
+  "Capitalize the first word in a \\section{} title."
+  (with-temp-buffer
+    (tex-mode)
+    (auto-capitalize-mode 1)
+    (insert "\\section{}")
+    (forward-char -1)
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "\\section{A }"))))
+
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
