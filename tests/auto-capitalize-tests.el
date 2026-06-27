@@ -150,5 +150,15 @@ Test both cases depending on the value of the user option
     (should (equal (buffer-string)
                    "\"a \""))))
 
+(ert-deftest auto-capitalize-prog-ignore-bob ()
+  "Don't capitalize the very first word in `prog-mode' buffers."
+  (with-temp-buffer
+    (c-mode)
+    (auto-capitalize-mode 1)
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "a "))))
+
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
