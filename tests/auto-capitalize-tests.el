@@ -28,6 +28,9 @@
 (require 'ert-x)                        ; For `ert-simulate-command'
 (require 'auto-capitalize)
 
+
+;;;; Tests for `text-mode'
+
 (ert-deftest auto-capitalize-bob ()
   "Capitalize the first word in a text-mode buffer."
   (with-temp-buffer
@@ -53,7 +56,6 @@
       (should (equal (buffer-string)
                      (concat "A" (char-to-string trigger)))))))
 
-
 
 ;;;; Tests for `tex-mode'
 
@@ -68,8 +70,6 @@
     (ert-simulate-command '(self-insert-command 1 ?\s))
     (should (equal (buffer-string)
                    "% A "))))
-
-
 
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
