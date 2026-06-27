@@ -31,7 +31,7 @@
 
 ;;;; Tests for `text-mode'
 
-(ert-deftest auto-capitalize-bob ()
+(ert-deftest auto-capitalize-text-bob ()
   "Capitalize the first word in a text-mode buffer."
   (with-temp-buffer
     (text-mode)
@@ -41,7 +41,7 @@
     (ert-simulate-command '(self-insert-command 1 ?\s))
     (should (equal (buffer-string) "A "))))
 
-(ert-deftest auto-capitalize-triggers ()
+(ert-deftest auto-capitalize-text-triggers ()
   ;; FIXME: fails for ?. because of the i.e./e.g. exception
   "Capitalize the previous word after `auto-capitalize-trigger-chars'."
   :expected-result :failed
@@ -71,7 +71,7 @@
     (should (equal (buffer-string)
                    "% A "))))
 
-(ert-deftest auto-capitalize-ignore-tex-% ()
+(ert-deftest auto-capitalize-tex-ignore-inline-% ()
   "Don't capitalize the first word after an inline `\\%' in `tex-mode'."
   (with-temp-buffer
     (tex-mode)
