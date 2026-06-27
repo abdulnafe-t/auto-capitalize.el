@@ -273,7 +273,8 @@ string (skipped if not in `prog-mode')
        ;; activate after only specific characters you type, or after yanking
        ;; text instead of typing
        (or (null auto-capitalize-trigger-chars)
-           (not (eq this-command 'self-insert-command))
+           (not (memq this-command `(self-insert-command
+                                     ,(command-remapping 'self-insert-command))))
            (member last-command-event auto-capitalize-trigger-chars))))
 
 (defun auto-capitalize-inserted-non-word-p (beg end length)
@@ -284,7 +285,8 @@ started, where it ended, and the length of that section before the
 change, respectively, as defined by the documentation of
 `after-change-functions' (which see)."
   (condition-case error
-      (or (and (or (eq this-command 'self-insert-command)
+      (or (and (or (memq this-command `(self-insert-command
+                                        ,(command-remapping 'self-insert-command)))
                    (let ((key (this-command-keys)))
                      (and (eq (lookup-key global-map key t)
                               'self-insert-command)
