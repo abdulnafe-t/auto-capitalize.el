@@ -32,7 +32,7 @@
 ;;;; Tests for `text-mode'
 
 (ert-deftest auto-capitalize-text-bob ()
-  "Capitalize the first word in a text-mode buffer."
+  "Capitalize the first word in a `text-mode' buffer."
   (with-temp-buffer
     (text-mode)
     (auto-capitalize-mode 1)
@@ -60,7 +60,7 @@
 ;;;; Tests for `tex-mode'
 
 (ert-deftest auto-capitalize-tex-comments ()
-  "Capitalize the first word in a comment in `tex-mode'."
+  "Capitalize the first word in a `tex-mode' comment."
   (with-temp-buffer
     (tex-mode)
     (auto-capitalize-mode 1)
@@ -72,7 +72,7 @@
                    "% A "))))
 
 (ert-deftest auto-capitalize-tex-ignore-inline-% ()
-  "Don't capitalize the first word after an inline `\\%' in `tex-mode'."
+  "Don't capitalize the first word after an inline (escaped) `%' in `tex-mode'."
   (with-temp-buffer
     (tex-mode)
     (auto-capitalize-mode 1)
@@ -87,7 +87,7 @@
                    "A \\% b "))))
 
 (ert-deftest auto-capitalize-tex-sections ()
-  "Capitalize the first word in a \\section{} title."
+  "Capitalize the first word in a `tex-mode' \\section{} title."
   (with-temp-buffer
     (tex-mode)
     (auto-capitalize-mode 1)
