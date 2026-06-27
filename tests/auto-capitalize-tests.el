@@ -42,7 +42,7 @@
     (should (equal (buffer-string) "A "))))
 
 (ert-deftest auto-capitalize-text-triggers ()
-  ;; FIXME: fails for ?. because of the i.e./e.g. exception
+  ;; Fails for ?' which requires the syntax-table modification in the README
   "Capitalize the previous word after `auto-capitalize-trigger-chars'."
   :expected-result :failed
   (with-temp-buffer
