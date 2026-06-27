@@ -43,6 +43,7 @@
   (with-temp-buffer
     (text-mode)
     (auto-capitalize-mode 1)
+    (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
     (dolist (trigger auto-capitalize-trigger-chars)
       (erase-buffer)
       (ert-simulate-command '(self-insert-command 1 ?a))
