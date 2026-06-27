@@ -116,6 +116,7 @@ Test both cases depending on the value of the user option
     (ert-simulate-command '(self-insert-command 1 ?\s))
     (should (equal (buffer-string)
                    ";; A "))
+
     (erase-buffer)
     (setq-local auto-capitalize-comments nil)
     (ert-simulate-command '(comment-dwim 2))
@@ -123,6 +124,31 @@ Test both cases depending on the value of the user option
     (ert-simulate-command '(self-insert-command 1 ?\s))
     (should (equal (buffer-string)
                    ";; a "))))
+
+(ert-deftest auto-capitalize-prog-strings ()
+  "Capitalize the first word in `prog-mode' strings.
+
+Test both cases depending on the value of the user option
+`auto-capitalize-strings'."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (auto-capitalize-mode 1)
+    (setq-local auto-capitalize-strings t)
+    (insert "\"\"")
+    (forward-char -1)
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "\"A \""))
+
+    (erase-buffer)
+    (setq-local auto-capitalize-strings nil)
+    (insert "\"\"")
+    (forward-char -1)
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "\"a \""))))
 
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
