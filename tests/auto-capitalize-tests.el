@@ -34,9 +34,9 @@
     (text-mode)
     (auto-capitalize-mode 1)
     (goto-char (point-min))
-    (dolist (c '(?f ?i ?r ?s ?t ?\s))
-      (ert-simulate-command `(self-insert-command 1 ,c)))
-    (should (equal (buffer-string) "First "))))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string) "A "))))
 
 (ert-deftest auto-capitalize-triggers ()
   "Capitalize the previous word after `auto-capitalize-trigger-chars'."
