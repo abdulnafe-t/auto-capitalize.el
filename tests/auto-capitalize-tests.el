@@ -99,8 +99,49 @@
                    "\\section{A }"))))
 
 
-;;;; Tests for `emacs-lisp-mode'
-;; `emacs-lisp-mode' is used as a proxy for `prog-mode'
+;;;; Tests for ‘org-mode’
+
+(ert-deftest auto-capitalize-org-comments ()
+  "Capitalize the first word in `org-mode' comments."
+  (with-temp-buffer
+    (org-mode)
+    (auto-capitalize-mode 1)
+    (ert-simulate-command '(self-insert-command 1 ?#))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "# A "))))
+
+(ert-deftest auto-capitalize-org-ignore-inline-hash ()
+  "Don't capitalize the first word after an inline `#' in `org-mode'."
+  (with-temp-buffer
+    (org-mode)
+    (auto-capitalize-mode 1)
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (ert-simulate-command '(self-insert-command 1 ?#))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (ert-simulate-command '(self-insert-command 1 ?b))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "A # b "))))
+
+(ert-deftest auto-capitalize-org-headings ()
+  "Capitalize the first word in `org-mode' headings."
+  (with-temp-buffer
+    (org-mode)
+    (auto-capitalize-mode 1)
+    (ert-simulate-command '(self-insert-command 1 ?*))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "* A "))))
+
+
+;;;; Tests for `prog-mode'
+;; `emacs-lisp-mode' and `c-mode' are used as proxies
 
 (ert-deftest auto-capitalize-prog-comments ()
   "Capitalize the first word in `prog-mode' comments.
