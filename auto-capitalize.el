@@ -159,7 +159,7 @@ capitalized, unless it appears, capitalized, in
   :group 'auto-capitalize
   :type '(repeat (string :tag "Non-sentence ending word.")))
 
-(defcustom auto-capitalize-trigger-chars '(?\  ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
+(defcustom auto-capitalize-trigger-chars '(?\s ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
   "List of chars that trigger auto-capitalization on the preceding word.
 If set to nil, this variable is ignored when deciding whether to
 auto-capitalize a word."
@@ -268,7 +268,7 @@ string (skipped if not in `prog-mode')
        ;; mainly to prevent capitalizing "i.e." or "e.g.")
        (not (and (eq last-command-event ?.)
                  (memq (char-before (max (point-min) (- (point) 2)))
-                       '(?\  ?\( ?. ?\"))))
+                       '(?\s ?\( ?. ?\"))))
 
        ;; activate after only specific characters you type, or after yanking
        ;; text instead of typing
@@ -456,7 +456,7 @@ only capitalize if the user answered \"y\"."
                   ;; In some modes, newline (^J, aka LFD) is comment-end, not
                   ;; whitespace:
                   (or (eq ?\n previous-char)
-                      (eq ?\  (char-syntax previous-char))))
+                      (eq ?\s (char-syntax previous-char))))
 
                 ;; verify: not preceded by an abbreviation?
                 (let ((case-fold-search nil)
