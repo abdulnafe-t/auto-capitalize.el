@@ -71,5 +71,20 @@
     (should (equal (buffer-string)
                    "% A "))))
 
+(ert-deftest auto-capitalize-ignore-tex-% ()
+  "Don't capitalize the first word after an inline `\\%' in `tex-mode'."
+  (with-temp-buffer
+    (tex-mode)
+    (auto-capitalize-mode 1)
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (ert-simulate-command '(self-insert-command 1 ?\\))
+    (ert-simulate-command '(self-insert-command 1 ?%))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (ert-simulate-command '(self-insert-command 1 ?b))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "A \\% b "))))
+
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
