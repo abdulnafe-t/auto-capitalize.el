@@ -50,5 +50,23 @@
       (should (equal (buffer-string)
                      (concat "A" (char-to-string trigger)))))))
 
+
+
+;;;; Tests for `tex-mode'
+
+(ert-deftest auto-capitalize-tex-comments ()
+  "Capitalize the first word in a comment in `tex-mode'."
+  (with-temp-buffer
+    (tex-mode)
+    (auto-capitalize-mode 1)
+    (ert-simulate-command '(self-insert-command 1 ?%))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "% A "))))
+
+
+
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
