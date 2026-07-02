@@ -175,10 +175,12 @@ auto-capitalize a word."
   :type '(repeat (string :tag "Buffer name")))
 
 (defcustom auto-capitalize-predicate-functions
-  (list #'auto-capitalize-default-predicate)
+  (list #'auto-capitalize-default-predicate
+        #'auto-capitalize-org-mode-predicate
+        #'auto-capitalize-TeX-mode-predicate)
   "This is a hook which is called by `auto-capitalize-capitalize' (which see).
-They should take no arguments, and return non-nil if auto-capitalization
-should happen in the current context."
+Functions added to this hook should take no arguments, and return nil
+only if auto-capitalization should not happen in the current context."
   :group 'auto-capitalize
   :type 'hook
   :options (list #'auto-capitalize-default-predicate))
@@ -207,18 +209,17 @@ This will install `auto-capitalize-capitalize' in
   :lighter " ACap"
   :keymap nil
   (cond
-   ;; Turn off
-   ((or (not auto-capitalize-mode)
-        buffer-read-only
-        (member (buffer-name) auto-capitalize-inhibit-buffers))
-    (remove-hook 'after-change-functions 'auto-capitalize-capitalize t)
-    (add-hook 'auto-capitalize-predicate-functions
-              #'auto-capitalize-default-predicate nil t))
-   ;; Turn on
-   (t
-    (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
-    (add-hook 'auto-capitalize-predicate-functions
-              #'auto-capitalize-default-predicate nil t))))
+    ;; Turn off
+    ((or (not auto-capitalize-mode)
+         buffer-read-only
+         (member (buffer-name) auto-capitalize-inhibit-buffers))
+     (remove-hook 'after-change-functions 'auto-capitalize-capitalize t))
+
+    ;; Turn on
+    (t
+     (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
+     (add-hook 'auto-capitalize-predicate-functions
+               #'auto-capitalize-default-predicate))))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-capitalize-global-mode
@@ -522,11 +523,10 @@ only capitalize if the user answered \"y\"."
   "Returns non-nil if not in org mode, or if inside an org source block.
 
 This predicate is added to `auto-capitalize-predicate-functions' (which
-see) when `org' is loaded."
+see)."
   (or (not (derived-mode-p 'org-mode))
       (not (org-in-src-block-p))))
 
-(add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-org-mode-predicate)
 
 ;; TeX mode: We need to handle TeX-mode math specifically.
 
