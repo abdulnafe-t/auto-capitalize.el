@@ -527,6 +527,21 @@ see) when `org' is loaded."
       (not (org-in-src-block-p))))
 
 (add-hook 'auto-capitalize-predicate-functions #'auto-capitalize-org-mode-predicate)
+
+;; TeX mode: We need to handle TeX-mode math specifically.
+
+(declare-function texmathp "ext:texmathp")
+
+(defun auto-capitalize-TeX-mode-predicate ()
+  "Returns non-nil if not in TeX mode, or if inside a TeX math block.
+
+This predicate is added to `auto-capitalize-predicate-functions' (which
+see).
+
+Note that this functions requires `texmathp' from the `AUCTeX' package
+to work, without which it is a NOP."
+  (or (not (derived-mode-p 'TeX-mode))
+      (not (texmathp))))
 
 
 ;; Old package description, by Yuta Yamada:
