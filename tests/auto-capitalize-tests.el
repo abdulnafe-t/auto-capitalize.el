@@ -101,8 +101,8 @@
 
 ;;;; Tests for `TeX-mode'
 
-(ert-deftest auto-capitalize-TeX-math ()
-  "Do not capitalize anything in `TeX-mode' math blocks."
+(ert-deftest auto-capitalize-TeX-math-dollar ()
+  "Do not capitalize anything in `TeX-mode' $$ blocks."
   (skip-unless (featurep 'auctex))
   (with-temp-buffer
     (TeX-mode)
@@ -129,6 +129,34 @@
     (should (equal (buffer-string)
                    "$i "))))
 
+(ert-deftest auto-capitalize-TeX-math-equation ()
+  "Do not capitalize anything in `TeX-mode' \equation{} env."
+  (skip-unless (featurep 'auctex))
+  (with-temp-buffer
+    (TeX-mode)
+    (auto-capitalize-mode 1)
+    (insert "\\begin{equation}\n\n\\end{equation}")
+    (forward-line -1)
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "\\begin{equation}\na \n\\end{equation}"))
+    (erase-buffer)
+    (insert "\\begin{equation}\n\n\\end{equation}")
+    (forward-line -1)
+    (ert-simulate-command '(self-insert-command 1 ?.))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "\\begin{equation}\n. a \n\\end{equation}"))
+    (erase-buffer)
+    (insert "\\begin{equation}\n\n\\end{equation}")
+    (forward-line -1)
+    (ert-simulate-command '(self-insert-command 1 ?i))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "\\begin{equation}\ni \n\\end{equation}"))))
 
 ;;;; Tests for ‘org-mode’
 
