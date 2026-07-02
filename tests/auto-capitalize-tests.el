@@ -99,6 +99,37 @@
                    "\\section{A }"))))
 
 
+;;;; Tests for `TeX-mode'
+
+(ert-deftest auto-capitalize-TeX-math ()
+  "Do not capitalize anything in `TeX-mode' math blocks."
+  (skip-unless (featurep 'auctex))
+  (with-temp-buffer
+    (TeX-mode)
+    (auto-capitalize-mode 1)
+    (when (fboundp #'electric-pair-mode)
+      (electric-pair-local-mode -1))
+    (ert-simulate-command '(self-insert-command 1 ?$))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "$a "))
+    (erase-buffer)
+    (ert-simulate-command '(self-insert-command 1 ?$))
+    (ert-simulate-command '(self-insert-command 1 ?.))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "$. a "))
+    (erase-buffer)
+    (ert-simulate-command '(self-insert-command 1 ?$))
+    (ert-simulate-command '(self-insert-command 1 ?i))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "$i "))))
+
+
 ;;;; Tests for ‘org-mode’
 
 (ert-deftest auto-capitalize-org-comments ()
