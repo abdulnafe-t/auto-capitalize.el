@@ -70,7 +70,7 @@ There is also =auto-capitalize-fixed-case-words=, which is a list of words whose
 
 Capitalization is skipped if the word to be capitalized happens to be right after one of the entries in =auto-capitalize-not-sentence-endings=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not convert the "y" to uppercase.
 
-Finally, for true control, there is the core of how the package works: =auto-capitalize-predicate-functions= is a hook whose functions are called, in turn, and if all return non-nil, then capitalization occurs. By default, this only contains =auto-capitalize-default-predicate-function=, and, once org mode is loaded, =auto-capitalize-org-mode-predicate=. You can write your own predicates and add them to the hook to specify exactly when capitalization should occur (or not occur).
+Finally, for true control, there is the core of how the package works: =auto-capitalize-predicate-functions= is a hook whose functions are called, in turn, and if all return non-nil, then capitalization occurs. By default, this only contains =auto-capitalize-default-predicate-function=, =auto-capitalize-org-mode-predicate=, and =auto-capitalize-TeX-mode-predicate=. You can write your own predicates and add them to the hook to specify exactly when capitalization should occur (or not occur).
 
 * How it works
 
