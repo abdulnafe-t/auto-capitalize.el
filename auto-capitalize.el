@@ -232,7 +232,7 @@ This will install `auto-capitalize-capitalize' in
 (defun auto-capitalize-default-predicate ()
   "Return non-nil if auto-capitalization should happen in the current context.
 
-Specifically, check the following conditions for the current buffer, and
+Specifically, check the current buffer for the following conditions, and
 return non-nil if they are all non-nil:
 
 1) It is not read-only
