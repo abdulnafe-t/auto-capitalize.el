@@ -35,13 +35,13 @@ Put =auto-capitalize.el= somewhere in your load-path, then put this in your =.em
      (modify-syntax-entry ?’ ".   " text-mode-syntax-table))
  #+end_src
 
- and that’s it, start typing to try it out!
+ and that’s it. Start typing to try it out!
 
 * Customization
 
 Things should just work for most users, with sensible defaults. However, there are customization options in the =auto-capitalize= group. At a high-level, you don’t need to know the ins-and-outs of how the package works. There are convenient user options that should let you get the behavior you want.
 
-If you  want to limit auto-capitalization to certain modes instead of enabling it globally, replace =auto-capitalize-global-mode= in the snippets above with =auto-capitalize-mode=, which is the buffer-local version. You can add that to any mode’s hook you want. For example, to only enable =auto-capitalize.el= in text-mode buffers, but not prog-mode, you could say:
+If you want to limit auto-capitalization to certain modes instead of enabling it globally, replace =auto-capitalize-global-mode= in the snippets above with =auto-capitalize-mode=, which is the buffer-local version. You can add that to any mode’s hook you want. For example, to only enable =auto-capitalize.el= in text-mode buffers, but not prog-mode, you could say:
 
  #+begin_src elisp
    (use-package auto-capitalize
@@ -53,7 +53,7 @@ If you  want to limit auto-capitalization to certain modes instead of enabling i
  #+end_src
 
 The user option =auto-capitalize-inhibit-buffers= is a list of buffer names where you want to disable auto-capitalization. 
-    
+
 You can set the following boolean options for more fine-grained control:
    
    | Variable                         | Default value | Description                                                                       |
@@ -65,8 +65,8 @@ You can set the following boolean options for more fine-grained control:
    | =auto-capitalize-outline-headings= | =t=             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...) |
 
 More explanations are in each variable’s respective doc string.
-   
-There is also =auto-capitalize-fixed-case-words=, which is a list of words whose case will always be forced to be exactly how it is in the list. For example, the english pronoun "I" -  the only default entry - means that lowercase "i" followed by any character in =auto-capitalize-trigger-chars= will be replaced with "I". You can, of course, customize =auto-capitalize-trigger-chars= as well!
+
+There is also =auto-capitalize-fixed-case-words=, which is a list of words whose case will always be forced to be exactly how it is in the list. For example, the english pronoun "I" - the only default entry - means that lowercase "i" followed by any character in =auto-capitalize-trigger-chars= will be replaced with "I". You can, of course, customize =auto-capitalize-trigger-chars= as well!
 
 Capitalization is skipped if the word to be capitalized happens to be right after one of the entries in =auto-capitalize-not-sentence-endings=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not convert the "y" to uppercase.
 
@@ -97,7 +97,6 @@ If all tests pass, voilà! Your word gets capitalized automatically.
   #+end_src
 
   does not get capitalized. Again, this only affects the first word ("some" in the example), as the other rules apply as usual (beginning of a sentence, comment, etc).
-
 
 Of course, if you have ideas on how to solve any of these issues or otherwise improve the package, PRs are more than welcome :)
 
