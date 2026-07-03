@@ -39,7 +39,7 @@ Put =auto-capitalize.el= somewhere in your load-path, then put this in your =.em
 
 * Customization
 
-Things should just work for most users, with sensible defaults. However, there are customization options in the =auto-capitalize= group. At a high-level, you don’t need to know the ins-and-outs of how the package works. There are convenient user options that should let you get the behavior you want.
+Things should just work for most users, with sensible defaults. However, there are customization options in the =auto-capitalize= group. Those should let you get the behavior you want.
 
 If you want to limit auto-capitalization to certain modes instead of enabling it globally, replace =auto-capitalize-global-mode= in the snippets above with =auto-capitalize-mode=, which is the buffer-local version. You can add that to any mode’s hook you want. For example, to only enable =auto-capitalize.el= in text-mode buffers, but not prog-mode, you could say:
 
@@ -66,15 +66,15 @@ You can set the following boolean options for more fine-grained control:
 
 More explanations are in each variable’s respective doc string.
 
-There is also =auto-capitalize-fixed-case-words=, which is a list of words whose case will always be forced to be exactly how it is in the list. For example, the english pronoun "I" - the only default entry - means that lowercase "i" followed by any character in =auto-capitalize-trigger-chars= will be replaced with "I". You can, of course, customize =auto-capitalize-trigger-chars= as well!
+=auto-capitalize-fixed-case-words= is a list of words whose case will always be exactly how it appears in the list. For example, the english pronoun "I" - the only default entry - will replace any lowercase "i" followed by any character in =auto-capitalize-trigger-chars=. You can, of course, customize =auto-capitalize-trigger-chars= as well!
 
-Capitalization is skipped if the word to be capitalized happens to be right after one of the entries in =auto-capitalize-not-sentence-endings=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not convert the "y" to uppercase.
+No capitalization takes place if the word to of interest happens to be right after one of the entries in =auto-capitalize-not-sentence-endings=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not convert the "y" to uppercase.
 
-Finally, for true control, there is the core of how the package works: =auto-capitalize-predicate-functions= is a hook whose functions are called, in turn, and if all return non-nil, then capitalization occurs. By default, this only contains =auto-capitalize-default-predicate-function=, =auto-capitalize-org-mode-predicate=, and =auto-capitalize-TeX-mode-predicate=. You can write your own predicates and add them to the hook to specify exactly when capitalization should occur (or not occur).
+Finally, for true control, there is the core of how the package works: it calls the functions in the hook =auto-capitalize-predicate-functions=, and if all return non-nil, then capitalization occurs. By default, this only contains =auto-capitalize-default-predicate-function=, =auto-capitalize-org-mode-predicate=, and =auto-capitalize-TeX-mode-predicate=. You can write your own predicates and add them to the hook to specify exactly when capitalization should occur (or not occur).
 
 * How it works
 
-The package is relatively complex. I have done my best to give things descriptive names, but a general explanation of how things work might be useful. Refer to each function’s doc string for a full description of the logic flow.
+The package is complex. I have done my best to give things descriptive names, but a general explanation of how things work might be useful. Refer to each function’s doc string for a full description of the logic flow.
 
 The main entry point is =auto-capitalize-capitalize=. The minor-mode adds it to =after-change-functions=, so it gets called as you type. It then runs the first layer of logic: it calls all functions in =auto-capitalize-predicate-functions=, and if they all return non-nil, either calls =auto-capitalize-maybe-capitalize-preceding-word= if you are simply typing, or recursively analyzes the text if you are yanking (and =auto-capitalize-yank= is non-nil).
 
@@ -86,9 +86,9 @@ If all tests pass, voilà! Your word gets capitalized automatically.
 
 * Known issues
 
-- =auto-capitalize-outline-headings= doesn’t work in =markdown-mode= buffers. This is because of the value that mode sets =outline-regexp= to, which differs in approach from other text modes. We could add specific support for it in the future, but that would add some complexity to the code (which is already quite messy).
+- =auto-capitalize-outline-headings= doesn’t work in =markdown-mode= buffers. This is because of the value that mode sets =outline-regexp= to, which differs in approach from other text modes. We could add specific support for it in the future, but that would add some complexity to the code.
 
-  It also only affects the first word in a heading for now. This means that, if this variable is nil, then the very first word of a heading containing more than one sentence will get ignored, while the first word after a full stop (or after any member of =auto-capitalize-trigger-chars=) will get capitalized.
+  It also only affects the first word in a heading for now. This means that, if this variable is nil, then the first word of a heading containing more than one sentence will get ignored, while the first word after a full stop (or after any member of =auto-capitalize-trigger-chars=) will get capitalized.
 
 - Quoted text in =TeX-mode= buffers, such as
 
@@ -106,11 +106,11 @@ The modern auto-capitalization landscape in Emacs seems to have coalesced around
 
 * Credits & a bit of history
 
-The original =auto-capitalize.el= was written by Kevin Rodgers. It got shared around the Emacs world and ended up on the [[https://www.emacswiki.org/emacs/auto-capitalize.el][emacswiki]], and from there it found its way to MELPA. But MELPA removed it for security reasons, along with other packages whose upstream was the wiki, back in [[https://github.com/melpa/melpa/pull/5008#issue-258144843][2018]].
+Kevin Rodgers wrote the original =auto-capitalize.el=. It got shared around the Emacs world and ended up on the [[https://www.emacswiki.org/emacs/auto-capitalize.el][emacswiki]], and from there it found its way to MELPA. But MELPA removed it for security reasons, along with other packages whose upstream was the wiki, back in [[https://github.com/melpa/melpa/pull/5008#issue-258144843][2018]].
 
-The [[https://github.com/yuutayamada/auto-capitalize-el][fork by Yuta Yamada]] on GitHub is the basis for this package. Although it appears largely unmaintained now, the work he put into refactoring it was the starting point from which I continued to streamline and modernize the codebase, at least at the surface level. The package’s core mechanics are definitely dated and improvements are possible.
+The [[https://github.com/yuutayamada/auto-capitalize-el][fork by Yuta Yamada]] on GitHub is the basis for this package. Although it appears unmaintained now, the work he put into refactoring it was the starting point from which I continued to streamline and modernize the codebase, at least at the surface level. The package’s core mechanics are definitely dated and improvements are possible.
 
-Note that this package is not fully compatible with either the original or Yuta Yamada’s fork: the interface is different, and XEmacs support is dropped entirely. But hopefully you won’t need any crazy configuration to get it working right :)
+Note that this package is not fully compatible with either the original or Yuta Yamada’s fork: the interface is different, and it drops XEmacs support entirely.
 
 * Footnotes
 
