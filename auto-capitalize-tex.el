@@ -26,12 +26,8 @@
 
 ;;; Commentary:
 
-;; This plugin adds TeX support to `auto-capitalize' (which see).  It
-;; registers a blocking function that prevents capitalization inside TeX
-;; math mode, and a trigger function that recognizes the opening brace of
-;; a whitelisted macro argument as a capitalization boundary.
+;; This plugin adds TeX support to `auto-capitalize'. It requires `AUCTeX'?
 ;;
-;; Once loaded, the hooks are installed automatically at load time.
 
 ;;; Code:
 
@@ -60,18 +56,19 @@
     "uline" "uuline" "uwave" "sout" "xout" "dashuline" "dotuline"
     ;; xcolor
     "textcolor" "colorbox" "fcolorbox")
+
   "List of TeX macros whose first argument should have its first word capitalized.
-Only macros taking plain text as an argument should be included.
-Macros matching `outline-regexp' (like \\section) need not be listed,
-as they are already handled by the outline-heading check."
+Only macros taking plain text as an argument should be included. Macros
+matching `outline-regexp' (like \\section) need not be listed, as they
+are already handled by the outline-heading check in
+`auto-capitalize-default-trigger-function'."
   :group 'auto-capitalize-tex
   :type '(repeat (string :tag "Macro name")))
 
 (defun auto-capitalize-tex-blocking-function ()
   "Return nil if in TeX math mode.
 
-This predicate is added to `auto-capitalize-blocking-functions'.
-It prevents capitalization inside math mode."
+This predicate is added to `auto-capitalize-blocking-functions'."
   (or (not (derived-mode-p 'TeX-mode))
       (not (texmathp))))
 

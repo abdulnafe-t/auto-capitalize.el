@@ -86,10 +86,11 @@
 ;; capitalized one time, type the word, then use `quoted-insert' (bound to `C-q'
 ;; by default) followed by the next punctuation or space character.
 ;;
-;; Note that `auto-capitalize-fixed-case-words' ignores other checks: all words
-;; included therein will be replaced in all applicable contexts. For example,
-;; regardless of the value of `auto-capitalize-strings', "I" will always get
-;; capitalized in a string, if "I" is included in the list.
+;; Note that if `auto-capitalize-blocking-functions' pass,
+;; `auto-capitalize-fixed-case-words' ignores other checks: all words included
+;; therein will be replaced in all applicable contexts. For example, regardless
+;; of the value of `auto-capitalize-strings', "I" will always get capitalized in
+;; a string, if "I" is included in the list.
 
 ;; This package is a revamp of Yuta Yamada’s version
 ;; (https://github.com/yuutayamada/auto-capitalize-el), which is itself a fork
@@ -131,14 +132,14 @@
 (defcustom auto-capitalize-strings t
   "If non-nil, strings in `prog-mode' buffers will be capitalized.
 
-This variable is checked by `auto-capitalize-check-context-core'."
+This variable is checked by `auto-capitalize-default-trigger-function'."
   :group 'auto-capitalize
   :type 'boolean)
 
 (defcustom auto-capitalize-comments t
   "If non-nil, comments in `prog-mode' buffers will be capitalized.
 
-This variable is checked by `auto-capitalize-check-context-core'."
+This variable is checked by `auto-capitalize-default-trigger-function'."
   :group 'auto-capitalize
   :type 'boolean)
 
@@ -153,10 +154,13 @@ which see."
 (defcustom auto-capitalize-fixed-case-words '("I") ;  "Stallman" "GNU" "http"
   "If non-nil, a list of words that will always be in the case they appear in here.
 
-If `auto-capitalize' mode is on, these words will be automatically
-capitalized or upcased as listed (mixed case is allowable as well), even
-if no other condition would get them capitalized. Conversely, a word
-added in lowercase will never be automatically capitalized."
+If `auto-capitalize' mode is on, and as long as
+`auto-capitalize-blocking-functions' pass, these words will be
+automatically capitalized or upcased as listed (mixed case is allowable
+as well), even if no other condition would get them capitalized.
+Conversely, a word added in lowercase will never be automatically
+capitalized. This is ensured by the function
+`auto-capitalize-handle-fixed-case', which see"
   :group 'auto-capitalize
   :type '(repeat (string :tag "Word list")))
 
@@ -164,14 +168,19 @@ added in lowercase will never be automatically capitalized."
   "List of words that shouldn’t count as sentence ending.
 This means that they will not cause a word that comes after them to get
 capitalized, unless it appears, capitalized, in
-`auto-capitalize-fixed-case-words'."
+`auto-capitalize-fixed-case-words'.
+
+This list is checked by `auto-capitalize-default-blocking-function',
+which see."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Non-sentence ending word.")))
 
 (defcustom auto-capitalize-trigger-chars '(?\s ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
   "List of chars that trigger auto-capitalization on the preceding word.
-If set to nil, this variable is ignored when deciding whether to
-auto-capitalize a word."
+
+This variable is checked by `auto-capitalize-default-blocking-function'.
+
+If this variable is nil, it is ignored."
   :group 'auto-capitalize
   :type
   '(choice (repeat (character
@@ -187,14 +196,17 @@ auto-capitalize a word."
   (list #'auto-capitalize-default-blocking-function
         #'auto-capitalize-org-blocking-function)
   "Hook providing the right of first refusal over capitalization.
+
 Each function is called with no arguments and should return nil to
 block capitalization in the current context."
   :group 'auto-capitalize
   :type 'hook
-  :options (list #'auto-capitalize-default-blocking-function))
-;;
-(defvar auto-capitalize-trigger-functions nil
+  :options (list #'auto-capitalize-default-blocking-function
+                 #'auto-capitalize-org-blocking-function))
+
+(defvar auto-capitalize-trigger-functions '(auto-capitalize-default-trigger-function)
   "Hook for triggering capitalization at specific buffer positions.
+
 Each function is called with two arguments, (TEXT-START WORD-START), and
 should return non-nil if the word at WORD-START should be capitalized.
 The functions are OR'd together: if any returns non-nil, capitalization
@@ -249,10 +261,10 @@ This will install `auto-capitalize-capitalize' in
 ;; Internal functions:
 
 (defun auto-capitalize-default-blocking-function ()
-  "Return non-nil if auto-capitalization should happen in the current context.
+  "Return nil to block auto-capitalization in the current context.
 
 Specifically, check the current buffer for the following conditions, and
-return non-nil if they are all non-nil:
+return nil if any of them return nil:
 
 1) It is not read-only
 
@@ -334,8 +346,7 @@ range. In practice, this is almost always zero, except when yanking text
 and `auto-capitalize-yank' is non-nil.
 
 This function serves as a dispatcher of other functions to decide if the
-word before point (or the first word in yanked text) should be
-capitalized."
+word before point (or the yanked text) should be capitalized."
 
   (condition-case error
       (when (or (null auto-capitalize-blocking-functions)
@@ -397,18 +408,8 @@ In practice, TEXT-START is almost always one character before
 WORD-START.
 
 This function returns non-nil if the last command was an insertion of a
-lower-case character, and any of the following conditions hold:
-
-1) TEXT-START is at the beginning of the buffer
-
-2) TEXT-START is the first char of a paragraph
-
-3) TEXT-START is the first char of a sentence (identified through the
-function `sentence-end', which see)
-
-4) in `prog-mode' buffers, the text of interest is inside a comment or a
-string, and the corresponding option, `auto-capitalize-comments' or
-`auto-capitalize-strings' is non-nil.
+lower-case character, and any of the functions in
+`auto-capitalize-trigger-functiions' returns non-nil.
 
 In addition, if `auto-capitalize-ask' is non-nil, query the user and
 only capitalize if the user answered \"y\"."
@@ -425,14 +426,31 @@ only capitalize if the user answered \"y\"."
    (or (not auto-capitalize-ask)
        (auto-capitalize--ask))
 
-   (or (auto-capitalize-check-context-core text-start word-start)
-       (run-hook-with-args-until-success
-        'auto-capitalize-trigger-functions text-start word-start))))
+   (run-hook-with-args-until-success
+    'auto-capitalize-trigger-functions text-start word-start)))
 
-(defun auto-capitalize-check-context-core (text-start word-start)
-  "Check standard capitalization context at TEXT-START/WORD-START.
-Like `auto-capitalize-check-context' but does not call
-`auto-capitalize-trigger-functions'."
+(defun auto-capitalize-default-trigger-function (text-start word-start)
+  "Check the context TEXT-START/WORD-START.
+
+This predicate returns non-nil if any of the following conditions hold:
+
+1) TEXT-START is at the beginning of the buffer
+
+2) TEXT-START is the first char of a paragraph
+
+3) TEXT-START is the first char of a sentence (identified through the
+function `sentence-end', which see)
+
+4) WORD-START is the first char after a heading, as defined by the
+buffer-local value of `outline-regexp'.
+
+4) in `prog-mode' buffers, the text of interest is inside a string, and
+`auto-capitalize-strings' is non-nil.
+
+5) in either `prog-mode' buffers, or `text-mode' buffers that have
+markup syntax (Org, markdown, TeX...), the text of interest is inside a
+comment, and `auto-capitalize-comments' is non-nil."
+
   (goto-char text-start)
   (or (and (derived-mode-p 'prog-mode)
            auto-capitalize-strings
