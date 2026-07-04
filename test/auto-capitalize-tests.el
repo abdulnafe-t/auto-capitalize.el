@@ -310,5 +310,29 @@ Test both cases depending on the value of the user option
     (should (equal (buffer-string)
                    "a "))))
 
+(ert-deftest auto-capitalize-text-fixed-case ()
+  "Capitalize words in `auto-capitalize-fixed-case-words'."
+  (with-temp-buffer
+    (emacs-lisp-mode)
+    (auto-capitalize-mode 1)
+    (let ((auto-capitalize-fixed-case-words '("eMaCs"))
+          (auto-capitalize-comments nil))
+      (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
+      (ert-simulate-command '(comment-dwim 2))
+      (insert "emacs")
+      (ert-simulate-command `(self-insert-command 1 ?\s))
+      (should (equal (buffer-string)
+                     "\n;; eMaCs ")))
+    (erase-buffer)
+    (let ((auto-capitalize-fixed-case-words '("eMaCs"))
+          (auto-capitalize-strings nil))
+      (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
+      (insert "\"\"")
+      (backward-char)
+      (insert "emacs")
+      (ert-simulate-command `(self-insert-command 1 ?\s))
+      (should (equal (buffer-string)
+                     "\n\"eMaCs \"")))))
+
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
