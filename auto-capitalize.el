@@ -276,7 +276,7 @@ string (skipped if not in `prog-mode')
        (or (null auto-capitalize-trigger-chars)
            (not (memq this-command `(self-insert-command
                                      ,(command-remapping 'self-insert-command))))
-           (member last-command-event auto-capitalize-trigger-chars))))
+           (memq last-command-event auto-capitalize-trigger-chars))))
 
 (defun auto-capitalize-inserted-non-word-p (beg end length)
   "Return non-nil if the last event was an insertion of a non-word character.
