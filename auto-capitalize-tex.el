@@ -48,7 +48,15 @@
   '("intertext" "text" "textbf" "textit" "textsl" "textsc" "textrm" "textsf" "texttt"
     "textup" "textmd" "emph" "underline" "textnormal"
     "title" "author" "date" "thanks" "caption"
-    "textsuperscript" "textsubscript")
+    "textsuperscript" "textsubscript"
+    ;; beamer
+    "frametitle" "framesubtitle" "institute" "subtitle"
+    ;; soul
+    "ul" "st" "hl" "caps" "so"
+    ;; ulem
+    "uline" "uuline" "uwave" "sout" "xout" "dashuline" "dotuline"
+    ;; xcolor
+    "textcolor" "colorbox" "fcolorbox")
   "List of TeX macros whose first argument should have its first word capitalized.
 Only macros taking plain text as an argument should be included.
 Macros matching `outline-regexp' (like \\section) need not be listed,
