@@ -39,6 +39,7 @@
 (declare-function texmathp "ext:texmathp")
 (declare-function TeX-current-macro "ext:tex")
 (declare-function TeX-escaped-p "ext:tex")
+(declare-function TeX-find-macro-start "ext:tex")
 
 (defgroup auto-capitalize-tex nil
   "TeX support for auto-capitalize."
@@ -77,8 +78,10 @@ It prevents capitalization inside math mode."
 
 TEXT-START is ignored; the check uses WORD-START and the buffer content
 before it. Specifically, this function returns non-nil if WORD-START
-follows the opening brace of a whitelisted TeX macro, i.e. one that’s a
-member of `auto-capitalize-tex-macro-whitelist'.
+follows the opening brace of a whitelisted TeX macro, i.e. one that's a
+member of `auto-capitalize-tex-macro-whitelist', AND the macro itself
+sits at a standard capitalization boundary (paragraph start, sentence
+start, etc.).
 
 This function is added to `auto-capitalize-context-functions'."
   (and (derived-mode-p 'TeX-mode)
@@ -89,7 +92,10 @@ This function is added to `auto-capitalize-context-functions'."
                 (goto-char word-start)
                 (skip-syntax-backward " ")
                 (and (eq (char-before) ?{)
-                     (not (TeX-escaped-p (1- (point))))))))))
+                     (not (TeX-escaped-p (1- (point))))
+                     (when-let* ((macro-start (TeX-find-macro-start)))
+                       (auto-capitalize--check-context-core
+                        (1- macro-start) macro-start))))))))
 
 ;; Install hooks at load time
 (add-hook 'auto-capitalize-predicate-functions

@@ -52,8 +52,8 @@
 ;; all return non-nil, it proceeds with capitalization.
 ;;
 ;; By default, this hook only contains `auto-capitalize-default-predicate' and
-;; `auto-capitalize-org-mode-predicate'. Additional plugins like
-;; `auto-capitalize-tex' can add their own predicates and context functions via
+;; `auto-capitalize-org-mode-predicate'. Additional plugins, like the provided
+;; `auto-capitalize-tex', can add their own predicates and context functions via
 ;; `auto-capitalize-context-functions'. You can always write your own predicates
 ;; and add them to these hooks.
 ;;
