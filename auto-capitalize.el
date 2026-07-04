@@ -55,8 +55,8 @@
 ;;
 ;; By default, this hook only contains `auto-capitalize-default-blocking-function' and
 ;; `auto-capitalize-org-blocking-function'. Additional plugins, like the provided
-;; `auto-capitalize-tex', can add their own predicates and context functions via
-;; `auto-capitalize-context-functions'. You can always write your own predicates
+;; `auto-capitalize-tex', can add their own blocking functions and trigger functions via
+;; `auto-capitalize-trigger-functions'. You can always write your own predicates
 ;; and add them to these hooks.
 ;;
 ;; Alternatively, if you do not want to write a whole new predicate, you can
@@ -188,12 +188,16 @@ block capitalization in the current context."
   :type 'hook
   :options (list #'auto-capitalize-default-blocking-function))
 
-(defvar auto-capitalize-context-functions nil
-  "Hook for additional capitalization boundary detection.
+(defvar auto-capitalize-trigger-functions nil
+  "Hook for triggering capitalization at specific buffer positions.
 Each function is called with two arguments, (TEXT-START WORD-START),
 and should return non-nil if the word at WORD-START should be
-capitalized in that context.  This hook is run inside
-`auto-capitalize-check-context'.")
+capitalized.  The functions are OR'd together: if any returns
+non-nil, capitalization proceeds.
+
+This hook complements `auto-capitalize-blocking-functions': blocking
+functions run first and always take precedence.  Only if all blocking
+functions pass are the trigger functions consulted.")
 
 
 ;; Internal variables:
@@ -418,12 +422,12 @@ only capitalize if the user answered \"y\"."
 
    (or (auto-capitalize--check-context-core text-start word-start)
        (run-hook-with-args-until-success
-        'auto-capitalize-context-functions text-start word-start))))
+        'auto-capitalize-trigger-functions text-start word-start))))
 
 (defun auto-capitalize--check-context-core (text-start word-start)
   "Check standard capitalization context at TEXT-START/WORD-START.
 Like `auto-capitalize-check-context' but does not call
-`auto-capitalize-context-functions'."
+`auto-capitalize-trigger-functions'."
   (goto-char text-start)
   (or (and (derived-mode-p 'prog-mode)
            auto-capitalize-strings

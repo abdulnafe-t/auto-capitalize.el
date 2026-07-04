@@ -25,9 +25,9 @@
 ;;; Commentary:
 
 ;; This plugin adds TeX support to `auto-capitalize' (which see).  It
-;; registers a predicate that prevents capitalization inside TeX math
-;; mode, and a context function that recognizes the opening brace of a
-;; whitelisted macro argument as a capitalization boundary.
+;; registers a blocking function that prevents capitalization inside TeX
+;; math mode, and a trigger function that recognizes the opening brace of
+;; a whitelisted macro argument as a capitalization boundary.
 ;;
 ;; Once loaded, the hooks are installed automatically at load time.
 
@@ -65,15 +65,15 @@ as they are already handled by the outline-heading check."
   :group 'auto-capitalize-tex
   :type '(repeat (string :tag "Macro name")))
 
-(defun auto-capitalize-tex-mode-predicate ()
+(defun auto-capitalize-tex-blocking-function ()
   "Return nil if in TeX math mode.
 
-This predicate is added to `auto-capitalize-predicate-functions'.
+This predicate is added to `auto-capitalize-blocking-functions'.
 It prevents capitalization inside math mode."
   (or (not (derived-mode-p 'TeX-mode))
       (not (texmathp))))
 
-(defun auto-capitalize-tex-context-function (_text-start word-start)
+(defun auto-capitalize-tex-trigger-function (_text-start word-start)
   "Return non-nil if capitalization should occur at WORD-START.
 
 TEXT-START is ignored; the check uses WORD-START and the buffer content
@@ -83,7 +83,7 @@ member of `auto-capitalize-tex-macro-whitelist', AND the macro itself
 sits at a standard capitalization boundary (paragraph start, sentence
 start, etc.).
 
-This function is added to `auto-capitalize-context-functions'."
+This function is added to `auto-capitalize-trigger-functions'."
   (and (derived-mode-p 'TeX-mode)
        (let ((macro (TeX-current-macro)))
          (and macro
@@ -98,10 +98,10 @@ This function is added to `auto-capitalize-context-functions'."
                         (1- macro-start) macro-start))))))))
 
 ;; Install hooks at load time
-(add-hook 'auto-capitalize-predicate-functions
-          #'auto-capitalize-tex-mode-predicate)
-(add-hook 'auto-capitalize-context-functions
-          #'auto-capitalize-tex-context-function)
+(add-hook 'auto-capitalize-blocking-functions
+          #'auto-capitalize-tex-blocking-function)
+(add-hook 'auto-capitalize-trigger-functions
+          #'auto-capitalize-tex-trigger-function)
 
 (provide 'auto-capitalize-tex)
 ;;; auto-capitalize-tex.el ends here
