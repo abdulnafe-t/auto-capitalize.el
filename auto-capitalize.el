@@ -124,7 +124,7 @@
   :type 'boolean)
 
 (defcustom auto-capitalize-yank nil
-  "If non-nil, the first words of yanked sentences are auto-capitalized."
+  "If non-nil, auto-capitalization applies to yanked text."
   :group 'auto-capitalize
   :type 'boolean)
 
