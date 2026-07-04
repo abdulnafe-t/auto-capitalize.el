@@ -541,9 +541,8 @@ comment, and `auto-capitalize-comments' is non-nil."
       (let* ((word-start (point))
              (text-start
 	      (progn
-		(while (or (minusp (skip-chars-backward "\""))
-			   (minusp (skip-syntax-backward "\"(")))
-		  t)
+		(cl-loop while (or (minusp (skip-chars-backward "\""))
+			           (minusp (skip-syntax-backward "\"("))))
 		(point))))
         (cond ((and auto-capitalize-fixed-case-words
                     (let ((case-fold-search nil))
