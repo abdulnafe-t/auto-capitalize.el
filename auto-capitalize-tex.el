@@ -32,7 +32,6 @@
 ;;; Code:
 
 (require 'auto-capitalize)
-(require 'auctex)
 
 (declare-function texmathp "ext:texmathp")
 (declare-function TeX-current-macro "ext:tex")
