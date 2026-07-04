@@ -17,22 +17,12 @@ Put =auto-capitalize.el= somewhere in your load-path, then put this in your =.em
  This turns on capitalization in all =text-mode= buffers, as well as in comments and strings
  in =prog-mode= buffers [fn:1].
 
- Additionally, if you want to automatically capitalize abbreviations such as "I’ve", "I’m", etc., put this in your =.emacs=:
-
- #+begin_src elisp
-   (modify-syntax-entry ?' ". " text-mode-syntax-table) ; For ASCII-style apostrophe
-   (modify-syntax-entry ?’ ". " text-mode-syntax-table) ; For UNICODE curly apostrophe
- #+end_src
-
  If you use =use-package=, you can use this snippet instead:
 
  #+begin_src elisp
    (use-package auto-capitalize
      :init
-     (auto-capitalize-global-mode)
-     :config
-     (modify-syntax-entry ?' ".   " text-mode-syntax-table)
-     (modify-syntax-entry ?’ ".   " text-mode-syntax-table))
+     (auto-capitalize-global-mode))
  #+end_src
 
  and that’s it. Start typing to try it out!
@@ -46,10 +36,7 @@ If you want to limit auto-capitalization to certain modes instead of enabling it
  #+begin_src elisp
    (use-package auto-capitalize
      :hook
-     text-mode
-     :config
-     (modify-syntax-entry ?' ".   " text-mode-syntax-table)
-     (modify-syntax-entry ?’ ".   " text-mode-syntax-table))
+     text-mode)
  #+end_src
 
 The user option =auto-capitalize-inhibit-buffers= is a list of buffer names where you want to disable auto-capitalization. 

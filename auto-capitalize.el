@@ -286,15 +286,19 @@ started, where it ended, and the length of that section before the
 change, respectively, as defined by the documentation of
 `after-change-functions' (which see)."
   (condition-case error
-      (or (and (or (memq this-command `(self-insert-command
-                                        ,(command-remapping 'self-insert-command)))
+      (or (memq this-command '(newline newline-and-indent))
+          (and (or (memq this-command
+                         `(self-insert-command
+                           ,(command-remapping 'self-insert-command)))
                    (let ((key (this-command-keys)))
                      (and (eq (lookup-key global-map key t)
                               'self-insert-command)
                           (= length 0)
                           (= (- end beg) 1))))
-               (not (equal (char-syntax last-command-event) ?w)))
-          (memq this-command '(newline newline-and-indent)))
+               (or (not (equal (char-syntax last-command-event) ?w))
+                   (and auto-capitalize-trigger-chars
+                        (member last-command-event
+                                auto-capitalize-trigger-chars)))))
     (error error)))
 
 (defun auto-capitalize-capitalize (beg end length)

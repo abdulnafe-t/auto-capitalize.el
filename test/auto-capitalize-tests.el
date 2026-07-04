@@ -42,19 +42,17 @@
     (should (equal (buffer-string) "A "))))
 
 (ert-deftest auto-capitalize-text-triggers ()
-  ;; Fails for ?' which requires the syntax-table modification in the README
   "Capitalize the previous word after `auto-capitalize-trigger-chars'."
-  :expected-result :failed
   (with-temp-buffer
     (text-mode)
     (auto-capitalize-mode 1)
-    (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
     (dolist (trigger auto-capitalize-trigger-chars)
       (erase-buffer)
+      (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
       (ert-simulate-command '(self-insert-command 1 ?a))
       (ert-simulate-command `(self-insert-command 1 ,trigger))
       (should (equal (buffer-string)
-                     (concat "A" (char-to-string trigger)))))))
+                     (concat "\nA" (char-to-string trigger)))))))
 
 
 ;;;; Tests for `tex-mode'
