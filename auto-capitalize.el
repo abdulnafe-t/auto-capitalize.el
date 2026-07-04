@@ -204,7 +204,7 @@ block capitalization in the current context."
   :options (list #'auto-capitalize-default-blocking-function
                  #'auto-capitalize-org-blocking-function))
 
-(defvar auto-capitalize-trigger-functions '(auto-capitalize-default-trigger-function)
+(defcustom auto-capitalize-trigger-functions '(auto-capitalize-default-trigger-function)
   "Hook for triggering capitalization at specific buffer positions.
 
 Each function is called with two arguments, (TEXT-START WORD-START), and
@@ -214,7 +214,10 @@ occurs.
 
 This hook complements `auto-capitalize-blocking-functions': blocking
 functions run first and always take precedence.  Only if all blocking
-functions pass are the trigger functions consulted.")
+functions pass are the trigger functions consulted."
+  :group 'auto-capitalize
+  :type 'hook
+  :options (list #'auto-capitalize-default-trigger-function))
 
 
 ;; Internal variables:
