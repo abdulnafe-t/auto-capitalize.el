@@ -5,7 +5,12 @@
 ;; Author: Abdulnafé Toulaïmat <abdulnafe.toulaimat@gmail.com>
 ;; Assisted-by: OpenCode:Big_Pickle
 
-;; Package-Requires: ((emacs "25.1") (auto-capitalize "3.0") (auctex "13.0"))
+;; Package-Requires: ((emacs "25.1")
+;;                    (auto-capitalize "3.0")
+;;                    (auctex "11.82")
+;;                    (compat "31.0"))
+;;
+;; Package-Version: 3.0
 ;; Keywords: tex, wp, convenience
 ;; URL: https://github.com/abdulnafe-t/auto-capitalize-el
 
@@ -36,6 +41,7 @@
 (declare-function texmathp "ext:texmathp")
 (declare-function TeX-current-macro "ext:tex")
 (declare-function TeX-escaped-p "ext:tex")
+(declare-function TeX-mode-p "ext:tex")
 (declare-function TeX-find-macro-start "ext:tex")
 
 (defgroup auto-capitalize-tex nil
@@ -68,7 +74,7 @@ are already handled by the outline-heading check in
   "Return nil if in TeX math mode.
 
 This predicate is added to `auto-capitalize-blocking-functions'."
-  (or (not (derived-mode-p 'TeX-mode))
+  (or (not (bound-and-true-p TeX-mode-p))
       (not (texmathp))))
 
 (defun auto-capitalize-tex-trigger-function (_text-start word-start)
@@ -82,7 +88,7 @@ sits at a standard capitalization boundary (paragraph start, sentence
 start, etc.).
 
 This function is added to `auto-capitalize-trigger-functions'."
-  (and (derived-mode-p 'TeX-mode)
+  (and (bound-and-true-p TeX-mode-p)
        (let ((macro (TeX-current-macro)))
          (and macro
               (member macro auto-capitalize-tex-macro-whitelist)
