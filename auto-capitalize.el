@@ -46,14 +46,18 @@
 ;; You can specify buffer names where you do not want auto-capitalization to
 ;; occur. See the documentation of `auto-capitalization-inhibit-buffers'.
 ;;
-;; The decision on whether or not a word should be capitalized is handled by
-;; predicate functions: `auto-capitalize-capitalize' calls all functions in
-;; `auto-capitalize-predicate-functions' in turn, until one returns nil. If they
-;; all return non-nil, it proceeds with capitalization.
+;; The `auto-capitalize-blocking-functions' hook gives you the right of first refusal over
+;; capitalization: each function in that hook is called with no arguments and returns nil
+;; to block capitalization. If any function returns nil, the check fails and no word is
+;; capitalized. Note that even if every function in this hook returns non-nil, that does
+;; not guarantee a word will be capitalized: it must also pass context-based boundary
+;; detection (beginning of buffer, paragraph start, sentence start, etc.).
 ;;
-;; By default, this hook only contains `auto-capitalize-default-predicate' and,
-;; once `org' is loaded, `auto-capitalize-org-mode-predicate'. You can always
-;; write your own predicates and add them to this hook.
+;; By default, this hook only contains
+;; `auto-capitalize-default-blocking-function',
+;; `auto-capitalize-org-blocking-function', and, if you use
+;; `auto-capitalize-tex', `auto-capitalize-TeX-blocking-function'. You can
+;; always write your own predicates and add them to this hook.
 ;;
 ;; Alternatively, if you do not want to write a whole new predicate, you can
 ;; always customize some of the user options in the `auto-capitalize' group.
@@ -120,7 +124,7 @@
 
 This variable is checked by `auto-capitalize-check-context', meaning it
 should behave the same way regardless of what predicates are in
-`auto-capitalize-predicate-functions'."
+`auto-capitalize-blocking-functions'."
   :group 'auto-capitalize
   :type 'boolean)
 
@@ -129,7 +133,7 @@ should behave the same way regardless of what predicates are in
 
 This variable is checked by `auto-capitalize-check-context', meaning it
 should behave the same way regardless of what predicates are in
-`auto-capitalize-predicate-functions'."
+`auto-capitalize-blocking-functions'."
   :group 'auto-capitalize
   :type 'boolean)
 
@@ -174,16 +178,16 @@ auto-capitalize a word."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Buffer name")))
 
-(defcustom auto-capitalize-predicate-functions
-  (list #'auto-capitalize-default-predicate
-        #'auto-capitalize-org-mode-predicate
-        #'auto-capitalize-TeX-mode-predicate)
-  "This is a hook which is called by `auto-capitalize-capitalize' (which see).
-Functions added to this hook should take no arguments, and return nil
-only if auto-capitalization should not happen in the current context."
+(defcustom auto-capitalize-blocking-functions
+  (list #'auto-capitalize-default-blocking-function
+        #'auto-capitalize-org-blocking-function
+        #'auto-capitalize-TeX-blocking-function)
+  "Hook providing the right of first refusal over capitalization.
+Each function is called with no arguments and should return nil to
+block capitalization in the current context."
   :group 'auto-capitalize
   :type 'hook
-  :options (list #'auto-capitalize-default-predicate))
+  :options (list #'auto-capitalize-default-blocking-function))
 
 
 ;; Internal variables:
@@ -218,8 +222,8 @@ This will install `auto-capitalize-capitalize' in
     ;; Turn on
     (t
      (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
-     (add-hook 'auto-capitalize-predicate-functions
-               #'auto-capitalize-default-predicate))))
+     (add-hook 'auto-capitalize-blocking-functions
+               #'auto-capitalize-default-blocking-function))))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-capitalize-global-mode
@@ -229,7 +233,7 @@ This will install `auto-capitalize-capitalize' in
 
 ;; Internal functions:
 
-(defun auto-capitalize-default-predicate ()
+(defun auto-capitalize-default-blocking-function ()
   "Return non-nil if auto-capitalization should happen in the current context.
 
 Specifically, check the current buffer for the following conditions, and
@@ -319,9 +323,9 @@ word before point (or the first word in yanked text) should be
 capitalized."
 
   (condition-case error
-      (when (or (null auto-capitalize-predicate-functions)
+      (when (or (null auto-capitalize-blocking-functions)
                 (run-hook-with-args-until-failure
-                 'auto-capitalize-predicate-functions))
+                 'auto-capitalize-blocking-functions))
 
         (cond ((auto-capitalize-inserted-non-word-p beg end length)
                ;; self-inserting, non-word character
@@ -524,10 +528,10 @@ only capitalize if the user answered \"y\"."
 
 (declare-function org-in-src-block-p "org")
 
-(defun auto-capitalize-org-mode-predicate ()
+(defun auto-capitalize-org-blocking-function ()
   "Returns non-nil if not in org mode, or if inside an org source block.
 
-This predicate is added to `auto-capitalize-predicate-functions' (which
+This predicate is added to `auto-capitalize-blocking-functions' (which
 see)."
   (or (not (derived-mode-p 'org-mode))
       (not (org-in-src-block-p))))
@@ -537,10 +541,10 @@ see)."
 
 (declare-function texmathp "ext:texmathp")
 
-(defun auto-capitalize-TeX-mode-predicate ()
+(defun auto-capitalize-TeX-blocking-function ()
   "Returns non-nil if not in TeX mode, or if inside a TeX math block.
 
-This predicate is added to `auto-capitalize-predicate-functions' (which
+This predicate is added to `auto-capitalize-blocking-functions' (which
 see).
 
 Note that this functions requires `texmathp' from the `AUCTeX' package
