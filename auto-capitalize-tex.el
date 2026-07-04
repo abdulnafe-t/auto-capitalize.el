@@ -93,7 +93,7 @@ This function is added to `auto-capitalize-trigger-functions'."
                 (and (eq (char-before) ?{)
                      (not (TeX-escaped-p (1- (point))))
                      (when-let* ((macro-start (TeX-find-macro-start)))
-                       (auto-capitalize-check-context-core
+                       (auto-capitalize-default-trigger-function
                         (1- macro-start) macro-start))))))))
 
 ;; Install hooks at load time
