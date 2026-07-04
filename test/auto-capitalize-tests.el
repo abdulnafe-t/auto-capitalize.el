@@ -54,6 +54,24 @@
       (should (equal (buffer-string)
                      (concat "\nA" (char-to-string trigger)))))))
 
+(ert-deftest auto-capitalize-text-yank ()
+  "Capitalize yanked text"
+  (with-temp-buffer
+    (text-mode)
+    (auto-capitalize-mode 1)
+    (let ((old-kill-ring kill-ring)
+          (old-kill-ring-yank-pointer kill-ring-yank-pointer)
+          (interprogram-cut-function nil)  ;; avoid clipboard interaction
+          (interprogram-paste-function nil)
+          (auto-capitalize-yank t))
+      (kill-new "testing bob. testing sentence. testing i’m.\ntesting newline")
+      (unwind-protect
+          (ert-simulate-command '(yank))
+        (should (equal (buffer-string)
+                       (concat "Testing bob. Testing sentence. Testing I’m.\nTesting newline")))
+        (setq kill-ring old-kill-ring
+              kill-ring-yank-pointer old-kill-ring-yank-pointer)))))
+
 
 ;;;; Tests for `tex-mode'
 
