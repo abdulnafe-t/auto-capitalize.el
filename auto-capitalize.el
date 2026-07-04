@@ -8,6 +8,7 @@
 ;; package)
 ;; Past maintainer: Yuta Yamada <cokesboy at gmail.com>
 ;; Maintainer: Abdulnafé Toulaïmat <abdulnafe.toulaimat@gmail.com>
+;; Assisted-by: OpenCode:Big_Pickle
 ;; Package-Requires: ((emacs "25.1")
 ;;                    (compat "31.0"))
 

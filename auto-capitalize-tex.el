@@ -3,6 +3,8 @@
 ;; Copyright   2026 Abdulnafé Toulaïmat
 
 ;; Author: Abdulnafé Toulaïmat <abdulnafe.toulaimat@gmail.com>
+;; Assisted-by: OpenCode:Big_Pickle
+
 ;; Package-Requires: ((emacs "25.1") (auto-capitalize "3.0") (auctex "13.0"))
 ;; Keywords: tex, wp, convenience
 ;; URL: https://github.com/abdulnafe-t/auto-capitalize-el
