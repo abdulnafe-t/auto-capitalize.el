@@ -71,7 +71,7 @@ are already handled by the outline-heading check in
   :type '(repeat (string :tag "Macro name")))
 
 (defun auto-capitalize-tex-blocking-function ()
-  "Return nil if in TeX math mode.
+  "Return nil if in TeX math environment, using `texmathp' (which see).
 
 This predicate is added to `auto-capitalize-blocking-functions'."
   (or (not (bound-and-true-p TeX-mode-p))
