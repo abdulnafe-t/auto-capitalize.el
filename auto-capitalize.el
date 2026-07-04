@@ -430,6 +430,7 @@ only capitalize if the user answered \"y\"."
        (and (derived-mode-p 'text-mode)
             (or (bobp)
                 (and auto-capitalize-outline-headings
+                     (bound-and-true-p outline-regexp)
                      (save-excursion
                        (goto-char (line-beginning-position))
                        (when (looking-at outline-regexp)
