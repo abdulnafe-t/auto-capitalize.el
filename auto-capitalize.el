@@ -664,3 +664,7 @@ to work, without which it is a NOP."
 
 (provide 'auto-capitalize)
 ;;; auto-capitalize.el ends here
+
+;; Local Variables:
+;; fill-column: 80
+;; End:
