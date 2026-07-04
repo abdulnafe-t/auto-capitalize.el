@@ -55,7 +55,7 @@
                      (concat "\nA" (char-to-string trigger)))))))
 
 (ert-deftest auto-capitalize-text-yank ()
-  "Capitalize yanked text"
+  "Capitalize yanked text."
   (with-temp-buffer
     (text-mode)
     (auto-capitalize-mode 1)
