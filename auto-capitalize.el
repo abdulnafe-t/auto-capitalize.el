@@ -572,7 +572,7 @@ comment, and `auto-capitalize-comments' is non-nil."
 (declare-function org-in-src-block-p "org")
 
 (defun auto-capitalize-org-blocking-function ()
-  "Returns non-nil if not in org mode, or if inside an org source block.
+  "Returns non-nil if not in org mode, or not inside an org source block.
 
 This predicate is added to `auto-capitalize-blocking-functions' (which
 see)."
