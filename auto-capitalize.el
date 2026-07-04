@@ -299,7 +299,7 @@ change, respectively, as defined by the documentation of
                    (and auto-capitalize-trigger-chars
                         (member last-command-event
                                 auto-capitalize-trigger-chars)))))
-    (error error)))
+    (error (message "auto-capitalize error: %S" error) nil)))
 
 (defun auto-capitalize-capitalize (beg end length)
   "If `auto-capitalize-mode' is enabled, then start the capitalization logic.
@@ -348,7 +348,7 @@ capitalized."
                        (auto-capitalize-capitalize (match-beginning 0)
                                                    (match-end 0)
                                                    0))))))))
-    (error error)))
+    (error (message "auto-capitalize error: %S" error) nil)))
 
 (defun auto-capitalize-handle-fixed-case (m-beg m-end)
   "Find the word between M-BEG and M-END and replace it with its fixed-case entry.
