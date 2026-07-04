@@ -109,5 +109,6 @@ This function is added to `auto-capitalize-trigger-functions'."
 ;;; auto-capitalize-tex.el ends here
 
 ;; Local Variables:
-;; emacs-lisp-docstring-fill-column: 80
+;; fill-column: 80
+;; electric-quote-chars: (96 39 34 34)
 ;; End:

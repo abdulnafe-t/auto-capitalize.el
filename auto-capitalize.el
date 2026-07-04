@@ -676,4 +676,5 @@ see)."
 
 ;; Local Variables:
 ;; fill-column: 80
+;; electric-quote-chars: (?` ?' ?" ?")
 ;; End:
