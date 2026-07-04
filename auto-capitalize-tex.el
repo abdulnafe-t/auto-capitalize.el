@@ -31,7 +31,7 @@
 
 ;;; Commentary:
 
-;; This plugin adds TeX support to `auto-capitalize'. It requires `AUCTeX'?
+;; This plugin adds TeX support to `auto-capitalize'. It requires `AUCTeX'.
 ;;
 
 ;;; Code:
