@@ -455,10 +455,9 @@ comment, and `auto-capitalize-comments' is non-nil."
            auto-capitalize-strings
            (save-excursion
              ;; beginning of a string?
-             (progn
-               (goto-char word-start)
-               (when-let* ((string-start (nth 8 (syntax-ppss))))
-                 (eq (1+ string-start) word-start)))))
+             (goto-char word-start)
+             (when-let* ((string-start (nth 8 (syntax-ppss))))
+               (eq (1+ string-start) word-start))))
 
       ;; beginning of a comment?
       ;; This check is not limited to prog-mode, since modes like Org
