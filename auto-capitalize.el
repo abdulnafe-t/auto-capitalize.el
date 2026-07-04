@@ -280,11 +280,10 @@ string (skipped if not in `prog-mode')
 
   (and (not buffer-read-only)
        (not (minibufferp))
-       ;; activate if prog-mode and cursor is in string or comment.
-       (if (derived-mode-p 'prog-mode)
-           (and (derived-mode-p 'prog-mode)
-                (save-excursion (nth 8 (syntax-ppss))))
-         t)
+
+       ;; activate in prog-mode only if cursor is in string or comment.
+       (or (not (derived-mode-p 'prog-mode))
+           (nth 8 (syntax-ppss)))
 
        ;; do not activate after any word in
        ;; `auto-capitalize-not-sentence-endings'
