@@ -1,0 +1,97 @@
+;;; auto-capitalize-tex.el --- TeX plugin for auto-capitalize.el  -*- lexical-binding: t; -*-
+
+;; Copyright   2026 Abdulnafé Toulaïmat
+
+;; Author: Abdulnafé Toulaïmat <abdulnafe.toulaimat@gmail.com>
+;; Package-Requires: ((emacs "25.1") (auto-capitalize "3.0") (auctex "13.0"))
+;; Keywords: tex, wp, convenience
+;; URL: https://github.com/abdulnafe-t/auto-capitalize-el
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2 of
+;; the License, or (at your option) any later version.
+
+;; This program is distributed in the hope that it will be
+;; useful, but WITHOUT ANY WARRANTY; without even the implied
+;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;; PURPOSE.  See the GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public
+;; License along with this program; if not, write to the Free
+;; Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+;; MA 02111-1307 USA
+
+;;; Commentary:
+
+;; This plugin adds TeX support to `auto-capitalize' (which see).  It
+;; registers a predicate that prevents capitalization inside TeX math
+;; mode, and a context function that recognizes the opening brace of a
+;; whitelisted macro argument as a capitalization boundary.
+;;
+;; Once loaded, the hooks are installed automatically at load time.
+
+;;; Code:
+
+(require 'auto-capitalize)
+(require 'auctex)
+
+(declare-function texmathp "ext:texmathp")
+(declare-function TeX-current-macro "ext:tex")
+(declare-function TeX-escaped-p "ext:tex")
+
+(defgroup auto-capitalize-tex nil
+  "TeX support for auto-capitalize."
+  :group 'auto-capitalize)
+
+(defcustom auto-capitalize-tex-macro-whitelist
+  '("intertext" "text" "textbf" "textit" "textsl" "textsc" "textrm" "textsf" "texttt"
+    "textup" "textmd" "emph" "underline" "textnormal"
+    "title" "author" "date" "thanks" "caption"
+    "textsuperscript" "textsubscript")
+  "List of TeX macros whose first argument should have its first word capitalized.
+Only macros taking plain text as an argument should be included.
+Macros matching `outline-regexp' (like \\section) need not be listed,
+as they are already handled by the outline-heading check."
+  :group 'auto-capitalize-tex
+  :type '(repeat (string :tag "Macro name")))
+
+(defun auto-capitalize-tex-mode-predicate ()
+  "Return nil if in TeX math mode.
+
+This predicate is added to `auto-capitalize-predicate-functions'.
+It prevents capitalization inside math mode."
+  (or (not (derived-mode-p 'TeX-mode))
+      (not (texmathp))))
+
+(defun auto-capitalize-tex-context-function (_text-start word-start)
+  "Return non-nil if capitalization should occur at WORD-START.
+
+TEXT-START is ignored; the check uses WORD-START and the buffer content
+before it. Specifically, this function returns non-nil if WORD-START
+follows the opening brace of a whitelisted TeX macro, i.e. one that’s a
+member of `auto-capitalize-tex-macro-whitelist'.
+
+This function is added to `auto-capitalize-context-functions'."
+  (and (derived-mode-p 'TeX-mode)
+       (let ((macro (TeX-current-macro)))
+         (and macro
+              (member macro auto-capitalize-tex-macro-whitelist)
+              (save-excursion
+                (goto-char word-start)
+                (skip-syntax-backward " ")
+                (and (eq (char-before) ?{)
+                     (not (TeX-escaped-p (1- (point))))))))))
+
+;; Install hooks at load time
+(add-hook 'auto-capitalize-predicate-functions
+          #'auto-capitalize-tex-mode-predicate)
+(add-hook 'auto-capitalize-context-functions
+          #'auto-capitalize-tex-context-function)
+
+(provide 'auto-capitalize-tex)
+;;; auto-capitalize-tex.el ends here
+
+;; Local Variables:
+;; emacs-lisp-docstring-fill-column: 80
+;; End:

@@ -51,9 +51,11 @@
 ;; `auto-capitalize-predicate-functions' in turn, until one returns nil. If they
 ;; all return non-nil, it proceeds with capitalization.
 ;;
-;; By default, this hook only contains `auto-capitalize-default-predicate' and,
-;; once `org' is loaded, `auto-capitalize-org-mode-predicate'. You can always
-;; write your own predicates and add them to this hook.
+;; By default, this hook only contains `auto-capitalize-default-predicate' and
+;; `auto-capitalize-org-mode-predicate'. Additional plugins like
+;; `auto-capitalize-tex' can add their own predicates and context functions via
+;; `auto-capitalize-context-functions'. You can always write your own predicates
+;; and add them to these hooks.
 ;;
 ;; Alternatively, if you do not want to write a whole new predicate, you can
 ;; always customize some of the user options in the `auto-capitalize' group.
@@ -176,14 +178,20 @@ auto-capitalize a word."
 
 (defcustom auto-capitalize-predicate-functions
   (list #'auto-capitalize-default-predicate
-        #'auto-capitalize-org-mode-predicate
-        #'auto-capitalize-TeX-mode-predicate)
+        #'auto-capitalize-org-mode-predicate)
   "This is a hook which is called by `auto-capitalize-capitalize' (which see).
 Functions added to this hook should take no arguments, and return nil
 only if auto-capitalization should not happen in the current context."
   :group 'auto-capitalize
   :type 'hook
   :options (list #'auto-capitalize-default-predicate))
+
+(defvar auto-capitalize-context-functions nil
+  "Hook for additional capitalization boundary detection.
+Each function is called with two arguments, (TEXT-START WORD-START),
+and should return non-nil if the word at WORD-START should be
+capitalized in that context.  This hook is run inside
+`auto-capitalize-check-context'.")
 
 
 ;; Internal variables:
@@ -436,7 +444,9 @@ only capitalize if the user answered \"y\"."
                        (when (looking-at outline-regexp)
                          (goto-char (match-end 0))
                          (skip-syntax-forward "^w" (line-end-position))
-                         (= (point) word-start))))))
+                         (= (point) word-start))))
+                (run-hook-with-args-until-success
+                 'auto-capitalize-context-functions text-start word-start)))
 
        ;; beginning of paragraph?
        (and (= (current-column) left-margin)
@@ -531,22 +541,6 @@ This predicate is added to `auto-capitalize-predicate-functions' (which
 see)."
   (or (not (derived-mode-p 'org-mode))
       (not (org-in-src-block-p))))
-
-
-;; TeX mode: We need to handle TeX-mode math specifically.
-
-(declare-function texmathp "ext:texmathp")
-
-(defun auto-capitalize-TeX-mode-predicate ()
-  "Returns non-nil if not in TeX mode, or if inside a TeX math block.
-
-This predicate is added to `auto-capitalize-predicate-functions' (which
-see).
-
-Note that this functions requires `texmathp' from the `AUCTeX' package
-to work, without which it is a NOP."
-  (or (not (derived-mode-p 'TeX-mode))
-      (not (texmathp))))
 
 
 ;; Old package description, by Yuta Yamada:

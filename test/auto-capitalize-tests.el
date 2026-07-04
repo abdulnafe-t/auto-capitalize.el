@@ -27,6 +27,8 @@
 (require 'ert)
 (require 'ert-x)                        ; For `ert-simulate-command'
 (require 'auto-capitalize)
+(when (featurep 'auctex)
+  (require 'auto-capitalize-tex))
 
 
 ;;;; Tests for `text-mode'
@@ -173,6 +175,21 @@
     (ert-simulate-command '(self-insert-command 1 ?\s))
     (should (equal (buffer-string)
                    "\\begin{equation}\ni \n\\end{equation}"))))
+
+(ert-deftest auto-capitalize-TeX-whitelist-macros ()
+  "Capitalize the first word in a `TeX-mode' whitelisted macro."
+  (with-temp-buffer
+    (TeX-mode)
+    (auto-capitalize-mode 1)
+    (dolist (macro auto-capitalize-tex-macro-whitelist)
+      (erase-buffer)
+      (insert (concat "\\" macro "{}"))
+      (forward-char -1)
+      (ert-simulate-command '(self-insert-command 1 ?a))
+      (ert-simulate-command '(self-insert-command 1 ?\s))
+      (should (equal (buffer-string)
+                     (concat "\\" macro "{A }" ))))))
+
 
 ;;;; Tests for ‘org-mode’
 
