@@ -123,18 +123,14 @@
 (defcustom auto-capitalize-strings t
   "If non-nil, strings in `prog-mode' buffers will be capitalized.
 
-This variable is checked by `auto-capitalize-check-context', meaning it
-should behave the same way regardless of what predicates are in
-`auto-capitalize-blocking-functions'."
+This variable is checked by `auto-capitalize-check-context-core'."
   :group 'auto-capitalize
   :type 'boolean)
 
 (defcustom auto-capitalize-comments t
   "If non-nil, comments in `prog-mode' buffers will be capitalized.
 
-This variable is checked by `auto-capitalize-check-context', meaning it
-should behave the same way regardless of what predicates are in
-`auto-capitalize-blocking-functions'."
+This variable is checked by `auto-capitalize-check-context-core'."
   :group 'auto-capitalize
   :type 'boolean)
 
@@ -421,11 +417,11 @@ only capitalize if the user answered \"y\"."
    (or (not auto-capitalize-ask)
        (auto-capitalize--ask))
 
-   (or (auto-capitalize--check-context-core text-start word-start)
+   (or (auto-capitalize-check-context-core text-start word-start)
        (run-hook-with-args-until-success
         'auto-capitalize-trigger-functions text-start word-start))))
 
-(defun auto-capitalize--check-context-core (text-start word-start)
+(defun auto-capitalize-check-context-core (text-start word-start)
   "Check standard capitalization context at TEXT-START/WORD-START.
 Like `auto-capitalize-check-context' but does not call
 `auto-capitalize-trigger-functions'."
