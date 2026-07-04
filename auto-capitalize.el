@@ -42,23 +42,30 @@
 ;; TeX,...).
 
 ;; The `auto-capitalize-yank' option controls whether words in yanked text
-;; should by capitalized in the same way.
+;; should be capitalized in the same way.
 ;;
 ;; You can specify buffer names where you do not want auto-capitalization to
 ;; occur. See the documentation of `auto-capitalization-inhibit-buffers'.
 ;;
-;; The `auto-capitalize-blocking-functions' hook gives you the right of first refusal over
-;; capitalization: each function in that hook is called with no arguments and returns nil
-;; to block capitalization. If any function returns nil, the check fails and no word is
-;; capitalized. Note that even if every function in this hook returns non-nil, that does
-;; not guarantee a word will be capitalized: it must also pass context-based boundary
-;; detection (beginning of buffer, paragraph start, sentence start, etc.).
+;; The package exposes two hooks which you can add your own predicates to. The
+;; `auto-capitalize-blocking-functions' hook gives you the right of first
+;; refusal over capitalization: each function in that hook is called with no
+;; arguments and returns nil to block capitalization. If any function returns
+;; nil, the check fails and no word is capitalized. Note, however, that even if
+;; every function in this hook returns non-nil, that does not guarantee a word
+;; will be capitalized.
 ;;
-;; By default, this hook only contains `auto-capitalize-default-blocking-function' and
-;; `auto-capitalize-org-blocking-function'. Additional plugins, like the provided
-;; `auto-capitalize-tex', can add their own blocking functions and trigger functions via
-;; `auto-capitalize-trigger-functions'. You can always write your own predicates
-;; and add them to these hooks.
+;; By default, this hook only contains
+;; `auto-capitalize-default-blocking-function' and
+;; `auto-capitalize-org-blocking-function'. Additional plugins, like the
+;; provided `auto-capitalize-tex', can add their own predicates.
+;;
+;; The second hook is `auto-capitalize-trigger-functions'. These functions are
+;; called with the starting positions of both the current text and the current
+;; word, and if any of them returns non-nil, capitalization occurs.
+;;
+;; Note that the blocking functions take precedence: they are called first, and
+;; only if they all return non-nil, the trigger functions get called.
 ;;
 ;; Alternatively, if you do not want to write a whole new predicate, you can
 ;; always customize some of the user options in the `auto-capitalize' group.
@@ -68,15 +75,16 @@
 ;;
 ;; `auto-capitalize-fixed-case-words' can be customized to specify certain words
 ;; that should always be in a specific case, regardless of their position in the
-;; text. Any word that is added to this list in lowercase will be skipped when
-;; capitalizing, while any word that is added in uppercase (or mixed case) will
-;; be replaced in text by its version in the list. By default, this list
-;; contains the english pronoun "I" only.
+;; text. Any word that is added to this list will be replaced in text by its
+;; exact version in the list. For example, if "eMaCs" is included, then typing
+;; "emacs " will insert "eMaCs " instead.
 ;;
-;; If a word is included, in upper case, in `auto-capitalize-fixed-case-words',
-;; and you want to prevent it from getting capitalized one time, type the word,
-;; then use `quoted-insert' (bound to `C-q' by default) followed by the next
-;; punctuation or space character.
+;; By default, this list contains the english pronoun "I" only.
+;;
+;; If a word is included, in some fixed case, in
+;; `auto-capitalize-fixed-case-words', and you want to prevent it from getting
+;; capitalized one time, type the word, then use `quoted-insert' (bound to `C-q'
+;; by default) followed by the next punctuation or space character.
 ;;
 ;; Note that `auto-capitalize-fixed-case-words' ignores other checks: all words
 ;; included therein will be replaced in all applicable contexts. For example,
@@ -184,13 +192,13 @@ block capitalization in the current context."
   :group 'auto-capitalize
   :type 'hook
   :options (list #'auto-capitalize-default-blocking-function))
-
+;;
 (defvar auto-capitalize-trigger-functions nil
   "Hook for triggering capitalization at specific buffer positions.
-Each function is called with two arguments, (TEXT-START WORD-START),
-and should return non-nil if the word at WORD-START should be
-capitalized.  The functions are OR'd together: if any returns
-non-nil, capitalization proceeds.
+Each function is called with two arguments, (TEXT-START WORD-START), and
+should return non-nil if the word at WORD-START should be capitalized.
+The functions are OR'd together: if any returns non-nil, capitalization
+occurs.
 
 This hook complements `auto-capitalize-blocking-functions': blocking
 functions run first and always take precedence.  Only if all blocking
