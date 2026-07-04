@@ -53,11 +53,11 @@
 ;; not guarantee a word will be capitalized: it must also pass context-based boundary
 ;; detection (beginning of buffer, paragraph start, sentence start, etc.).
 ;;
-;; By default, this hook only contains
-;; `auto-capitalize-default-blocking-function',
-;; `auto-capitalize-org-blocking-function', and, if you use
-;; `auto-capitalize-tex', `auto-capitalize-TeX-blocking-function'. You can
-;; always write your own predicates and add them to this hook.
+;; By default, this hook only contains `auto-capitalize-default-blocking-function' and
+;; `auto-capitalize-org-blocking-function'. Additional plugins, like the provided
+;; `auto-capitalize-tex', can add their own predicates and context functions via
+;; `auto-capitalize-context-functions'. You can always write your own predicates
+;; and add them to these hooks.
 ;;
 ;; Alternatively, if you do not want to write a whole new predicate, you can
 ;; always customize some of the user options in the `auto-capitalize' group.
@@ -180,14 +180,20 @@ auto-capitalize a word."
 
 (defcustom auto-capitalize-blocking-functions
   (list #'auto-capitalize-default-blocking-function
-        #'auto-capitalize-org-blocking-function
-        #'auto-capitalize-TeX-blocking-function)
+        #'auto-capitalize-org-blocking-function)
   "Hook providing the right of first refusal over capitalization.
 Each function is called with no arguments and should return nil to
 block capitalization in the current context."
   :group 'auto-capitalize
   :type 'hook
   :options (list #'auto-capitalize-default-blocking-function))
+
+(defvar auto-capitalize-context-functions nil
+  "Hook for additional capitalization boundary detection.
+Each function is called with two arguments, (TEXT-START WORD-START),
+and should return non-nil if the word at WORD-START should be
+capitalized in that context.  This hook is run inside
+`auto-capitalize-check-context'.")
 
 
 ;; Internal variables:
@@ -410,73 +416,82 @@ only capitalize if the user answered \"y\"."
    (or (not auto-capitalize-ask)
        (auto-capitalize--ask))
 
-   (or (and (derived-mode-p 'prog-mode)
-            auto-capitalize-strings
-            (save-excursion
-              ;; beginning of a string?
-              (progn
-                (goto-char word-start)
-                (when-let* ((string-start (nth 8 (syntax-ppss))))
-                  (eq (1+ string-start) word-start)))))
+   (or (auto-capitalize--check-context-core text-start word-start)
+       (run-hook-with-args-until-success
+        'auto-capitalize-context-functions text-start word-start))))
 
-       ;; beginning of a comment?
-       ;; This check is not limited to prog-mode, since modes like Org
-       ;; and TeX have their own comment syntax, but are technically derived form
-       ;; ‘text-mode’.
-       (save-excursion
-         (and auto-capitalize-comments
-              comment-start-skip
-              (progn
-                (goto-char word-start)
-                (re-search-backward comment-start-skip nil t))
-              (= (match-end 0) word-start)))
+(defun auto-capitalize--check-context-core (text-start word-start)
+  "Check standard capitalization context at TEXT-START/WORD-START.
+Like `auto-capitalize-check-context' but does not call
+`auto-capitalize-context-functions'."
+  (goto-char text-start)
+  (or (and (derived-mode-p 'prog-mode)
+           auto-capitalize-strings
+           (save-excursion
+             ;; beginning of a string?
+             (progn
+               (goto-char word-start)
+               (when-let* ((string-start (nth 8 (syntax-ppss))))
+                 (eq (1+ string-start) word-start)))))
 
-       (and (derived-mode-p 'text-mode)
-            (or (bobp)
-                (and auto-capitalize-outline-headings
-                     (bound-and-true-p outline-regexp)
-                     (save-excursion
-                       (goto-char (line-beginning-position))
-                       (when (looking-at outline-regexp)
-                         (goto-char (match-end 0))
-                         (skip-syntax-forward "^w" (line-end-position))
-                         (= (point) word-start))))))
+      ;; beginning of a comment?
+      ;; This check is not limited to prog-mode, since modes like Org
+      ;; and TeX have their own comment syntax, but are technically derived form
+      ;; ‘text-mode’.
+      (save-excursion
+        (and auto-capitalize-comments
+             comment-start-skip
+             (progn
+               (goto-char word-start)
+               (re-search-backward comment-start-skip nil t))
+             (= (match-end 0) word-start)))
 
-       ;; beginning of paragraph?
-       (and (= (current-column) left-margin)
-            (or (save-excursion
-                  (and (zerop (forward-line -1))
-                       (looking-at paragraph-separate)))
-                (save-excursion
-                  (and (re-search-backward paragraph-start nil t)
-                       (= (match-end 0) text-start)
-                       (= (current-column) left-margin)))
+      (and (derived-mode-p 'text-mode)
+           (or (bobp)
+               (and auto-capitalize-outline-headings
+                    (bound-and-true-p outline-regexp)
+                    (save-excursion
+                      (goto-char (line-beginning-position))
+                      (when (looking-at outline-regexp)
+                        (goto-char (match-end 0))
+                        (skip-syntax-forward "^w" (line-end-position))
+                        (= (point) word-start))))))
 
-                ;; beginning of line after an outline heading?
-                (save-excursion
-                  (and (zerop (forward-line -1))
-                       (looking-at outline-regexp)))))
+      ;; beginning of paragraph?
+      (and (= (current-column) left-margin)
+           (or (save-excursion
+                 (and (zerop (forward-line -1))
+                      (looking-at paragraph-separate)))
+               (save-excursion
+                 (and (re-search-backward paragraph-start nil t)
+                      (= (match-end 0) text-start)
+                      (= (current-column) left-margin)))
 
-       ;; beginning of sentence?
-       (save-excursion
-         (save-restriction
-           (narrow-to-region (point-min) word-start)
-           (and (re-search-backward (sentence-end) nil t)
-                (= (match-end 0) text-start)
-                ;; verify: preceded by whitespace?
-                (let ((previous-char (char-before text-start)))
-                  ;; In some modes, newline (^J, aka LFD) is comment-end, not
-                  ;; whitespace:
-                  (or (eq ?\n previous-char)
-                      (eq ?\s (char-syntax previous-char))))
+               ;; beginning of line after an outline heading?
+               (save-excursion
+                 (and (zerop (forward-line -1))
+                      (looking-at outline-regexp)))))
 
-                ;; verify: not preceded by an abbreviation?
-                (let ((case-fold-search nil)
-                      (abbrev-regexp auto-capitalize-abbrev-regexp))
-                  (goto-char (1+ (match-beginning 0)))
-                  (or (not (re-search-backward abbrev-regexp nil t))
-                      (not (member (match-string 0)
-                                   auto-capitalize-fixed-case-words))))))))))
+      ;; beginning of sentence?
+      (save-excursion
+        (save-restriction
+          (narrow-to-region (point-min) word-start)
+          (and (re-search-backward (sentence-end) nil t)
+               (= (match-end 0) text-start)
+               ;; verify: preceded by whitespace?
+               (let ((previous-char (char-before text-start)))
+                 ;; In some modes, newline (^J, aka LFD) is comment-end, not
+                 ;; whitespace:
+                 (or (eq ?\n previous-char)
+                     (eq ?\s (char-syntax previous-char))))
+
+               ;; verify: not preceded by an abbreviation?
+               (let ((case-fold-search nil)
+                     (abbrev-regexp auto-capitalize-abbrev-regexp))
+                 (goto-char (1+ (match-beginning 0)))
+                 (or (not (re-search-backward abbrev-regexp nil t))
+                     (not (member (match-string 0)
+                                  auto-capitalize-fixed-case-words)))))))))
 
 (defun auto-capitalize--ask ()
   "Ask the user whether the last typed word should be capitalized or not."
@@ -537,22 +552,7 @@ see)."
       (not (org-in-src-block-p))))
 
 
-;; TeX mode: We need to handle TeX-mode math specifically.
 
-(declare-function texmathp "ext:texmathp")
-
-(defun auto-capitalize-TeX-blocking-function ()
-  "Returns non-nil if not in TeX mode, or if inside a TeX math block.
-
-This predicate is added to `auto-capitalize-blocking-functions' (which
-see).
-
-Note that this functions requires `texmathp' from the `AUCTeX' package
-to work, without which it is a NOP."
-  (or (not (derived-mode-p 'TeX-mode))
-      (not (texmathp))))
-
-
 ;; Old package description, by Yuta Yamada:
 
 ;; This project was copied from emacswiki page
