@@ -415,9 +415,8 @@ only capitalize if the user answered \"y\"."
        (auto-capitalize--ask))
 
    (or (auto-capitalize--check-context-core text-start word-start)
-       (and (derived-mode-p 'text-mode)
-            (run-hook-with-args-until-success
-             'auto-capitalize-context-functions text-start word-start)))))
+       (run-hook-with-args-until-success
+        'auto-capitalize-context-functions text-start word-start))))
 
 (defun auto-capitalize--check-context-core (text-start word-start)
   "Check standard capitalization context at TEXT-START/WORD-START.
