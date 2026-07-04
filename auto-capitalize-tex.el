@@ -88,18 +88,18 @@ sits at a standard capitalization boundary (paragraph start, sentence
 start, etc.).
 
 This function is added to `auto-capitalize-trigger-functions'."
-  (and (bound-and-true-p TeX-mode-p)
-       (let ((macro (TeX-current-macro)))
-         (and macro
-              (member macro auto-capitalize-tex-macro-whitelist)
-              (save-excursion
-                (goto-char word-start)
-                (skip-syntax-backward " ")
-                (and (eq (char-before) ?{)
-                     (not (TeX-escaped-p (1- (point))))
-                     (when-let* ((macro-start (TeX-find-macro-start)))
-                       (auto-capitalize-default-trigger-function
-                        (1- macro-start) macro-start))))))))
+  (when-let* ((_ (bound-and-true-p TeX-mode-p))
+              (macro (TeX-current-macro))
+              (_ (member macro auto-capitalize-tex-macro-whitelist))
+              (macro-start
+               (save-excursion
+                 (goto-char word-start)
+                 (skip-syntax-backward " ")
+                 (when (and (eq (char-before) ?{)
+                            (not (TeX-escaped-p (1- (point)))))
+                   (TeX-find-macro-start)))))
+    (auto-capitalize-default-trigger-function
+     (1- macro-start) macro-start)))
 
 ;; Install hooks at load time
 (add-hook 'auto-capitalize-blocking-functions
