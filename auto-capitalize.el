@@ -222,7 +222,7 @@ functions pass are the trigger functions consulted.")
 (defvar auto-capitalize--match-data nil
   "Holds match data across recursive calls in `auto-capitalize-capitalize'.")
 
-(defconst auto-capitalize-regex-lower "[[:lower:]]+")
+(defconst auto-capitalize-regexp-lower "[[:lower:]]+")
 (defconst auto-capitalize-abbrev-regexp
   "\\<\\([[:upper:]]?[[:lower:]]+\\.\\)+\\=")
 
@@ -419,7 +419,7 @@ only capitalize if the user answered \"y\"."
    (let ((case-fold-search nil))
      (save-excursion
        (goto-char word-start)
-       (looking-at auto-capitalize-regex-lower)))
+       (looking-at auto-capitalize-regexp-lower)))
 
    ;; the user answered y when asked?
    (or (not auto-capitalize-ask)
