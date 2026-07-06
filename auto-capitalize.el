@@ -126,6 +126,14 @@
 (defconst auto-capitalize-abbrev-regexp
   "\\<\\([[:upper:]]?[[:lower:]]+\\.\\)+\\=")
 
+(defvar auto-capitalize--fixed-case-regexp
+  (if (default-boundp 'auto-capitalize-fixed-case-words)
+      (regexp-opt (mapcar #'downcase auto-capitalize-fixed-case-words) 'words)
+    nil)
+  "Cached regexp built from `auto-capitalize-fixed-case-words'.
+Used by `auto-capitalize-maybe-capitalize-preceding-word' to avoid
+rebuilding the regexp on every keystroke.")
+
 
 ;; Internal functions:
 
@@ -410,14 +418,10 @@ comment, and `auto-capitalize-comments' is non-nil."
 		(cl-loop while (or (minusp (skip-chars-backward "\""))
 			           (minusp (skip-syntax-backward "\"("))))
 		(point))))
-        (cond ((and auto-capitalize-fixed-case-words
+        (cond ((and auto-capitalize--fixed-case-regexp
                     (let ((case-fold-search nil))
                       (goto-char word-start)
-                      (looking-at
-                       (regexp-opt
-                        (mapcar 'downcase
-                                auto-capitalize-fixed-case-words)
-                        'words))))
+                      (looking-at auto-capitalize--fixed-case-regexp)))
                (auto-capitalize-handle-fixed-case (match-beginning 0) (match-end 0)))
               ((auto-capitalize-check-context
                 text-start word-start)
@@ -425,6 +429,16 @@ comment, and `auto-capitalize-comments' is non-nil."
                (undo-boundary)
                (goto-char word-start)
                (capitalize-word 1)))))))
+
+(defun auto-capitalize--set-fixed-case (sym val)
+  "Setter for `auto-capitalize-fixed-case-words'.
+Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
+`auto-capitalize--fixed-case-regexp'."
+  (set-default sym val)
+  (setq auto-capitalize--fixed-case-regexp
+        (if val
+            (regexp-opt (mapcar #'downcase val) 'words)
+          nil)))
 
 
 ;; Org mode: We need to handle org-mode source blocks specifically, since they are code,
@@ -489,7 +503,8 @@ Conversely, a word added in lowercase will never be automatically
 capitalized. This is ensured by the function
 `auto-capitalize-handle-fixed-case', which see"
   :group 'auto-capitalize
-  :type '(repeat (string :tag "Word list")))
+  :type '(repeat (string :tag "Word list"))
+  :set #'auto-capitalize--set-fixed-case)
 
 (defcustom auto-capitalize-not-sentence-endings '("e.g." "i.e." "vs." "Mr." "Messrs." "Mrs." "Mmes." "Ms." "Mses.")
   "List of common abbreviations that shouldn’t count as sentence ending.
