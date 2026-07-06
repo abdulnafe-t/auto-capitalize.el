@@ -332,7 +332,17 @@ Test both cases depending on the value of the user option
       (insert "emacs")
       (ert-simulate-command `(self-insert-command 1 ?\s))
       (should (equal (buffer-string)
-                     "\n\"eMaCs \"")))))
+                     "\n\"eMaCs \"")))
+    (erase-buffer)
+    (let ((auto-capitalize-fixed-case-words '("eMaCs" "Emacsen"))
+          (auto-capitalize-strings nil))
+      (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
+      (insert "\"\"")
+      (backward-char)
+      (insert "emacsen")
+      (ert-simulate-command `(self-insert-command 1 ?\s))
+      (should (equal (buffer-string)
+                     "\n\"Emacsen \"")))))
 
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
