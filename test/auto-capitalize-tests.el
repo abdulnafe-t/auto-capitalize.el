@@ -178,6 +178,7 @@
 
 (ert-deftest auto-capitalize-TeX-whitelist-macros ()
   "Capitalize the first word in a `TeX-mode' whitelisted macro."
+  (skip-unless (featurep 'auctex))
   (with-temp-buffer
     (TeX-mode)
     (auto-capitalize-mode 1)
@@ -193,6 +194,7 @@
 (ert-deftest auto-capitalize-TeX-ignore-whitelist-macros ()
   "Don’t capitalize the first word in a `TeX-mode' whitelisted macro if the
 context doesn’t make sense."
+  (skip-unless (featurep 'auctex))
   (with-temp-buffer
     (TeX-mode)
     (auto-capitalize-mode 1)
