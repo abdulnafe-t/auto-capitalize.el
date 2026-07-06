@@ -112,112 +112,9 @@
 (defconst auto-capitalize-version "3.0"
   "The version of auto-capitalize.el.")
 
-
-;; User options:
-
 (defgroup auto-capitalize nil
   "Customization group for the auto-capitalize package."
   :group 'convenience)
-
-(defcustom auto-capitalize-ask nil
-  "If non-nil, always ask before capitalizing."
-  :group 'auto-capitalize
-  :type 'boolean)
-
-(defcustom auto-capitalize-yank nil
-  "If non-nil, auto-capitalization applies to yanked text."
-  :group 'auto-capitalize
-  :type 'boolean)
-
-(defcustom auto-capitalize-strings t
-  "If non-nil, strings in `prog-mode' buffers will be capitalized.
-
-This variable is checked by `auto-capitalize-default-trigger-function'."
-  :group 'auto-capitalize
-  :type 'boolean)
-
-(defcustom auto-capitalize-comments t
-  "If non-nil, comments in `prog-mode' buffers will be capitalized.
-
-This variable is checked by `auto-capitalize-default-trigger-function'."
-  :group 'auto-capitalize
-  :type 'boolean)
-
-(defcustom auto-capitalize-outline-headings t
-  "If non-nil, the headings in `text-mode' buffers will be capitalized.
-
-The check is done using the buffer-local value of `outline-regexp',
-which see."
-  :group 'auto-capitalize
-  :type 'boolean)
-
-(defcustom auto-capitalize-fixed-case-words '("I") ;  "Stallman" "GNU" "http"
-  "If non-nil, a list of words that will always be in the case they appear in here.
-
-If `auto-capitalize' mode is on, and as long as
-`auto-capitalize-blocking-functions' pass, these words will be
-automatically capitalized or upcased as listed (mixed case is allowable
-as well), even if no other condition would get them capitalized.
-Conversely, a word added in lowercase will never be automatically
-capitalized. This is ensured by the function
-`auto-capitalize-handle-fixed-case', which see"
-  :group 'auto-capitalize
-  :type '(repeat (string :tag "Word list")))
-
-(defcustom auto-capitalize-not-sentence-endings '("e.g." "i.e." "vs." "Mr." "Messrs." "Mrs." "Mmes." "Ms." "Mses.")
-  "List of common abbreviations that shouldn’t count as sentence ending.
-This means that they will not cause a word that comes after them to get
-capitalized, unless it appears, capitalized, in
-`auto-capitalize-fixed-case-words'.
-
-This list is checked by `auto-capitalize-default-blocking-function',
-which see."
-  :group 'auto-capitalize
-  :type '(repeat (string :tag "Non-sentence ending word.")))
-
-(defcustom auto-capitalize-trigger-chars '(?\s ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
-  "List of chars that trigger auto-capitalization on the preceding word.
-
-This variable is checked by `auto-capitalize-default-blocking-function'.
-
-If this variable is nil, it is ignored."
-  :group 'auto-capitalize
-  :type
-  '(choice (repeat (character
-                    :tag "Characters that trigger capitalization on the preceding word"))
-           (const nil)))
-
-(defcustom auto-capitalize-inhibit-buffers nil
-  "List of buffer names in which to suppress auto-capitalization."
-  :group 'auto-capitalize
-  :type '(repeat (string :tag "Buffer name")))
-
-(defcustom auto-capitalize-blocking-functions
-  (list #'auto-capitalize-default-blocking-function
-        #'auto-capitalize-org-blocking-function)
-  "Hook providing the right of first refusal over capitalization.
-
-Each function is called with no arguments and should return nil to
-block capitalization in the current context."
-  :group 'auto-capitalize
-  :type 'hook
-  :options (list #'auto-capitalize-default-blocking-function
-                 #'auto-capitalize-org-blocking-function))
-
-(defcustom auto-capitalize-trigger-functions '(auto-capitalize-default-trigger-function)
-  "Hook for triggering capitalization at specific buffer positions.
-
-Each function is called with two arguments, (TEXT-START WORD-START), and
-should return non-nil if the word at WORD-START should be capitalized.
-The functions are OR'd together: if any returns non-nil, capitalization
-occurs.
-
-This hook complements `auto-capitalize-blocking-functions': blocking
-functions run first and always take precedence.  Only if all blocking
-functions pass are the trigger functions consulted."
-  :group 'auto-capitalize
-  :type 'hook
-  :options (list #'auto-capitalize-default-trigger-function))
 
 
 ;; Internal variables:
@@ -228,37 +125,6 @@ functions pass are the trigger functions consulted."
 (defconst auto-capitalize-regexp-lower "[[:lower:]]+")
 (defconst auto-capitalize-abbrev-regexp
   "\\<\\([[:upper:]]?[[:lower:]]+\\.\\)+\\=")
-
-
-;; Commands:
-
-;;;###autoload
-(define-minor-mode auto-capitalize-mode
-  "Toggle `auto-capitalize' minor mode in the current buffer.
-
-This will install `auto-capitalize-capitalize' in
-`after-change-functions' in the current buffer."
-
-  :init-value nil
-  :lighter " ACap"
-  :keymap nil
-  (cond
-    ;; Turn off
-    ((or (not auto-capitalize-mode)
-         buffer-read-only
-         (member (buffer-name) auto-capitalize-inhibit-buffers))
-     (remove-hook 'after-change-functions 'auto-capitalize-capitalize t))
-
-    ;; Turn on
-    (t
-     (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
-     (add-hook 'auto-capitalize-blocking-functions
-               #'auto-capitalize-default-blocking-function))))
-
-;;;###autoload
-(define-globalized-minor-mode auto-capitalize-global-mode
-  auto-capitalize-mode auto-capitalize-mode
-  :predicate '(not comint-mode))
 
 
 ;; Internal functions:
@@ -576,6 +442,140 @@ This predicate is added to `auto-capitalize-blocking-functions' (which
 see)."
   (or (not (derived-mode-p 'org-mode))
       (not (org-in-src-block-p))))
+
+
+;; User options:
+
+(defcustom auto-capitalize-ask nil
+  "If non-nil, always ask before capitalizing."
+  :group 'auto-capitalize
+  :type 'boolean)
+
+(defcustom auto-capitalize-yank nil
+  "If non-nil, auto-capitalization applies to yanked text."
+  :group 'auto-capitalize
+  :type 'boolean)
+
+(defcustom auto-capitalize-strings t
+  "If non-nil, strings in `prog-mode' buffers will be capitalized.
+
+This variable is checked by `auto-capitalize-default-trigger-function'."
+  :group 'auto-capitalize
+  :type 'boolean)
+
+(defcustom auto-capitalize-comments t
+  "If non-nil, comments in `prog-mode' buffers will be capitalized.
+
+This variable is checked by `auto-capitalize-default-trigger-function'."
+  :group 'auto-capitalize
+  :type 'boolean)
+
+(defcustom auto-capitalize-outline-headings t
+  "If non-nil, the headings in `text-mode' buffers will be capitalized.
+
+The check is done using the buffer-local value of `outline-regexp',
+which see."
+  :group 'auto-capitalize
+  :type 'boolean)
+
+(defcustom auto-capitalize-fixed-case-words '("I") ;  "Stallman" "GNU" "http"
+  "If non-nil, a list of words that will always be in the case they appear in here.
+
+If `auto-capitalize' mode is on, and as long as
+`auto-capitalize-blocking-functions' pass, these words will be
+automatically capitalized or upcased as listed (mixed case is allowable
+as well), even if no other condition would get them capitalized.
+Conversely, a word added in lowercase will never be automatically
+capitalized. This is ensured by the function
+`auto-capitalize-handle-fixed-case', which see"
+  :group 'auto-capitalize
+  :type '(repeat (string :tag "Word list")))
+
+(defcustom auto-capitalize-not-sentence-endings '("e.g." "i.e." "vs." "Mr." "Messrs." "Mrs." "Mmes." "Ms." "Mses.")
+  "List of common abbreviations that shouldn’t count as sentence ending.
+This means that they will not cause a word that comes after them to get
+capitalized, unless it appears, capitalized, in
+`auto-capitalize-fixed-case-words'.
+
+This list is checked by `auto-capitalize-default-blocking-function',
+which see."
+  :group 'auto-capitalize
+  :type '(repeat (string :tag "Non-sentence ending word.")))
+
+(defcustom auto-capitalize-trigger-chars '(?\s ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
+  "List of chars that trigger auto-capitalization on the preceding word.
+
+This variable is checked by `auto-capitalize-default-blocking-function'.
+
+If this variable is nil, it is ignored."
+  :group 'auto-capitalize
+  :type
+  '(choice (repeat (character
+                    :tag "Characters that trigger capitalization on the preceding word"))
+           (const nil)))
+
+(defcustom auto-capitalize-inhibit-buffers nil
+  "List of buffer names in which to suppress auto-capitalization."
+  :group 'auto-capitalize
+  :type '(repeat (string :tag "Buffer name")))
+
+(defcustom auto-capitalize-blocking-functions
+  (list #'auto-capitalize-default-blocking-function
+        #'auto-capitalize-org-blocking-function)
+  "Hook providing the right of first refusal over capitalization.
+
+Each function is called with no arguments and should return nil to
+block capitalization in the current context."
+  :group 'auto-capitalize
+  :type 'hook
+  :options (list #'auto-capitalize-default-blocking-function
+                 #'auto-capitalize-org-blocking-function))
+
+(defcustom auto-capitalize-trigger-functions '(auto-capitalize-default-trigger-function)
+  "Hook for triggering capitalization at specific buffer positions.
+
+Each function is called with two arguments, (TEXT-START WORD-START), and
+should return non-nil if the word at WORD-START should be capitalized.
+The functions are OR'd together: if any returns non-nil, capitalization
+occurs.
+
+This hook complements `auto-capitalize-blocking-functions': blocking
+functions run first and always take precedence.  Only if all blocking
+functions pass are the trigger functions consulted."
+  :group 'auto-capitalize
+  :type 'hook
+  :options (list #'auto-capitalize-default-trigger-function))
+
+
+;; Commands:
+
+;;;###autoload
+(define-minor-mode auto-capitalize-mode
+  "Toggle `auto-capitalize' minor mode in the current buffer.
+
+This will install `auto-capitalize-capitalize' in
+`after-change-functions' in the current buffer."
+
+  :init-value nil
+  :lighter " ACap"
+  :keymap nil
+  (cond
+    ;; Turn off
+    ((or (not auto-capitalize-mode)
+         buffer-read-only
+         (member (buffer-name) auto-capitalize-inhibit-buffers))
+     (remove-hook 'after-change-functions 'auto-capitalize-capitalize t))
+
+    ;; Turn on
+    (t
+     (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
+     (add-hook 'auto-capitalize-blocking-functions
+               #'auto-capitalize-default-blocking-function))))
+
+;;;###autoload
+(define-globalized-minor-mode auto-capitalize-global-mode
+  auto-capitalize-mode auto-capitalize-mode
+  :predicate '(not comint-mode))
 
 
 
