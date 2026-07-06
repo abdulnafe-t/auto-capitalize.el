@@ -164,8 +164,8 @@ capitalized. This is ensured by the function
   :group 'auto-capitalize
   :type '(repeat (string :tag "Word list")))
 
-(defcustom auto-capitalize-not-sentence-endings '("e.g." "i.e." "vs.")
-  "List of words that shouldn’t count as sentence ending.
+(defcustom auto-capitalize-not-sentence-endings '("e.g." "i.e." "vs." "Mr." "Messrs." "Mrs." "Mmes." "Ms." "Mses.")
+  "List of common abbreviations that shouldn’t count as sentence ending.
 This means that they will not cause a word that comes after them to get
 capitalized, unless it appears, capitalized, in
 `auto-capitalize-fixed-case-words'.
