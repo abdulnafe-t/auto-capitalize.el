@@ -548,12 +548,11 @@ comment, and `auto-capitalize-comments' is non-nil."
                     (let ((case-fold-search nil))
                       (goto-char word-start)
                       (looking-at
-                       (concat "\\("
-                               (mapconcat 'downcase
-                                          auto-capitalize-fixed-case-words
-                                          "\\|")
-                               "\\)\\>"))))
-               (auto-capitalize-handle-fixed-case (match-beginning 1) (match-end 1)))
+                       (regexp-opt
+                        (mapcar 'downcase
+                                auto-capitalize-fixed-case-words)
+                        'words))))
+               (auto-capitalize-handle-fixed-case (match-beginning 0) (match-end 0)))
               ((auto-capitalize-check-context
                 text-start word-start)
                ;; capitalize!
