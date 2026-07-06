@@ -353,13 +353,22 @@ comment, and `auto-capitalize-comments' is non-nil."
       ;; This check is not limited to prog-mode, since modes like Org
       ;; and TeX have their own comment syntax, but are technically derived form
       ;; ‘text-mode’.
+
+      ;; This first test is required because org does not set # as comment start
+      ;; in its syntax table
       (save-excursion
         (and auto-capitalize-comments
-             comment-start-skip
-             (progn
-               (goto-char word-start)
-               (re-search-backward comment-start-skip nil t))
-             (= (match-end 0) word-start)))
+             (or (and
+                  comment-start-skip
+                  (re-search-backward comment-start-skip nil t)
+                  (= (match-end 0) word-start))
+
+                 ;; This second check is requierd for org src blocks where the comment
+                 ;; syntax doesn't match org's comment-start-skip
+                 (when-let* ((cs (nth 8 (syntax-ppss))))
+                   (goto-char cs)
+                   (and (re-search-forward "\\w" (1+ word-start) t)
+                        (= (match-beginning 0) word-start))))))
 
       (and (derived-mode-p 'text-mode)
            (or (bobp)
@@ -454,11 +463,8 @@ Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
           nil)))
 
 
-;; Org mode: We need to handle org-mode source blocks specifically, since they are code,
-;; but are technically still part of a text-mode buffer.
-;;
-;; This has the downside of preventing strings/comments in such blocks from getting
-;; capitalized correctly.
+;; Org mode: We need to handle org-mode source blocks specifically, since they
+;; are code, but are technically still part of a text-mode buffer.
 
 (declare-function org-in-src-block-p "org")
 
@@ -468,7 +474,8 @@ Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
 This predicate is added to `auto-capitalize-blocking-functions' (which
 see)."
   (or (not (derived-mode-p 'org-mode))
-      (not (org-in-src-block-p))))
+      (not (org-in-src-block-p))
+      (nth 8 (syntax-ppss))))
 
 
 ;; User options:
