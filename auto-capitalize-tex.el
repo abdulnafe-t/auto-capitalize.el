@@ -109,8 +109,3 @@ This function is added to `auto-capitalize-trigger-functions'."
 
 (provide 'auto-capitalize-tex)
 ;;; auto-capitalize-tex.el ends here
-
-;; Local Variables:
-;; fill-column: 80
-;; electric-quote-chars: (96 39 34 34)
-;; End:

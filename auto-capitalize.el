@@ -705,8 +705,3 @@ This will install `auto-capitalize-capitalize' in
 
 (provide 'auto-capitalize)
 ;;; auto-capitalize.el ends here
-
-;; Local Variables:
-;; fill-column: 80
-;; electric-quote-chars: (?` ?' ?" ?")
-;; End:
