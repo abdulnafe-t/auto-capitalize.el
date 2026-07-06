@@ -135,6 +135,19 @@ Used by `auto-capitalize-maybe-capitalize-preceding-word' to avoid
 rebuilding the regexp on every keystroke.")
 
 
+;; Forward declarations to satisfy the compiler
+
+(defvar auto-capitalize-ask)
+(defvar auto-capitalize-yank)
+(defvar auto-capitalize-strings)
+(defvar auto-capitalize-comments)
+(defvar auto-capitalize-outline-headings)
+(defvar auto-capitalize-fixed-case-words)
+(defvar auto-capitalize-not-sentence-endings)
+(defvar auto-capitalize-trigger-chars)
+(defvar auto-capitalize-blocking-functions)
+
+
 ;; Internal functions:
 
 (defun auto-capitalize-default-blocking-function ()
