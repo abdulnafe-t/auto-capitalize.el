@@ -29,6 +29,7 @@
 (require 'auto-capitalize)
 (when (featurep 'auctex)
   (require 'auto-capitalize-tex))
+(require 'font-lock)                    ; For `font-lock-ensure'
 
 
 ;;;; Tests for `text-mode'
@@ -249,6 +250,49 @@ context doesn’t make sense."
     (ert-simulate-command '(self-insert-command 1 ?\s))
     (should (equal (buffer-string)
                    "* A "))))
+
+(ert-deftest auto-capitalize-org-src-code ()
+  "Don’t capitalize source code in `org-mode' src blocks."
+  (with-temp-buffer
+    (org-mode)
+    (auto-capitalize-mode 1)
+    (insert "#+begin_src C\n\n#+end_src")
+    (forward-line -1)
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "#+begin_src C\na \n#+end_src"))))
+
+(ert-deftest auto-capitalize-org-src-comments ()
+  "Capitalize comments `org-mode' src blocks."
+  (with-temp-buffer
+    (org-mode)
+    (auto-capitalize-mode 1)
+    (let ((org-src-content-indentation 0))
+      (insert "#+begin_src C\n\n#+end_src")
+      (forward-line -1)
+      (ert-simulate-command '(comment-dwim 2))
+      (font-lock-ensure)
+      (ert-simulate-command '(self-insert-command 1 ?a))
+      (ert-simulate-command '(self-insert-command 1 ?\s))
+      (should (equal (buffer-string)
+                     "#+begin_src C\n/* A  */\n#+end_src")))))
+
+(ert-deftest auto-capitalize-org-src-strings ()
+  "Capitalize strings `org-mode' src blocks."
+  (with-temp-buffer
+    (org-mode)
+    (auto-capitalize-mode 1)
+    (let ((org-src-content-indentation 0))
+      (insert "#+begin_src C\n\n#+end_src")
+      (forward-line -1)
+      (insert "\"\"")
+      ;; (font-lock-ensure)
+      (backward-char)
+      (ert-simulate-command '(self-insert-command 1 ?a))
+      (ert-simulate-command '(self-insert-command 1 ?\s))
+      (should (equal (buffer-string)
+                     "#+begin_src C\n\"A \"\n#+end_src")))))
 
 
 ;;;; Tests for `prog-mode'
