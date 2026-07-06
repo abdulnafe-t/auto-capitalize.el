@@ -518,7 +518,7 @@ comment, and `auto-capitalize-comments' is non-nil."
                      (abbrev-regexp auto-capitalize-abbrev-regexp))
                  (goto-char (1+ (match-beginning 0)))
                  (or (not (re-search-backward abbrev-regexp nil t))
-                     (not (member (match-string 0)
+                     (not (member (match-string-no-properties 0)
                                   auto-capitalize-fixed-case-words)))))))))
 
 (defun auto-capitalize--ask ()
