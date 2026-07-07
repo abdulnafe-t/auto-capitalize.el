@@ -49,6 +49,7 @@
   (with-temp-buffer
     (text-mode)
     (auto-capitalize-mode 1)
+    (electric-quote-local-mode -1)
     (dolist (trigger auto-capitalize-trigger-chars)
       (erase-buffer)
       (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
