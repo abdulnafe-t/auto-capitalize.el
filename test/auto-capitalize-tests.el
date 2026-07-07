@@ -89,6 +89,24 @@
       (should (equal (buffer-string)
                      (concat abbrev " a " ))))))
 
+(ert-deftest auto-capitalize-text-after-quoted-abbreviations ()
+  "Don’t capitalize after words in `auto-capitalize-not-sentence-endings',
+even if they appear inside quotes."
+  (with-temp-buffer
+    (text-mode)
+    (auto-capitalize-mode 1)
+    (dolist (abbrev auto-capitalize-not-sentence-endings)
+      (erase-buffer)
+      (insert "\"\"")
+      (backward-char)
+      (insert abbrev)
+      (forward-char)
+      (ert-simulate-command '(self-insert-command 1 ?\s))
+      (ert-simulate-command '(self-insert-command 1 ?a))
+      (ert-simulate-command '(self-insert-command 1 ?\s))
+      (should (equal (buffer-string)
+                     (concat "\"" abbrev "\" a " ))))))
+
 
 ;;;; Tests for `tex-mode'
 
