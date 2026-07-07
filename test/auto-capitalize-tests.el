@@ -173,6 +173,19 @@ even if they appear inside quotes."
     (should (equal (buffer-string)
                    "\\section{A }"))))
 
+(ert-deftest auto-capitalize-tex-after-sections ()
+  "Capitalize the first word after a `tex-mode' \\section{} title.
+
+\\section serves as a proxy for all of `outline-regexp'."
+  (with-temp-buffer
+    (tex-mode)
+    (auto-capitalize-mode 1)
+    (insert "\\section{}\n")
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                   "\\section{}\nA "))))
+
 
 ;;;; Tests for `TeX-mode'
 
