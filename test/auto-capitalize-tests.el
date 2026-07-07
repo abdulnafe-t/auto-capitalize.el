@@ -105,7 +105,19 @@ even if they appear inside quotes."
       (ert-simulate-command '(self-insert-command 1 ?a))
       (ert-simulate-command '(self-insert-command 1 ?\s))
       (should (equal (buffer-string)
-                     (concat "\"" abbrev "\" a " ))))))
+                     (concat "\"" abbrev "\" a " ))))
+
+    (dolist (abbrev auto-capitalize-not-sentence-endings)
+      (erase-buffer)
+      (insert "\"\".")
+      (backward-char 2)
+      (insert abbrev)
+      (forward-char 2)
+      (ert-simulate-command '(self-insert-command 1 ?\s))
+      (ert-simulate-command '(self-insert-command 1 ?a))
+      (ert-simulate-command '(self-insert-command 1 ?\s))
+      (should (equal (buffer-string)
+                     (concat "\"" abbrev "\". A " ))))))
 
 
 ;;;; Tests for `tex-mode'
