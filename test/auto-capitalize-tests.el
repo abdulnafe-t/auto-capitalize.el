@@ -85,7 +85,7 @@
       (erase-buffer)
       (insert abbrev ?\s)
       (ert-simulate-command '(self-insert-command 1 ?a))
-      (ert-simulate-command '(self-insert-command 1 ? ))
+      (ert-simulate-command '(self-insert-command 1 ?\s))
       (should (equal (buffer-string)
                      (concat abbrev " a " ))))))
 
