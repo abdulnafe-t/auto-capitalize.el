@@ -177,13 +177,15 @@ string (skipped if not in `prog-mode')
 
        ;; do not activate after any word in
        ;; `auto-capitalize-not-sentence-endings'
-       (save-excursion
-         (backward-word)
-         (not (looking-back
-               (concat
-                (regexp-opt auto-capitalize-not-sentence-endings)
-                "[[:space:][:punct:]]*")
-               (line-beginning-position) t)))
+        (save-excursion
+          (backward-word)
+          (let ((word-start (point)))
+            (not (and (re-search-backward
+                       (concat "[[:punct:]]*"
+                               (regexp-opt auto-capitalize-not-sentence-endings)
+                               "[^.[:space:]]*[[:space:]]")
+                       (line-beginning-position) t)
+                      (= word-start (match-end 0))))))
 
        ;; don’t capitalize words that look like "[a-z].[a-z].". This is
        ;; mainly to prevent capitalizing "i.e." or "e.g.")
