@@ -104,7 +104,7 @@
                    "% A "))))
 
 (ert-deftest auto-capitalize-tex-ignore-inline-% ()
-  "Don't capitalize the first word after an inline (escaped) `%' in `tex-mode'."
+  "Don't capitalize the first word after an inline (escaped) \"%\" in `tex-mode'."
   (with-temp-buffer
     (tex-mode)
     (auto-capitalize-mode 1)
@@ -162,7 +162,7 @@
                    "$i "))))
 
 (ert-deftest auto-capitalize-TeX-math-equation ()
-  "Do not capitalize anything in `TeX-mode' \equation{} env."
+  "Do not capitalize anything in `TeX-mode' \\equation env."
   (skip-unless (featurep 'auctex))
   (with-temp-buffer
     (TeX-mode)
@@ -206,8 +206,7 @@
                      (concat "\\" macro "{A }" ))))))
 
 (ert-deftest auto-capitalize-TeX-ignore-whitelist-macros ()
-  "Don’t capitalize the first word in a `TeX-mode' whitelisted macro if the
-context doesn’t make sense."
+  "Don’t follow `TeX-mode' whitelisted macro if the context doesn't makesense."
   (skip-unless (featurep 'auctex))
   (with-temp-buffer
     (TeX-mode)
