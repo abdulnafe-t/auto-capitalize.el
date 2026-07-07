@@ -187,13 +187,13 @@ string (skipped if not in `prog-mode')
 
        ;; do not activate after any word in
        ;; `auto-capitalize-abbrevs'
-        (save-excursion
-          (backward-word)
-          (let ((word-start (point)))
-            (not (and (re-search-backward
-                       auto-capitalize--abbrevs-regexp
-                       (line-beginning-position) t)
-                      (= word-start (match-end 0))))))
+       (save-excursion
+         (backward-word)
+         (let ((word-start (point)))
+           (not (and (re-search-backward
+                      auto-capitalize--abbrevs-regexp
+                      (line-beginning-position) t)
+                     (= (match-end 0) word-start)))))
 
        ;; don’t capitalize words that look like "[a-z].[a-z].". This is
        ;; mainly to prevent capitalizing "i.e." or "e.g.")
