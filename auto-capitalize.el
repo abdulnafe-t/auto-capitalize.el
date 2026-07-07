@@ -143,7 +143,7 @@ rebuilding the regexp on every keystroke.")
 (defvar auto-capitalize-comments)
 (defvar auto-capitalize-outline-headings)
 (defvar auto-capitalize-fixed-case-words)
-(defvar auto-capitalize-not-sentence-endings)
+(defvar auto-capitalize-abbrevs)
 (defvar auto-capitalize-trigger-chars)
 (defvar auto-capitalize-blocking-functions)
 
@@ -163,7 +163,7 @@ return nil if any of them return nil:
 3) if in `prog-mode', the current text is either a comment or a
 string (skipped if not in `prog-mode')
 
-4) if the previous word isn’t in `auto-capitalize-not-sentence-endings'
+4) if the previous word isn’t in `auto-capitalize-abbrevs'
 
 5) the last typed character was one of
 `auto-capitalize-trigger-chars' (skipped if that list is empty)."
@@ -176,13 +176,13 @@ string (skipped if not in `prog-mode')
            (nth 8 (syntax-ppss)))
 
        ;; do not activate after any word in
-       ;; `auto-capitalize-not-sentence-endings'
+       ;; `auto-capitalize-abbrevs'
         (save-excursion
           (backward-word)
           (let ((word-start (point)))
             (not (and (re-search-backward
                        (concat "[[:punct:]]*"
-                               (regexp-opt auto-capitalize-not-sentence-endings)
+                               (regexp-opt auto-capitalize-abbrevs)
                                "[^.[:space:]]*[[:space:]]")
                        (line-beginning-position) t)
                       (= word-start (match-end 0))))))
@@ -528,7 +528,7 @@ capitalized. This is ensured by the function
   :type '(repeat (string :tag "Word list"))
   :set #'auto-capitalize--set-fixed-case)
 
-(defcustom auto-capitalize-not-sentence-endings '("e.g." "i.e." "vs." "Mr." "Messrs." "Mrs." "Mmes." "Ms." "Mses.")
+(defcustom auto-capitalize-abbrevs '("e.g." "i.e." "vs." "Mr." "Messrs." "Mrs." "Mmes." "Ms." "Mses.")
   "List of common abbreviations that shouldn’t count as sentence ending.
 This means that they will not cause a word that comes after them to get
 capitalized, unless it appears, capitalized, in

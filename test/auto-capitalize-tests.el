@@ -77,11 +77,11 @@
               kill-ring-yank-pointer old-kill-ring-yank-pointer)))))
 
 (ert-deftest auto-capitalize-text-after-abbreviations ()
-  "Don’t capitalize after words in `auto-capitalize-not-sentence-endings'."
+  "Don’t capitalize after words in `auto-capitalize-abbrevs'."
   (with-temp-buffer
     (text-mode)
     (auto-capitalize-mode 1)
-    (dolist (abbrev auto-capitalize-not-sentence-endings)
+    (dolist (abbrev auto-capitalize-abbrevs)
       (erase-buffer)
       (insert abbrev ?\s)
       (ert-simulate-command '(self-insert-command 1 ?a))
@@ -90,12 +90,12 @@
                      (concat abbrev " a " ))))))
 
 (ert-deftest auto-capitalize-text-after-quoted-abbreviations ()
-  "Don’t capitalize after words in `auto-capitalize-not-sentence-endings',
+  "Don’t capitalize after words in `auto-capitalize-abbrevs',
 even if they appear inside quotes."
   (with-temp-buffer
     (text-mode)
     (auto-capitalize-mode 1)
-    (dolist (abbrev auto-capitalize-not-sentence-endings)
+    (dolist (abbrev auto-capitalize-abbrevs)
       (erase-buffer)
       (insert "\"\"")
       (backward-char)
@@ -107,7 +107,7 @@ even if they appear inside quotes."
       (should (equal (buffer-string)
                      (concat "\"" abbrev "\" a " ))))
 
-    (dolist (abbrev auto-capitalize-not-sentence-endings)
+    (dolist (abbrev auto-capitalize-abbrevs)
       (erase-buffer)
       (insert "\"\".")
       (backward-char 2)
