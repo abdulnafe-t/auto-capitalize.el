@@ -75,6 +75,19 @@
         (setq kill-ring old-kill-ring
               kill-ring-yank-pointer old-kill-ring-yank-pointer)))))
 
+(ert-deftest auto-capitalize-text-after-abbreviations ()
+  "Don’t capitalize after words in `auto-capitalize-not-sentence-endings'."
+  (with-temp-buffer
+    (text-mode)
+    (auto-capitalize-mode 1)
+    (dolist (abbrev auto-capitalize-not-sentence-endings)
+      (erase-buffer)
+      (insert abbrev ?\s)
+      (ert-simulate-command '(self-insert-command 1 ?a))
+      (ert-simulate-command '(self-insert-command 1 ? ))
+      (should (equal (buffer-string)
+                     (concat abbrev " a " ))))))
+
 
 ;;;; Tests for `tex-mode'
 
