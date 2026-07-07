@@ -134,6 +134,16 @@
 Used by `auto-capitalize-maybe-capitalize-preceding-word' to avoid
 rebuilding the regexp on every keystroke.")
 
+(defvar auto-capitalize--abbrevs-regexp
+  (if (default-boundp 'auto-capitalize-abbrevs)
+      (concat "[[:punct:]]*"
+              (regexp-opt auto-capitalize-abbrevs)
+              "[^.[:space:]]*[[:space:]]")
+    nil)
+  "Cached regexp built from `auto-capitalize-abbrevs'.
+Used by `auto-capitalize-default-blocking-function' to avoid rebuilding
+the regexp on every keystroke.")
+
 
 ;; Forward declarations to satisfy the compiler
 
@@ -181,9 +191,7 @@ string (skipped if not in `prog-mode')
           (backward-word)
           (let ((word-start (point)))
             (not (and (re-search-backward
-                       (concat "[[:punct:]]*"
-                               (regexp-opt auto-capitalize-abbrevs)
-                               "[^.[:space:]]*[[:space:]]")
+                       auto-capitalize--abbrevs-regexp
                        (line-beginning-position) t)
                       (= word-start (match-end 0))))))
 
@@ -464,6 +472,18 @@ Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
             (regexp-opt (mapcar #'downcase val) 'words)
           nil)))
 
+(defun auto-capitalize--set-abbrevs (sym val)
+    "Setter for `auto-capitalize-abbrevs'.
+Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
+`auto-capitalize--abbrevs-regexp'."
+    (set-default sym val)
+    (setq auto-capitalize--abbrevs-regexp
+          (if val
+              (concat "[[:punct:]]*"
+                      (regexp-opt auto-capitalize-abbrevs)
+                      "[^.[:space:]]*[[:space:]]")
+            nil)))
+
 
 ;; Org mode: We need to handle org-mode source blocks specifically, since they
 ;; are code, but are technically still part of a text-mode buffer.
@@ -529,7 +549,7 @@ capitalized. This is ensured by the function
   :set #'auto-capitalize--set-fixed-case)
 
 (defcustom auto-capitalize-abbrevs '("e.g." "i.e." "vs." "Mr." "Messrs." "Mrs." "Mmes." "Ms." "Mses.")
-  "List of common abbreviations that shouldn’t count as sentence ending.
+  "List of common abbreviations that shouldn’t count as sentence endings.
 This means that they will not cause a word that comes after them to get
 capitalized, unless it appears, capitalized, in
 `auto-capitalize-fixed-case-words'.
@@ -537,7 +557,8 @@ capitalized, unless it appears, capitalized, in
 This list is checked by `auto-capitalize-default-blocking-function',
 which see."
   :group 'auto-capitalize
-  :type '(repeat (string :tag "Non-sentence ending word.")))
+  :type '(repeat (string :tag "Non-sentence ending word."))
+  :set #'auto-capitalize--set-abbrevs)
 
 (defcustom auto-capitalize-trigger-chars '(?\s ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
   "List of chars that trigger auto-capitalization on the preceding word.
