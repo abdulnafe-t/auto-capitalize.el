@@ -403,7 +403,8 @@ comment, and `auto-capitalize-comments' is non-nil."
 
                ;; beginning of line after an outline heading?
                (save-excursion
-                 (and (zerop (forward-line -1))
+                 (and (bound-and-true-p outline-regexp)
+                      (zerop (forward-line -1))
                       (looking-at outline-regexp)))))
 
       ;; beginning of sentence?
