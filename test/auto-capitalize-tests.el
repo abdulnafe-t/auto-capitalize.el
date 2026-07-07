@@ -119,6 +119,18 @@ even if they appear inside quotes."
       (should (equal (buffer-string)
                      (concat "\"" abbrev "\". A " ))))))
 
+(ert-deftest auto-capitalize-text-paragraph-indent-mode ()
+  "Capitalize paragraphs in `paragraph-indent-minor-mode'."
+  (with-temp-buffer
+    (text-mode)
+    (auto-capitalize-mode 1)
+    (paragraph-indent-minor-mode 1)
+    (ert-simulate-command '(self-insert-command 1 ?\t))
+    (ert-simulate-command '(self-insert-command 1 ?a))
+    (ert-simulate-command '(self-insert-command 1 ?\s))
+    (should (equal (buffer-string)
+                     (concat "\tA " )))))
+
 
 ;;;; Tests for `tex-mode'
 
