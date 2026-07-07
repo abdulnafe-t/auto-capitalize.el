@@ -418,15 +418,7 @@ comment, and `auto-capitalize-comments' is non-nil."
                  ;; In some modes, newline (^J, aka LFD) is comment-end, not
                  ;; whitespace:
                  (or (eq ?\n previous-char)
-                     (eq ?\s (char-syntax previous-char))))
-
-               ;; verify: not preceded by an abbreviation?
-               (let ((case-fold-search nil)
-                     (abbrev-regexp auto-capitalize-abbrev-regexp))
-                 (goto-char (1+ (match-beginning 0)))
-                 (or (not (re-search-backward abbrev-regexp nil t))
-                     (not (member (match-string-no-properties 0)
-                                  auto-capitalize-fixed-case-words)))))))))
+                     (eq ?\s (char-syntax previous-char)))))))))
 
 (defun auto-capitalize--ask ()
   "Ask the user whether the last typed word should be capitalized or not."
