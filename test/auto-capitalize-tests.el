@@ -290,6 +290,22 @@ even if they appear inside quotes."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "# A "))))
 
+(ert-deftest auto-capitalize-org-comment-sentence ()
+  "Don't capitalize sentence starts in `org-mode' comments if
+`auto-capitalize-comments' is nil."
+  (auto-capitalize-tests--setup
+   org-mode
+   (let ((auto-capitalize-comments nil))
+     (ert-simulate-command '(self-insert-command 1 ?#))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?.))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s)))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "# a. a "))))
+
 (ert-deftest auto-capitalize-org-comments-non-first-line ()
   "Capitalize the first word of an org comment on a non-first line."
   (auto-capitalize-tests--setup
