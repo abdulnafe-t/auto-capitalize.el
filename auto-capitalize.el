@@ -86,12 +86,7 @@
 ;; capitalized one time, type the word, then use `quoted-insert' (bound to `C-q'
 ;; by default) followed by the next punctuation or space character.
 ;;
-;; Note that if `auto-capitalize-blocking-functions' pass,
-;; `auto-capitalize-fixed-case-words' ignores other checks: all words included
-;; therein will be replaced in all applicable contexts. For example, regardless
-;; of the value of `auto-capitalize-strings', "I" will always get capitalized in
-;; a string, if "I" is included in the list.
-
+;;
 ;; This package is a revamp of Yuta Yamada’s version
 ;; (https://github.com/yuutayamada/auto-capitalize-el), which is itself a fork
 ;; of the original auto-capitalize.el, written by Kevin Rodgers and shared on
@@ -170,8 +165,9 @@ return nil if any of them return nil:
 
 2) it is not a minibuffer
 
-3) if in `prog-mode', the current text is either a comment or a
-string (skipped if not in `prog-mode')
+3) if in `prog-mode', the current text is either a comment or a string,
+and the corresponding user option (`auto-capitalize-comments' or
+`auto-capitalize-strings') is non-nil
 
 4) if the previous word isn’t in `auto-capitalize-abbrevs'
 
