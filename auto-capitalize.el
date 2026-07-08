@@ -503,12 +503,23 @@ This variable is checked by `auto-capitalize-default-trigger-function'."
   :type 'boolean)
 
 (defcustom auto-capitalize-start-of-inline-strings nil
-  "If non-nil, first word in inline strings is also capitalized.
+  "If non-nil, capitalize the first word in inline strings.
 
-When this is nil (the default), only docstring-like strings whose
-opening delimiter is the first non-whitespace on its line are
-capitalized.  Set this to t to also capitalize the first word of
-inline strings, such as the \"text\" in (setq x \"text\").
+An inline string is one that does not start on its own line.
+For example, in Emacs Lisp mode:
+
+    (setq x \"text\")
+
+With this option set to t, the word \"text\" would be capitalized to
+\"Text\".
+
+When this option is nil (the default), only strings whose opening
+delimiter is the first non-whitespace on their line are capitalized
+\(like docstrings).
+
+This variable is checked by `auto-capitalize-default-trigger-function'."
+  :group 'auto-capitalize
+  :type 'boolean)
 
 This variable is checked by `auto-capitalize-default-trigger-function'."
   :group 'auto-capitalize
