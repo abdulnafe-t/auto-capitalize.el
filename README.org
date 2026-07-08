@@ -1,7 +1,6 @@
 #+title: =auto-capitalize.el=
 #+author: Abdulnafé Toulaïmat
 #+language: en_US
-#+options: f:t
 
 Automatically capitalize text as you type.
 
@@ -14,18 +13,30 @@ Put =auto-capitalize.el= somewhere in your load-path, then put this in your =.em
   (auto-capitalize-global-mode)
 #+end_src
 
- This turns on capitalization in all =text-mode= buffers, as well as in comments and strings
- in =prog-mode= buffers [fn:1].
+This enables capitalization in all =text-mode= buffers, as well as in comments and strings in =prog-mode= and any other mode that defines them, such as Org and TeX.
 
- If you use =use-package=, you can use this snippet instead:
+If you use =use-package=, you can use this snippet instead:
 
- #+begin_src elisp
-   (use-package auto-capitalize
-     :init
-     (auto-capitalize-global-mode))
- #+end_src
+#+begin_src elisp
+  (use-package auto-capitalize
+    :init
+    (auto-capitalize-global-mode))
+#+end_src
 
- and that’s it. Start typing to try it out!
+If you’re interested in using this package in your TeX documents and are using AUCTeX, then consider using the provided =auto-capitalize-tex.el=, like so:
+
+#+begin_src elisp
+  (use-package auto-capitalize
+    :init
+    (auto-capitalize-global-mode))
+
+  (use-package auto-capitalize-tex
+    :after auto-capitalize)
+#+end_src
+
+This will give you capitalization inside a number of macros, listed in =auto-capitalize-tex-macro-whitelist=, as well as prevent capitalization in environments such as math, equation etc.
+
+And that’s pretty much it. Start typing to try it out!
 
 * Customization
 
@@ -33,54 +44,68 @@ Things should just work for most users, with sensible defaults. However, there a
 
 If you want to limit auto-capitalization to certain modes instead of enabling it globally, replace =auto-capitalize-global-mode= in the snippets above with =auto-capitalize-mode=, which is the buffer-local version. You can add that to any mode’s hook you want. For example, to only enable =auto-capitalize.el= in text-mode buffers, but not prog-mode, you could say:
 
- #+begin_src elisp
-   (use-package auto-capitalize
-     :hook
-     text-mode)
- #+end_src
+#+begin_src elisp
+  (use-package auto-capitalize
+    :hook
+    text-mode)
+#+end_src
 
-The user option =auto-capitalize-inhibit-buffers= is a list of buffer names where you want to disable auto-capitalization. 
+** User options
+
+The user option =auto-capitalize-inhibit-buffers= is a list of buffer names where you want to disable auto-capitalization.
 
 You can set the following boolean options for more fine-grained control:
    
-   | Variable                         | Default value | Description                                                                       |
-   |----------------------------------+---------------+-----------------------------------------------------------------------------------|
-   | =auto-capitalize-strings=          | =t=             | Capitalize strings in prog-mode buffers                                           |
-   | =auto-capitalize-comments=         | =t=             | Capitalize comments in modes that define comments (prog-mode, org-mode, etc)      |
-   | =auto-capitalize-ask=              | =nil=           | Ask the user before automatically capitalizing anything                           |
-   | =auto-capitalize-yank=             | =nil=           | Capitalize yanked text as well as typed text                                      |
-   | =auto-capitalize-outline-headings= | =t=             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...) |
+   | Variable                                 | Default value | Description                                                                                          |
+   |------------------------------------------+---------------+------------------------------------------------------------------------------------------------------|
+   | =auto-capitalize-strings=                  | =t=             | Capitalize strings in modes where they are defined                                                            |
+   | =auto-capitalize-comments=                 | =t=             | Capitalize comments in modes where they are defined (prog-mode, org-mode, etc)                       |
+   | =auto-capitalize-ask=                      | =nil=           | Ask the user before automatically capitalizing anything                                              |
+   | =auto-capitalize-yank=                     | =nil=           | Capitalize yanked text as well as typed text                                                         |
+   | =auto-capitalize-outline-headings=         | =t=             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...)                    |
+   | =auto-capitalize-start-of-inline-comments= | =t=             | Capitalize the first word in inline comments. This has no effect if =auto-capitalize-comments= is nil. |
+   | =auto-capitalize-start-of-inline-strings=  | =nil=           | Capitalize the first word in inline strings. This has no effect if =auto-capitalize-strings= is nil    |
 
 More explanations are in each variable’s respective doc string.
 
-=auto-capitalize-fixed-case-words= is a list of words whose case will always be exactly how it appears in the list. For example, the english pronoun "I" - the only default entry - will replace any lowercase "i" followed by any character in =auto-capitalize-trigger-chars=. You can, of course, customize =auto-capitalize-trigger-chars= as well!
+=auto-capitalize-fixed-case-words= is a list of words whose case will always be exactly how it appears in the list. For example, the English pronoun "I" - the only default entry - will replace any lowercase "i" followed by any character in =auto-capitalize-trigger-chars=. You can, of course, customize =auto-capitalize-trigger-chars= as well!
 
-No capitalization takes place if the word to of interest happens to be right after one of the entries in =auto-capitalize-not-sentence-endings=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not convert the "y" to uppercase.
+No capitalization takes place if the word of interest happens to be right after one of the entries in =auto-capitalize-abbrevs=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not capitalize the "y".
 
-Finally, for true control, there is the core of how the package works: it calls the functions in the hook =auto-capitalize-predicate-functions=, and if all return non-nil, then capitalization occurs. By default, this only contains =auto-capitalize-default-predicate-function=, =auto-capitalize-org-mode-predicate=, and =auto-capitalize-TeX-mode-predicate=. You can write your own predicates and add them to the hook to specify exactly when capitalization should occur (or not occur).
+Finally, for true control, there is the core of the capitalization logic. The package exposes two hooks as user-options: =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=. You can add your own predicates to either of these two hooks.
+
+** =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=
+
+- =auto-capitalize-blocking-functions= get called first. These are predicates that take no input and return nil to indicate that they want to block capitalization in the current context. If any of these functions return nil, capitalization does not occur.
+
+- =auto-capitalize-trigger-functions= get called later. These are predicates that take two arguments, =text-start= and =word-start=, and return non-nil to trigger capitalization.
+
+Note the difference in semantics: the blocking functions are AND’ed together, such that a single one of them returning nil blocks capitalization. Conversely, trigger functions are OR’ed together, so any of them returning non-nil will cause capitalization.
+
+Note also that just because no blocking functions block capitalization in a given context does not mean it will occur: at least one trigger function must return non-nil for capitalization to actually happen.
+
+By default, only =auto-capitalize-default-blocking-function=, =auto-capitalize-org-blocking-function=, and =auto-capitalize-default-trigger-function= are included in the hooks. The companion TeX plugin, =auto-capitalize-tex.el=, also registers =auto-capitalize-tex-trigger-function= and =auto-capitalize-tex-blocking-function= when it is loaded.
 
 * How it works
 
-The package is complex. I have done my best to give things descriptive names, but a general explanation of how things work might be useful. Refer to each function’s doc string for a full description of the logic flow.
+The package’s main entry point is the function =auto-capitalize-capitalize=. The minor-mode adds it to =after-change-functions=, so it gets called as you type, delete, yank, etc. Its job is to run the first layer of logic: it calls all functions in =auto-capitalize-blocking-functions=, and if they all return non-nil, either calls =auto-capitalize-maybe-capitalize-preceding-word= if you are simply typing, or recursively analyzes the text if you are yanking (and =auto-capitalize-yank= is non-nil).
 
-The main entry point is =auto-capitalize-capitalize=. The minor-mode adds it to =after-change-functions=, so it gets called as you type. It then runs the first layer of logic: it calls all functions in =auto-capitalize-predicate-functions=, and if they all return non-nil, either calls =auto-capitalize-maybe-capitalize-preceding-word= if you are simply typing, or recursively analyzes the text if you are yanking (and =auto-capitalize-yank= is non-nil).
+=auto-capitalize-maybe-capitalize-preceding-word= and =auto-capitalize-handle-fixed-case= are the functions actually responsible for capitalizing words. The former checks if the word at point matches =auto-capitalize--fixed-case-regexp=, which is built from =auto-capitalize-fixed-case-words=. If it does, it calls =auto-capitalize-handle-fixed-case=, which simply replaces the word with its corresponding entry in =auto-capitalize-fixed-case-words=.
 
-=auto-capitalize-maybe-capitalize-preceding-word= and =auto-capitalize-handle-fixed-case= are the functions actually responsible for capitalizing words. In the former, the first step is to check if the latter is defined, and if it is, to call it. The latter then checks if the word is in =auto-capitalize-fixed-case-words=, in which case it simply replaces it with its entry in the list.
-
-Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= then calls =auto-capitalize-check-context=. It checks to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence or a paragraph in text-mode, or a comment in prog-mode (if =auto-capitalize-comments= is non-nil), etc.
+Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= calls =auto-capitalize-trigger-functions=. Those functions then check to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence or a paragraph in text-mode, or a comment (if =auto-capitalize-comments= is non-nil), etc.
 
 If all tests pass, voilà! Your word gets capitalized automatically.
 
 * Known issues
 
-- =auto-capitalize-outline-headings= doesn’t work in =markdown-mode= buffers. This is because of the value that mode sets =outline-regexp= to, which differs in approach from other text modes. We could add specific support for it in the future, but that would add some complexity to the code.
+- =auto-capitalize-outline-headings= doesn’t work in =markdown-mode= buffers. This is because of the value that mode sets =outline-regexp= to, which differs in its semantics from other text modes. We could add specific support for it in the future, but that would add some complexity to the code.
 
-  It also only affects the first word in a heading for now. This means that, if this variable is nil, then the first word of a heading containing more than one sentence will get ignored, while the first word after a full stop (or after any member of =auto-capitalize-trigger-chars=) will get capitalized.
+  It also only affects the first word in a heading for now. Subsequent sentences within a heading are handled by the usual sentence-based rules.
 
 - Quoted text in =TeX-mode= buffers, such as
 
   #+begin_src TeX
-``some text here``
+    ``some text here``
   #+end_src
 
   does not get capitalized. Again, this only affects the first word ("some" in the example), as the other rules apply as usual (beginning of a sentence, comment, etc).
@@ -89,16 +114,12 @@ Of course, if you have ideas on how to solve any of these issues or otherwise im
 
 * Alternatives
 
-The modern auto-capitalization landscape in Emacs seems to have coalesced around [[https://elpa.gnu.org/packages/captain.html][captain]], which you can get from ELPA. =auto-capitalize.el= is an alternative, based on the classic package with the same name from all the way back in 1998. The main user-facing difference between this package and captain is that this package tries hard to define sensible defaults, so that, ideally, you never have to write your own predicates if you don’t want to. Captain, on the other hand, is far lighter and more efficient, and much more modern in its approach.
+The modern auto-capitalization landscape in Emacs seems to have coalesced around [[https://elpa.gnu.org/packages/captain.html][captain]], which you can get from ELPA. =auto-capitalize.el= is an alternative, based on the classic package with the same name from all the way back in 1998. The main user-facing difference between this package and captain is that this package tries hard to define defaults that work out of the box, so that, ideally, you never have to write your own predicates if you don’t want to. Captain, on the other hand, is far lighter and more efficient, and much more modern in its approach.
 
 * Credits & a bit of history
 
 Kevin Rodgers wrote the original =auto-capitalize.el=. It got shared around the Emacs world and ended up on the [[https://www.emacswiki.org/emacs/auto-capitalize.el][emacswiki]], and from there it found its way to MELPA. But MELPA removed it for security reasons, along with other packages whose upstream was the wiki, back in [[https://github.com/melpa/melpa/pull/5008#issue-258144843][2018]].
 
-The [[https://github.com/yuutayamada/auto-capitalize-el][fork by Yuta Yamada]] on GitHub is the basis for this package. Although it appears unmaintained now, the work he put into refactoring it was the starting point from which I continued to streamline and modernize the codebase, at least at the surface level. The package’s core mechanics are definitely dated and improvements are possible.
+The [[https://github.com/yuutayamada/auto-capitalize-el][fork by Yuta Yamada]] on GitHub is the basis for this package. Although it appears unmaintained now, the work he put into refactoring it was the starting point for this package.
 
 Note that this package is not fully compatible with either the original or Yuta Yamada’s fork: the interface is different, and it drops XEmacs support entirely.
-
-* Footnotes
-
-[fn:1] Or where it makes sense, for instance Org and TeX have comments, but are technically derived from =text-mode=.
