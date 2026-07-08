@@ -23,7 +23,7 @@ If you use =use-package=, you can use this snippet instead:
     (auto-capitalize-global-mode))
 #+end_src
 
-If you’re interested in using this package in your TeX documents and are using AUCTeX, then consider using the provided =auto-capitalize-tex.el=, like so:
+If you’re interested in using this package in your TeX documents and are using [[https://www.gnu.org/software/auctex/manual/auctex/index.html][AUCTeX]], then consider using the provided =auto-capitalize-tex.el=, like so:
 
 #+begin_src elisp
   (use-package auto-capitalize
@@ -34,7 +34,7 @@ If you’re interested in using this package in your TeX documents and are using
     :after auto-capitalize)
 #+end_src
 
-This will give you capitalization inside a number of macros, listed in =auto-capitalize-tex-macro-whitelist=, as well as prevent capitalization in environments such as math, equation etc.
+This will give you capitalization inside a number of macros, listed in the user option =auto-capitalize-tex-macro-whitelist=, as well as prevent capitalization in environments such as math, equation etc.
 
 And that’s pretty much it. Start typing to try it out!
 
