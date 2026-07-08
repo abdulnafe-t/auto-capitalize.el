@@ -420,8 +420,10 @@ comment, and `auto-capitalize-comments' is non-nil."
 
 (defun auto-capitalize--set-fixed-case (sym val &optional buffer-local)
   "Setter for `auto-capitalize-fixed-case-words'.
+
 Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
 `auto-capitalize--fixed-case-regexp'.
+
 If BUFFER-LOCAL is non-nil, only set the buffer-local value."
   (if buffer-local
       (progn
@@ -438,8 +440,10 @@ If BUFFER-LOCAL is non-nil, only set the buffer-local value."
 
 (defun auto-capitalize--set-abbrevs (sym val &optional buffer-local)
   "Setter for `auto-capitalize-abbrevs'.
+
 Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
 `auto-capitalize--abbrevs-regexp'.
+
 If BUFFER-LOCAL is non-nil, only set the buffer-local value."
   (if buffer-local
       (progn
