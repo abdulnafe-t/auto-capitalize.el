@@ -616,5 +616,28 @@ for both inline comments and newline-based (BOL) comments."
                           "\n\"Emacsen \""))))
       (setopt auto-capitalize-fixed-case-words cached))))
 
+
+;;;; Tests for `nxml-mode'
+
+(ert-deftest auto-capitalize-nxml-comments ()
+  "Capitalize the first word in `nxml-mode' comments."
+  (auto-capitalize-tests--setup
+   nxml-mode
+   (ert-simulate-command '(comment-dwim 2))
+   (font-lock-ensure)
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "<!--- A  --->"))
+
+   (erase-buffer)
+   (let ((auto-capitalize-comments nil))
+     (ert-simulate-command '(comment-dwim 2))
+     (font-lock-ensure)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    "<!--- a  --->")))))
+
 (provide 'auto-capitalize-tests)
 ;;; auto-capitalize-tests.el ends here
