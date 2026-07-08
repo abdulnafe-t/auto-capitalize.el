@@ -437,26 +437,26 @@ If BUFFER-LOCAL is non-nil, only set the buffer-local value."
             nil))))
 
 (defun auto-capitalize--set-abbrevs (sym val &optional buffer-local)
-    "Setter for `auto-capitalize-abbrevs'.
+  "Setter for `auto-capitalize-abbrevs'.
 Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
 `auto-capitalize--abbrevs-regexp'.
 If BUFFER-LOCAL is non-nil, only set the buffer-local value."
-    (if buffer-local
-        (progn
-          (set-local sym val)
-          (setq-local auto-capitalize--abbrevs-regexp
-                      (if val
-                          (concat "[[:punct:]]*"
-                                  (regexp-opt auto-capitalize-abbrevs)
-                                  "[^.[:space:]]*[[:space:]]")
-                        nil)))
-      (set-default sym val)
-      (setq auto-capitalize--abbrevs-regexp
-            (if val
-                (concat "[[:punct:]]*"
-                        (regexp-opt auto-capitalize-abbrevs)
-                        "[^.[:space:]]*[[:space:]]")
-              nil))))
+  (if buffer-local
+      (progn
+        (set-local sym val)
+        (setq-local auto-capitalize--abbrevs-regexp
+                    (if val
+                        (concat "[[:punct:]]*"
+                                (regexp-opt auto-capitalize-abbrevs)
+                                "[^.[:space:]]*[[:space:]]")
+                      nil)))
+    (set-default sym val)
+    (setq auto-capitalize--abbrevs-regexp
+          (if val
+              (concat "[[:punct:]]*"
+                      (regexp-opt auto-capitalize-abbrevs)
+                      "[^.[:space:]]*[[:space:]]")
+            nil))))
 
 
 ;; Org mode: We need to handle org-mode source blocks specifically, since they
