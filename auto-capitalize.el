@@ -95,8 +95,6 @@
 (defvar auto-capitalize--match-data nil
   "Holds match data across recursive calls in `auto-capitalize-capitalize'.")
 
-(defconst auto-capitalize-regexp-lower "[[:lower:]]+")
-
 (defvar auto-capitalize--fixed-case-regexp
   (if (default-boundp 'auto-capitalize-fixed-case-words)
       (regexp-opt (mapcar #'downcase auto-capitalize-fixed-case-words) 'words)
@@ -297,7 +295,7 @@ only capitalize if the user answered \"y\"."
    (let ((case-fold-search nil))
      (save-excursion
        (goto-char word-start)
-       (looking-at auto-capitalize-regexp-lower)))
+       (looking-at "[[:lower:]]+")))
 
    ;; the user answered y when asked?
    (or (not auto-capitalize-ask)
