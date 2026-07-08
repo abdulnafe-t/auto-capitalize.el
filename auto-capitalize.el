@@ -145,6 +145,7 @@ the regexp on every keystroke.")
 (defvar auto-capitalize-ask)
 (defvar auto-capitalize-yank)
 (defvar auto-capitalize-strings)
+(defvar auto-capitalize-start-of-inline-strings)
 (defvar auto-capitalize-comments)
 (defvar auto-capitalize-outline-headings)
 (defvar auto-capitalize-fixed-case-words)
@@ -389,10 +390,11 @@ comment, and `auto-capitalize-comments' is non-nil."
         (save-excursion
           (goto-char word-start)
           (when-let* ((string-start (nth 8 (syntax-ppss))))
-            (and (progn (goto-char string-start)
-                        (skip-chars-backward "\"'")
-                        (skip-chars-backward " \t")
-                        (bolp))
+            (and (or auto-capitalize-start-of-inline-strings
+                     (progn (goto-char string-start)
+                            (skip-chars-backward "\"'")
+                            (skip-chars-backward " \t")
+                            (bolp)))
                  (= word-start
                     (save-excursion
                       (goto-char string-start)
@@ -507,6 +509,18 @@ see)."
 
 (defcustom auto-capitalize-strings t
   "If non-nil, strings in `prog-mode' buffers will be capitalized.
+
+This variable is checked by `auto-capitalize-default-trigger-function'."
+  :group 'auto-capitalize
+  :type 'boolean)
+
+(defcustom auto-capitalize-start-of-inline-strings nil
+  "If non-nil, first word in inline strings is also capitalized.
+
+When this is nil (the default), only docstring-like strings whose
+opening delimiter is the first non-whitespace on its line are
+capitalized.  Set this to t to also capitalize the first word of
+inline strings, such as the \"text\" in (setq x \"text\").
 
 This variable is checked by `auto-capitalize-default-trigger-function'."
   :group 'auto-capitalize

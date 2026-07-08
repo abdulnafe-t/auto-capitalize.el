@@ -487,6 +487,53 @@ docstrings."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "(def test-func ()\n\"\"\"A a \"\"\""))))
 
+(ert-deftest auto-capitalize-prog-start-of-inline-strings ()
+  "Test `auto-capitalize-start-of-inline-strings' off and on,
+for both inline strings and newline-based (docstring) strings."
+  (auto-capitalize-tests--setup
+   emacs-lisp-mode
+   (let ((auto-capitalize-strings t)
+         (auto-capitalize-start-of-inline-strings nil))
+     (insert "(setq x \"\")")
+     (backward-char 2)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    "(setq x \"a \")")))
+
+   ;; 2. Inline string, option on -> capitalized
+   (erase-buffer)
+   (let ((auto-capitalize-strings t)
+         (auto-capitalize-start-of-inline-strings t))
+     (insert "(setq x \"\")")
+     (backward-char 2)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    "(setq x \"A \")")))
+
+   ;; 3. Newline string, option off -> still capitalized (BOL check passes)
+   (erase-buffer)
+   (let ((auto-capitalize-strings t)
+         (auto-capitalize-start-of-inline-strings nil))
+     (insert "\"\"")
+     (backward-char)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    "\"A \"")))
+
+   ;; 4. Newline string, option on -> still capitalized
+   (erase-buffer)
+   (let ((auto-capitalize-strings t)
+         (auto-capitalize-start-of-inline-strings t))
+     (insert "\"\"")
+     (backward-char)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    "\"A \"")))))
+
 (ert-deftest auto-capitalize-text-fixed-case ()
   "Capitalize words in `auto-capitalize-fixed-case-words'."
   (let ((cached auto-capitalize-fixed-case-words))
