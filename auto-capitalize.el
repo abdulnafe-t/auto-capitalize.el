@@ -112,6 +112,7 @@ the regexp on every keystroke.")
 (defvar auto-capitalize-yank)
 (defvar auto-capitalize-strings)
 (defvar auto-capitalize-start-of-inline-strings)
+(defvar auto-capitalize-start-of-inline-comments)
 (defvar auto-capitalize-comments)
 (defvar auto-capitalize-outline-headings)
 (defvar auto-capitalize-fixed-case-words)
@@ -368,20 +369,30 @@ comment, and `auto-capitalize-comments' is non-nil."
                       (point)))))))
 
    ;; Beginning of a comment?
-   ;; We need to check this here because org comments don't play nice
+   ;; We need to check this here because org/tex comments don't play nice
    ;; with paragraph/sentence bounds
    (and auto-capitalize-comments
         (or (save-excursion
               (and comment-start-skip
                    (re-search-backward comment-start-skip nil t)
-                   (= (match-end 0) text-start)))
+                   (= (match-end 0) text-start)
+                   (or auto-capitalize-start-of-inline-comments
+                       (save-excursion
+                         (goto-char (match-beginning 0))
+                         (skip-chars-backward " \t")
+                         (bolp)))))
             (save-excursion
               (when-let* ((comment-start (nth 8 (syntax-ppss))))
-                (= word-start
-                   (save-excursion
-                     (goto-char comment-start)
-                     (skip-syntax-forward "^w")
-                     (point)))))))))
+                (and (or auto-capitalize-start-of-inline-comments
+                         (save-excursion
+                           (goto-char comment-start)
+                           (skip-chars-backward " \t")
+                           (bolp)))
+                     (= word-start
+                        (save-excursion
+                          (goto-char comment-start)
+                          (skip-syntax-forward "^w")
+                          (point))))))))))
 
 (defun auto-capitalize--ask ()
   "Ask the user whether the last typed word should be capitalized or not."
@@ -520,6 +531,17 @@ delimiter is the first non-whitespace on their line are capitalized
 This variable is checked by `auto-capitalize-default-trigger-function'."
   :group 'auto-capitalize
   :type 'boolean)
+
+(defcustom auto-capitalize-start-of-inline-comments t
+  "If non-nil, capitalize the first word in inline comments.
+
+An inline comment is one that follows code on the same line.
+For example, in Emacs Lisp mode:
+
+    (setq x 1) ; some text here
+
+With this option set to t, the word \"some\" would be capitalized to
+\"Some\".
 
 This variable is checked by `auto-capitalize-default-trigger-function'."
   :group 'auto-capitalize
