@@ -80,7 +80,7 @@
 
 (require 'cl-lib)     ; cl-find
 (require 'regexp-opt) ; regexp-opt
-(require 'compat)     ; when-let*
+(require 'compat)     ; when-let*, set-local
 
 (defconst auto-capitalize-version "3.0"
   "The version of auto-capitalize.el.")
@@ -418,27 +418,45 @@ comment, and `auto-capitalize-comments' is non-nil."
                (goto-char word-start)
                (capitalize-word 1)))))))
 
-(defun auto-capitalize--set-fixed-case (sym val)
+(defun auto-capitalize--set-fixed-case (sym val &optional buffer-local)
   "Setter for `auto-capitalize-fixed-case-words'.
 Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
-`auto-capitalize--fixed-case-regexp'."
-  (set-default sym val)
-  (setq auto-capitalize--fixed-case-regexp
-        (if val
-            (regexp-opt (mapcar #'downcase val) 'words)
-          nil)))
+`auto-capitalize--fixed-case-regexp'.
+If BUFFER-LOCAL is non-nil, only set the buffer-local value."
+  (if buffer-local
+      (progn
+        (set-local sym val)
+        (setq-local auto-capitalize--fixed-case-regexp
+                    (if val
+                        (regexp-opt (mapcar #'downcase val) 'words)
+                      nil)))
+    (set-default sym val)
+    (setq auto-capitalize--fixed-case-regexp
+          (if val
+              (regexp-opt (mapcar #'downcase val) 'words)
+            nil))))
 
-(defun auto-capitalize--set-abbrevs (sym val)
+(defun auto-capitalize--set-abbrevs (sym val &optional buffer-local)
     "Setter for `auto-capitalize-abbrevs'.
 Updates it (SYM) with the new value (VAL) and rebuilds the cached regexp
-`auto-capitalize--abbrevs-regexp'."
-    (set-default sym val)
-    (setq auto-capitalize--abbrevs-regexp
-          (if val
-              (concat "[[:punct:]]*"
-                      (regexp-opt auto-capitalize-abbrevs)
-                      "[^.[:space:]]*[[:space:]]")
-            nil)))
+`auto-capitalize--abbrevs-regexp'.
+If BUFFER-LOCAL is non-nil, only set the buffer-local value."
+    (if buffer-local
+        (progn
+          (set-local sym val)
+          (setq-local auto-capitalize--abbrevs-regexp
+                      (if val
+                          (concat "[[:punct:]]*"
+                                  (regexp-opt auto-capitalize-abbrevs)
+                                  "[^.[:space:]]*[[:space:]]")
+                        nil)))
+      (set-default sym val)
+      (setq auto-capitalize--abbrevs-regexp
+            (if val
+                (concat "[[:punct:]]*"
+                        (regexp-opt auto-capitalize-abbrevs)
+                        "[^.[:space:]]*[[:space:]]")
+              nil))))
 
 
 ;; Org mode: We need to handle org-mode source blocks specifically, since they
