@@ -534,6 +534,52 @@ for both inline strings and newline-based (docstring) strings."
      (should (equal (buffer-substring-no-properties (point-min) (point-max))
                     "\"A \"")))))
 
+(ert-deftest auto-capitalize-prog-start-of-inline-comments ()
+  "Test `auto-capitalize-start-of-inline-comments' off and on,
+for both inline comments and newline-based (BOL) comments."
+  (auto-capitalize-tests--setup
+   emacs-lisp-mode
+   ;; 1. Inline comment, option off -> not capitalized
+   (let ((auto-capitalize-comments t)
+         (auto-capitalize-start-of-inline-comments nil))
+     (insert "(setq x 1)")
+     (ert-simulate-command '(self-insert-command 1 ?\;))
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    "(setq x 1);a ")))
+
+   ;; 2. Inline comment, option on -> capitalized
+   (erase-buffer)
+   (let ((auto-capitalize-comments t)
+         (auto-capitalize-start-of-inline-comments t))
+     (insert "(setq x 1)")
+     (ert-simulate-command '(self-insert-command 1 ?\;))
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    "(setq x 1);A ")))
+
+   ;; 3. BOL comment, option off -> still capitalized (BOL check passes)
+   (erase-buffer)
+   (let ((auto-capitalize-comments t)
+         (auto-capitalize-start-of-inline-comments nil))
+     (ert-simulate-command '(comment-dwim 2))
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    ";; A ")))
+
+   ;; 4. BOL comment, option on -> still capitalized
+   (erase-buffer)
+   (let ((auto-capitalize-comments t)
+         (auto-capitalize-start-of-inline-comments t))
+     (ert-simulate-command '(comment-dwim 2))
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    ";; A ")))))
+
 (ert-deftest auto-capitalize-text-fixed-case ()
   "Capitalize words in `auto-capitalize-fixed-case-words'."
   (let ((cached auto-capitalize-fixed-case-words))
