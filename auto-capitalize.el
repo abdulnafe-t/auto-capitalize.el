@@ -146,13 +146,21 @@ and the corresponding user option (`auto-capitalize-comments' or
        (not (minibufferp))
 
        ;; activate in prog-mode only if cursor is in string or comment.
-       (or (not (derived-mode-p 'prog-mode))
+       (not (and (derived-mode-p 'prog-mode)
+                 (not (or
+                       (and auto-capitalize-strings
+                            (nth 3 (syntax-ppss)))
+                       (and auto-capitalize-comments
+                            (nth 4 (syntax-ppss)))))))
 
-           (and auto-capitalize-strings
-                (nth 3 (syntax-ppss)))
+       ;; Added to cover modes like nxml, org, etc
+       (not (and (not (derived-mode-p 'prog-mode))
+                 (and (not auto-capitalize-strings)
+                      (nth 3 (syntax-ppss)))))
 
-           (and auto-capitalize-comments
-                (nth 4 (syntax-ppss))))
+       (not (and (not (derived-mode-p 'prog-mode))
+                 (and (not auto-capitalize-comments)
+                      (nth 4 (syntax-ppss)))))
 
        ;; do not activate after any word in
        ;; `auto-capitalize-abbrevs'
