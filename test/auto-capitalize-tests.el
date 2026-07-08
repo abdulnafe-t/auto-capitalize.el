@@ -470,6 +470,23 @@ docstrings."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "(defun test-func ()\n\"A a \""))))
 
+
+(ert-deftest auto-capitalize-python-def-docstring ()
+  "Capitalize the first word (and no other words) in `python-mode' function
+docstrings."
+  (auto-capitalize-tests--setup
+   emacs-lisp-mode
+   (insert "(def test-func ()")
+   (ert-simulate-command '(newline))
+   (insert "\"\"\"\"\"\"")
+   (backward-char 3)
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "(def test-func ()\n\"\"\"A a \"\"\""))))
+
 (ert-deftest auto-capitalize-text-fixed-case ()
   "Capitalize words in `auto-capitalize-fixed-case-words'."
   (let ((cached auto-capitalize-fixed-case-words))

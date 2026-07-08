@@ -384,17 +384,20 @@ comment, and `auto-capitalize-comments' is non-nil."
           (skip-syntax-forward "^w")
           (point))))
 
-   ;; Beginning of a string?
+   ;; Beginning of a string starting its own line (like docstrings)?
    (and auto-capitalize-strings
-        (when-let* ((string-start
-                     (save-excursion
-                       (goto-char word-start)
-                       (nth 8 (syntax-ppss)))))
-          (= word-start
-             (save-excursion
-               (goto-char string-start)
-               (skip-syntax-forward "^w")
-               (point)))))
+        (save-excursion
+          (goto-char word-start)
+          (when-let* ((string-start (nth 8 (syntax-ppss))))
+            (and (progn (goto-char string-start)
+                        (skip-chars-backward "\"'")
+                        (skip-chars-backward " \t")
+                        (bolp))
+                 (= word-start
+                    (save-excursion
+                      (goto-char string-start)
+                      (skip-syntax-forward "^w")
+                      (point)))))))
 
    ;; Beginning of a comment?
    ;; We need to check this here because org comments don't play nice
