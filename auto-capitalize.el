@@ -34,26 +34,20 @@
 
 ;;; Commentary:
 
-;; When the `auto-capitalize' minor mode is enabled, the first word at the
-;; beginning of a paragraph or sentence is automatically capitalized when a
-;; following whitespace or punctuation character is inserted. The same is true
-;; of the first word of a comment or a string in any `prog-mode' buffer, or
-;; indeed any buffer where comments are defined by the major mode (Org,
-;; TeX,...).
-
-;; The `auto-capitalize-yank' option controls whether words in yanked text
-;; should be capitalized in the same way.
+;; `auto-capitalize-mode' is a minor mode that automatically capitalizes text as
+;; you type. It does this at the start of sentences/paragraphs, as well as in
+;; comments or strings in any `prog-mode' buffer, or indeed any buffer where
+;; comments are defined by the major mode (Org, TeX,...).
 ;;
-;; You can specify buffer names where you do not want auto-capitalization to
-;; occur. See the documentation of `auto-capitalization-inhibit-buffers'.
-;;
-;; The package exposes two hooks which you can add your own predicates to. The
-;; `auto-capitalize-blocking-functions' hook gives you the right of first
-;; refusal over capitalization: each function in that hook is called with no
-;; arguments and returns nil to block capitalization. If any function returns
-;; nil, the check fails and no word is capitalized. Note, however, that even if
-;; every function in this hook returns non-nil, that does not guarantee a word
-;; will be capitalized.
+;; The heart of the package is `auto-capitalize-capitalize', which is installed
+;; in `after-change-functions' when the mode is enabled. It serves as the main
+;; entry point for the capitalization logic, which is based on two hooks that
+;; you can add your own predicates to. The `auto-capitalize-blocking-functions'
+;; hook gives you the right of first refusal over capitalization: each function
+;; in that hook is called with no arguments and returns nil to block
+;; capitalization. If any function returns nil, the check fails and no word is
+;; capitalized. Note, however, that even if every function in this hook returns
+;; non-nil, that does not guarantee a word will be capitalized.
 ;;
 ;; By default, this hook only contains
 ;; `auto-capitalize-default-blocking-function' and
@@ -73,20 +67,6 @@
 ;; prog-mode should be auto-capitalized, and its comment analogue
 ;; `auto-capitalize-comments'.
 ;;
-;; `auto-capitalize-fixed-case-words' can be customized to specify certain words
-;; that should always be in a specific case, regardless of their position in the
-;; text. Any word that is added to this list will be replaced in text by its
-;; exact version in the list. For example, if "eMaCs" is included, then typing
-;; "emacs " will insert "eMaCs " instead.
-;;
-;; By default, this list contains the english pronoun "I" only.
-;;
-;; If a word is included, in some fixed case, in
-;; `auto-capitalize-fixed-case-words', and you want to prevent it from getting
-;; capitalized one time, type the word, then use `quoted-insert' (bound to `C-q'
-;; by default) followed by the next punctuation or space character.
-;;
-;;
 ;; This package is a revamp of Yuta Yamada’s version
 ;; (https://github.com/yuutayamada/auto-capitalize-el), which is itself a fork
 ;; of the original auto-capitalize.el, written by Kevin Rodgers and shared on
@@ -94,11 +74,9 @@
 ;; tried to streamline the code, building on the refactoring process that Yuta
 ;; Yamada had already started, and removing/replacing old artifacts with their
 ;; modern equivalent. I have also modified the package’s interface to make it
-;; simpler to use.
+;; simpler to use and to cover more cases.
 
 ;;; Code:
-
-;; Package interface:
 
 (require 'cl-lib)     ; cl-find
 (require 'regexp-opt) ; regexp-opt
