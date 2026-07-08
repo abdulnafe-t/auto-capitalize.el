@@ -183,7 +183,12 @@ string (skipped if not in `prog-mode')
 
        ;; activate in prog-mode only if cursor is in string or comment.
        (or (not (derived-mode-p 'prog-mode))
-           (nth 8 (syntax-ppss)))
+
+           (and auto-capitalize-strings
+                (nth 3 (syntax-ppss)))
+
+           (and auto-capitalize-comments
+                (nth 4 (syntax-ppss))))
 
        ;; do not activate after any word in
        ;; `auto-capitalize-abbrevs'
@@ -329,96 +334,76 @@ only capitalize if the user answered \"y\"."
     'auto-capitalize-trigger-functions text-start word-start)))
 
 (defun auto-capitalize-default-trigger-function (text-start word-start)
-  "Check the context TEXT-START/WORD-START.
+  "Check the context around TEXT-START/WORD-START.
 
 This predicate returns non-nil if any of the following conditions hold:
 
 1) TEXT-START is at the beginning of the buffer
 
-2) TEXT-START is the first char of a paragraph
+2) WORD-START is the first char of a paragraph (identified through the
+function `start-of-paragraph-text', which see)
 
-3) TEXT-START is the first char of a sentence (identified through the
-function `sentence-end', which see)
+3) WORD-START is the first char of a sentence (identified through the
+function `bounds-of-thing-at-point', which see)
 
 4) WORD-START is the first char after a heading, as defined by the
 buffer-local value of `outline-regexp'.
-
-4) in `prog-mode' buffers, the text of interest is inside a string, and
-`auto-capitalize-strings' is non-nil.
 
 5) in either `prog-mode' buffers, or `text-mode' buffers that have
 markup syntax (Org, markdown, TeX...), the text of interest is inside a
 comment, and `auto-capitalize-comments' is non-nil."
 
   (goto-char text-start)
-  (or (and (derived-mode-p 'prog-mode)
-           auto-capitalize-strings
-           (save-excursion
-             ;; beginning of a string?
-             (goto-char word-start)
-             (when-let* ((string-start (nth 8 (syntax-ppss))))
-               (eq (1+ string-start) word-start))))
+  (or
 
-      ;; beginning of a comment?
-      ;; This check is not limited to prog-mode, since modes like Org
-      ;; and TeX have their own comment syntax, but are technically derived form
-      ;; ‘text-mode’.
+   (and (derived-mode-p 'text-mode)
+        (or (bobp)
+            (and auto-capitalize-outline-headings
+                 (bound-and-true-p outline-regexp)
+                 (save-excursion
+                   (goto-char (line-beginning-position))
+                   (when (looking-at outline-regexp)
+                     (goto-char (match-end 0))
+                     (skip-syntax-forward "^w" (line-end-position))
+                     (= (point) word-start))))
 
-      ;; This first test is required because org does not set # as comment start
-      ;; in its syntax table
+            ;; Beginning of line after an outline heading?
+            (save-excursion
+              (and (bound-and-true-p outline-regexp)
+                   (zerop (forward-line -1))
+                   (looking-at outline-regexp)))))
+
+   ;; Beginning of paragraph?
+   (= word-start
       (save-excursion
-        (and auto-capitalize-comments
-             (or (and
-                  comment-start-skip
-                  (re-search-backward comment-start-skip nil t)
-                  (= (match-end 0) word-start))
+        (start-of-paragraph-text)
+        (skip-syntax-forward "^w")
+        (point)))
 
-                 ;; This second check is requierd for org src blocks where the comment
-                 ;; syntax doesn't match org's comment-start-skip
-                 (when-let* ((cs (nth 8 (syntax-ppss))))
-                   (goto-char cs)
-                   (and (re-search-forward "\\w" (1+ word-start) t)
-                        (= (match-beginning 0) word-start))))))
+   ;; Beginning of a sentence?
+   (when-let* ((bounds (car (bounds-of-thing-at-point 'sentence))))
+     (= word-start
+        (save-excursion
+          (goto-char bounds)
+          (skip-syntax-forward "^w")
+          (point))))
 
-      (and (derived-mode-p 'text-mode)
-           (or (bobp)
-               (and auto-capitalize-outline-headings
-                    (bound-and-true-p outline-regexp)
-                    (save-excursion
-                      (goto-char (line-beginning-position))
-                      (when (looking-at outline-regexp)
-                        (goto-char (match-end 0))
-                        (skip-syntax-forward "^w" (line-end-position))
-                        (= (point) word-start))))))
+   ;; Beginning of a comment?
 
-      ;; beginning of paragraph?
-      (and (= (current-column) left-margin)
-           (or (save-excursion
-                 (and (zerop (forward-line -1))
-                      (looking-at paragraph-separate)))
-               (save-excursion
-                 (and (re-search-backward paragraph-start nil t)
-                      (= (match-end 0) text-start)
-                      (= (current-column) left-margin)))
-
-               ;; beginning of line after an outline heading?
-               (save-excursion
-                 (and (bound-and-true-p outline-regexp)
-                      (zerop (forward-line -1))
-                      (looking-at outline-regexp)))))
-
-      ;; beginning of sentence?
-      (save-excursion
-        (save-restriction
-          (narrow-to-region (point-min) word-start)
-          (and (re-search-backward (sentence-end) nil t)
-               (= (match-end 0) text-start)
-               ;; verify: preceded by whitespace?
-               (let ((previous-char (char-before text-start)))
-                 ;; In some modes, newline (^J, aka LFD) is comment-end, not
-                 ;; whitespace:
-                 (or (eq ?\n previous-char)
-                     (eq ?\s (char-syntax previous-char)))))))))
+   ;; We need to check this here required because org comments don't play nice
+   ;; with paragraph/sentence bounds
+   (and auto-capitalize-comments
+        (or (save-excursion
+              (and comment-start-skip
+                   (re-search-backward comment-start-skip nil t)
+                   (= (match-end 0) text-start)))
+            (save-excursion
+              (when-let* ((cs (nth 8 (syntax-ppss))))
+                (= word-start
+                   (save-excursion
+                     (goto-char cs)
+                     (skip-syntax-forward "^w")
+                     (point)))))))))
 
 (defun auto-capitalize--ask ()
   "Ask the user whether the last typed word should be capitalized or not."
