@@ -384,9 +384,20 @@ comment, and `auto-capitalize-comments' is non-nil."
           (skip-syntax-forward "^w")
           (point))))
 
-   ;; Beginning of a comment?
+   ;; Beginning of a string?
+   (and auto-capitalize-strings
+        (when-let* ((string-start
+                     (save-excursion
+                       (goto-char word-start)
+                       (nth 8 (syntax-ppss)))))
+          (= word-start
+             (save-excursion
+               (goto-char string-start)
+               (skip-syntax-forward "^w")
+               (point)))))
 
-   ;; We need to check this here required because org comments don't play nice
+   ;; Beginning of a comment?
+   ;; We need to check this here because org comments don't play nice
    ;; with paragraph/sentence bounds
    (and auto-capitalize-comments
         (or (save-excursion
@@ -394,10 +405,10 @@ comment, and `auto-capitalize-comments' is non-nil."
                    (re-search-backward comment-start-skip nil t)
                    (= (match-end 0) text-start)))
             (save-excursion
-              (when-let* ((cs (nth 8 (syntax-ppss))))
+              (when-let* ((comment-start (nth 8 (syntax-ppss))))
                 (= word-start
                    (save-excursion
-                     (goto-char cs)
+                     (goto-char comment-start)
                      (skip-syntax-forward "^w")
                      (point)))))))))
 
