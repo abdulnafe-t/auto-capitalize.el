@@ -95,20 +95,12 @@
 (defvar auto-capitalize--match-data nil
   "Holds match data across recursive calls in `auto-capitalize-capitalize'.")
 
-(defvar auto-capitalize--fixed-case-regexp
-  (if (default-boundp 'auto-capitalize-fixed-case-words)
-      (regexp-opt (mapcar #'downcase auto-capitalize-fixed-case-words) 'words)
-    nil)
+(defvar auto-capitalize--fixed-case-regexp nil
   "Cached regexp built from `auto-capitalize-fixed-case-words'.
 Used by `auto-capitalize-maybe-capitalize-preceding-word' to avoid
 rebuilding the regexp on every keystroke.")
 
-(defvar auto-capitalize--abbrevs-regexp
-  (if (default-boundp 'auto-capitalize-abbrevs)
-      (concat "[[:punct:]]*"
-              (regexp-opt auto-capitalize-abbrevs)
-              "[^.[:space:]]*[[:space:]]")
-    nil)
+(defvar auto-capitalize--abbrevs-regexp nil
   "Cached regexp built from `auto-capitalize-abbrevs'.
 Used by `auto-capitalize-default-blocking-function' to avoid rebuilding
 the regexp on every keystroke.")
