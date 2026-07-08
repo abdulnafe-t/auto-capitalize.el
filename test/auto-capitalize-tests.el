@@ -29,162 +29,164 @@
 (require 'auto-capitalize)
 (when (featurep 'auctex)
   (require 'auto-capitalize-tex))
-(require 'font-lock)                    ; For `font-lock-ensure'
+(require 'font-lock)                    ; For `font-lock-ensure', `font-lock-mode'
+
+(defmacro auto-capitalize-tests--setup (mode &rest body)
+  "Set up a buffer for auto-capitalize-tests."
+  `(ert-with-test-buffer
+       (:name "*auto-capitalize-tests*"
+              :selected t)
+     (,mode)
+     (auto-capitalize-mode 1)
+     (font-lock-mode 1)
+     (progn ,@body)))
 
 
 ;;;; Tests for `text-mode'
 
 (ert-deftest auto-capitalize-text-bob ()
   "Capitalize the first word in a `text-mode' buffer."
-  (with-temp-buffer
-    (text-mode)
-    (auto-capitalize-mode 1)
-    (goto-char (point-min))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string) "A "))))
+  (auto-capitalize-tests--setup
+   text-mode
+   (goto-char (point-min))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max)) "A "))))
 
 (ert-deftest auto-capitalize-text-triggers ()
   "Capitalize the previous word after `auto-capitalize-trigger-chars'."
-  (with-temp-buffer
-    (text-mode)
-    (auto-capitalize-mode 1)
+  (auto-capitalize-tests--setup
+    text-mode
     (electric-quote-local-mode -1)
     (dolist (trigger auto-capitalize-trigger-chars)
       (erase-buffer)
       (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
       (ert-simulate-command '(self-insert-command 1 ?a))
       (ert-simulate-command `(self-insert-command 1 ,trigger))
-      (should (equal (buffer-string)
+      (should (equal (buffer-substring-no-properties (point-min) (point-max))
                      (concat "\nA" (char-to-string trigger)))))))
 
 (ert-deftest auto-capitalize-text-yank ()
   "Capitalize yanked text."
-  (with-temp-buffer
-    (text-mode)
-    (auto-capitalize-mode 1)
-    (let ((old-kill-ring kill-ring)
-          (old-kill-ring-yank-pointer kill-ring-yank-pointer)
-          (interprogram-cut-function nil)  ;; avoid clipboard interaction
-          (interprogram-paste-function nil)
-          (auto-capitalize-yank t))
-      (kill-new "testing bob. testing sentence. testing i’m.\ntesting newline")
+  (auto-capitalize-tests--setup
+    text-mode
+    (let* ((sep (if sentence-end-double-space "  " " "))
+           (old-kill-ring kill-ring)
+           (old-kill-ring-yank-pointer kill-ring-yank-pointer)
+           (interprogram-cut-function nil)  ;; avoid clipboard interaction
+           (interprogram-paste-function nil)
+           (auto-capitalize-yank t))
+      (kill-new (concat "testing bob." sep "testing sentence." sep "testing i’m.\ntesting newline"))
       (unwind-protect
           (ert-simulate-command '(yank))
-        (should (equal (buffer-string)
-                       (concat "Testing bob. Testing sentence. Testing I’m.\nTesting newline")))
+        (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                       (concat "Testing bob." sep "Testing sentence." sep "Testing I’m.\nTesting newline")))
         (setq kill-ring old-kill-ring
               kill-ring-yank-pointer old-kill-ring-yank-pointer)))))
 
 (ert-deftest auto-capitalize-text-after-abbreviations ()
   "Don’t capitalize after words in `auto-capitalize-abbrevs'."
-  (with-temp-buffer
-    (text-mode)
-    (auto-capitalize-mode 1)
-    (dolist (abbrev auto-capitalize-abbrevs)
-      (erase-buffer)
-      (insert abbrev ?\s)
-      (ert-simulate-command '(self-insert-command 1 ?a))
-      (ert-simulate-command '(self-insert-command 1 ?\s))
-      (should (equal (buffer-string)
-                     (concat abbrev " a " ))))))
+  (auto-capitalize-tests--setup
+   text-mode
+   (dolist (abbrev auto-capitalize-abbrevs)
+     (erase-buffer)
+     (insert abbrev ?\s)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    (concat abbrev " a " ))))))
 
 (ert-deftest auto-capitalize-text-after-quoted-abbreviations ()
   "Don’t capitalize after words in `auto-capitalize-abbrevs',
 even if they appear inside quotes."
-  (with-temp-buffer
-    (text-mode)
-    (auto-capitalize-mode 1)
-    (dolist (abbrev auto-capitalize-abbrevs)
-      (erase-buffer)
-      (insert "\"\"")
-      (backward-char)
-      (insert abbrev)
-      (forward-char)
-      (ert-simulate-command '(self-insert-command 1 ?\s))
-      (ert-simulate-command '(self-insert-command 1 ?a))
-      (ert-simulate-command '(self-insert-command 1 ?\s))
-      (should (equal (buffer-string)
-                     (concat "\"" abbrev "\" a " ))))
+  (auto-capitalize-tests--setup
+   text-mode
+   (dolist (abbrev auto-capitalize-abbrevs)
+     (erase-buffer)
+     (insert "\"\"")
+     (backward-char)
+     (insert abbrev)
+     (forward-char)
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    (concat "\"" abbrev "\" a " ))))
 
-    (dolist (abbrev auto-capitalize-abbrevs)
-      (erase-buffer)
-      (insert "\"\".")
-      (backward-char 2)
-      (insert abbrev)
-      (forward-char 2)
-      (ert-simulate-command '(self-insert-command 1 ?\s))
-      (ert-simulate-command '(self-insert-command 1 ?a))
-      (ert-simulate-command '(self-insert-command 1 ?\s))
-      (should (equal (buffer-string)
-                     (concat "\"" abbrev "\". A " ))))))
+   (let ((sep (if sentence-end-double-space "  " " ")))
+      (dolist (abbrev auto-capitalize-abbrevs)
+        (erase-buffer)
+        (insert "\"\".")
+        (backward-char 2)
+        (insert abbrev)
+        (forward-char 2)
+        (insert sep)
+        (ert-simulate-command '(self-insert-command 1 ?a))
+        (ert-simulate-command '(self-insert-command 1 ?\s))
+        (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                       (concat "\"" abbrev "\"." sep "A ")))))))
 
 (ert-deftest auto-capitalize-text-paragraph-indent-mode ()
   "Capitalize paragraphs in `paragraph-indent-minor-mode'."
-  (with-temp-buffer
-    (text-mode)
-    (auto-capitalize-mode 1)
-    (paragraph-indent-minor-mode 1)
-    (ert-simulate-command '(self-insert-command 1 ?\t))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                     (concat "\tA " )))))
+  (auto-capitalize-tests--setup
+   text-mode
+   (paragraph-indent-minor-mode 1)
+   (ert-simulate-command '(self-insert-command 1 ?\t))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  (concat "\tA " )))))
 
 
 ;;;; Tests for `tex-mode'
 
 (ert-deftest auto-capitalize-tex-comments ()
   "Capitalize the first word in a `tex-mode' comment."
-  (with-temp-buffer
-    (tex-mode)
-    (auto-capitalize-mode 1)
-    (ert-simulate-command '(self-insert-command 1 ?%))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "% A "))))
+  (auto-capitalize-tests--setup
+   tex-mode
+   (ert-simulate-command '(self-insert-command 1 ?%))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "% A "))))
 
 (ert-deftest auto-capitalize-tex-ignore-inline-% ()
   "Don't capitalize the first word after an inline (escaped) \"%\" in `tex-mode'."
-  (with-temp-buffer
-    (tex-mode)
-    (auto-capitalize-mode 1)
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (ert-simulate-command '(self-insert-command 1 ?\\))
-    (ert-simulate-command '(self-insert-command 1 ?%))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (ert-simulate-command '(self-insert-command 1 ?b))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "A \\% b "))))
+  (auto-capitalize-tests--setup
+   tex-mode
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?\\))
+   (ert-simulate-command '(self-insert-command 1 ?%))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?b))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "A \\% b "))))
 
 (ert-deftest auto-capitalize-tex-sections ()
   "Capitalize the first word in a `tex-mode' \\section{} title."
-  (with-temp-buffer
-    (tex-mode)
-    (auto-capitalize-mode 1)
-    (insert "\\section{}")
-    (backward-char)
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "\\section{A }"))))
+  (auto-capitalize-tests--setup
+   tex-mode
+   (insert "\\section{}")
+   (backward-char)
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "\\section{A }"))))
 
 (ert-deftest auto-capitalize-tex-after-sections ()
   "Capitalize the first word after a `tex-mode' \\section{} title.
 
 \\section serves as a proxy for all of `outline-regexp'."
-  (with-temp-buffer
-    (tex-mode)
-    (auto-capitalize-mode 1)
-    (insert "\\section{}\n")
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "\\section{}\nA "))))
+  (auto-capitalize-tests--setup
+   tex-mode
+   (insert "\\section{}\n")
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "\\section{}\nA "))))
 
 
 ;;;; Tests for `TeX-mode'
@@ -192,175 +194,206 @@ even if they appear inside quotes."
 (ert-deftest auto-capitalize-TeX-math-dollar ()
   "Do not capitalize anything in `TeX-mode' $$ blocks."
   (skip-unless (featurep 'auctex))
-  (with-temp-buffer
-    (TeX-mode)
-    (auto-capitalize-mode 1)
-    (when (fboundp #'electric-pair-mode)
-      (electric-pair-local-mode -1))
-    (ert-simulate-command '(self-insert-command 1 ?$))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "$a "))
-    (erase-buffer)
-    (ert-simulate-command '(self-insert-command 1 ?$))
-    (ert-simulate-command '(self-insert-command 1 ?.))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "$. a "))
-    (erase-buffer)
-    (ert-simulate-command '(self-insert-command 1 ?$))
-    (ert-simulate-command '(self-insert-command 1 ?i))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "$i "))))
+  (auto-capitalize-tests--setup
+   TeX-mode
+   (when (fboundp #'electric-pair-mode)
+     (electric-pair-local-mode -1))
+   (ert-simulate-command '(self-insert-command 1 ?$))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "$a "))
+   (erase-buffer)
+   (ert-simulate-command '(self-insert-command 1 ?$))
+   (ert-simulate-command '(self-insert-command 1 ?.))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "$. a "))
+   (erase-buffer)
+   (ert-simulate-command '(self-insert-command 1 ?$))
+   (ert-simulate-command '(self-insert-command 1 ?i))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "$i "))))
 
 (ert-deftest auto-capitalize-TeX-math-equation ()
   "Do not capitalize anything in `TeX-mode' \\equation env."
   (skip-unless (featurep 'auctex))
-  (with-temp-buffer
-    (TeX-mode)
-    (auto-capitalize-mode 1)
-    (insert "\\begin{equation}\n\n\\end{equation}")
-    (forward-line -1)
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "\\begin{equation}\na \n\\end{equation}"))
-    (erase-buffer)
-    (insert "\\begin{equation}\n\n\\end{equation}")
-    (forward-line -1)
-    (ert-simulate-command '(self-insert-command 1 ?.))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "\\begin{equation}\n. a \n\\end{equation}"))
-    (erase-buffer)
-    (insert "\\begin{equation}\n\n\\end{equation}")
-    (forward-line -1)
-    (ert-simulate-command '(self-insert-command 1 ?i))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "\\begin{equation}\ni \n\\end{equation}"))))
+  (auto-capitalize-tests--setup
+   TeX-mode
+   (insert "\\begin{equation}\n\n\\end{equation}")
+   (forward-line -1)
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "\\begin{equation}\na \n\\end{equation}"))
+   (erase-buffer)
+   (insert "\\begin{equation}\n\n\\end{equation}")
+   (forward-line -1)
+   (ert-simulate-command '(self-insert-command 1 ?.))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "\\begin{equation}\n. a \n\\end{equation}"))
+   (erase-buffer)
+   (insert "\\begin{equation}\n\n\\end{equation}")
+   (forward-line -1)
+   (ert-simulate-command '(self-insert-command 1 ?i))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "\\begin{equation}\ni \n\\end{equation}"))))
 
 (ert-deftest auto-capitalize-TeX-whitelist-macros ()
   "Capitalize the first word in a `TeX-mode' whitelisted macro."
   (skip-unless (featurep 'auctex))
-  (with-temp-buffer
-    (TeX-mode)
-    (auto-capitalize-mode 1)
-    (dolist (macro auto-capitalize-tex-macro-whitelist)
-      (erase-buffer)
-      (insert (concat "\\" macro "{}"))
-      (backward-char)
-      (ert-simulate-command '(self-insert-command 1 ?a))
-      (ert-simulate-command '(self-insert-command 1 ?\s))
-      (should (equal (buffer-string)
-                     (concat "\\" macro "{A }" ))))))
+  (auto-capitalize-tests--setup
+   TeX-mode
+   (dolist (macro auto-capitalize-tex-macro-whitelist)
+     (erase-buffer)
+     (insert (concat "\\" macro "{}"))
+     (backward-char)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    (concat "\\" macro "{A }" ))))))
 
 (ert-deftest auto-capitalize-TeX-ignore-whitelist-macros ()
   "Don’t follow `TeX-mode' whitelisted macro if the context doesn't makesense."
   (skip-unless (featurep 'auctex))
-  (with-temp-buffer
-    (TeX-mode)
-    (auto-capitalize-mode 1)
-    (dolist (macro auto-capitalize-tex-macro-whitelist)
-      (erase-buffer)
-      (ert-simulate-command '(self-insert-command 1 ?a))
-      (ert-simulate-command '(self-insert-command 1 ?\s))
-      (insert (concat "\\" macro "{}"))
-      (backward-char)
-      (ert-simulate-command '(self-insert-command 1 ?a))
-      (ert-simulate-command '(self-insert-command 1 ?\s))
-      (should (equal (buffer-string)
-                     (concat "A \\" macro "{a }" ))))))
+  (auto-capitalize-tests--setup
+   TeX-mode
+   (dolist (macro auto-capitalize-tex-macro-whitelist)
+     (erase-buffer)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (insert (concat "\\" macro "{}"))
+     (backward-char)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    (concat "A \\" macro "{a }" ))))))
 
 
 ;;;; Tests for ‘org-mode’
 
 (ert-deftest auto-capitalize-org-comments ()
   "Capitalize the first word in `org-mode' comments."
-  (with-temp-buffer
-    (org-mode)
-    (auto-capitalize-mode 1)
-    (ert-simulate-command '(self-insert-command 1 ?#))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "# A "))))
+  (auto-capitalize-tests--setup
+   org-mode
+   (ert-simulate-command '(self-insert-command 1 ?#))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "# A "))))
+
+(ert-deftest auto-capitalize-org-comments-non-first-line ()
+  "Capitalize the first word of an org comment on a non-first line."
+  (auto-capitalize-tests--setup
+   org-mode
+   (insert "Line\n")
+   (ert-simulate-command '(self-insert-command 1 ?#))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "Line\n# A "))))
 
 (ert-deftest auto-capitalize-org-ignore-inline-hash ()
   "Don't capitalize the first word after an inline `#' in `org-mode'."
-  (with-temp-buffer
-    (org-mode)
-    (auto-capitalize-mode 1)
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (ert-simulate-command '(self-insert-command 1 ?#))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (ert-simulate-command '(self-insert-command 1 ?b))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "A # b "))))
+  (auto-capitalize-tests--setup
+   org-mode
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?#))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?b))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "A # b "))))
 
 (ert-deftest auto-capitalize-org-headings ()
   "Capitalize the first word in `org-mode' headings."
-  (with-temp-buffer
-    (org-mode)
-    (auto-capitalize-mode 1)
-    (ert-simulate-command '(self-insert-command 1 ?*))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "* A "))))
+  (auto-capitalize-tests--setup
+   org-mode
+   (ert-simulate-command '(self-insert-command 1 ?*))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "* A "))))
 
 (ert-deftest auto-capitalize-org-src-code ()
   "Don’t capitalize source code in `org-mode' src blocks."
-  (with-temp-buffer
-    (org-mode)
-    (auto-capitalize-mode 1)
+  (auto-capitalize-tests--setup
+    org-mode
     (insert "#+begin_src C\n\n#+end_src")
     (forward-line -1)
     (ert-simulate-command '(self-insert-command 1 ?a))
     (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
+    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                    "#+begin_src C\na \n#+end_src"))))
 
 (ert-deftest auto-capitalize-org-src-comments ()
   "Capitalize comments `org-mode' src blocks."
-  (with-temp-buffer
-    (org-mode)
-    (auto-capitalize-mode 1)
-    (let ((org-src-content-indentation 0))
-      (insert "#+begin_src C\n\n#+end_src")
-      (forward-line -1)
-      (ert-simulate-command '(comment-dwim 2))
-      (font-lock-ensure)
-      (ert-simulate-command '(self-insert-command 1 ?a))
-      (ert-simulate-command '(self-insert-command 1 ?\s))
-      (should (equal (buffer-string)
-                     "#+begin_src C\n/* A  */\n#+end_src")))))
+  (auto-capitalize-tests--setup
+   org-mode
+   (let ((org-src-content-indentation 0))
+     (insert "#+begin_src C\n\n#+end_src")
+     (forward-line -1)
+     (ert-simulate-command '(comment-dwim 2))
+     (font-lock-ensure)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    "#+begin_src C\n/* A  */\n#+end_src")))))
+
+(ert-deftest auto-capitalize-org-src-comments-disabled ()
+  "Don't capitalize comments in src blocks when `auto-capitalize-comments' is nil."
+  (auto-capitalize-tests--setup
+   org-mode
+   (let ((org-src-content-indentation 0)
+         (auto-capitalize-comments nil))
+     (insert "#+begin_src C\n\n#+end_src")
+     (forward-line -1)
+     (ert-simulate-command '(comment-dwim 2))
+     (font-lock-ensure)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                    "#+begin_src C\n/* a  */\n#+end_src")))))
 
 (ert-deftest auto-capitalize-org-src-strings ()
   "Capitalize strings `org-mode' src blocks."
-  (with-temp-buffer
-    (org-mode)
-    (auto-capitalize-mode 1)
-    (let ((org-src-content-indentation 0))
-      (insert "#+begin_src C\n\n#+end_src")
-      (forward-line -1)
-      (insert "\"\"")
-      ;; (font-lock-ensure)
-      (backward-char)
-      (ert-simulate-command '(self-insert-command 1 ?a))
-      (ert-simulate-command '(self-insert-command 1 ?\s))
+  (auto-capitalize-tests--setup
+   org-mode
+   (let ((org-src-content-indentation 0))
+     (insert "#+begin_src C\n\n#+end_src")
+     (forward-line -1)
+     (insert "\"\"")
+     (backward-char)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
       (should (equal (buffer-string)
                      "#+begin_src C\n\"A \"\n#+end_src")))))
+
+(ert-deftest auto-capitalize-org-src-strings-disabled ()
+  "Don't capitalize strings in src blocks when `auto-capitalize-strings' is nil."
+  (auto-capitalize-tests--setup
+   org-mode
+   (let ((org-src-content-indentation 0)
+         (auto-capitalize-strings nil))
+     (insert "#+begin_src C\n\n#+end_src")
+     (forward-line -1)
+     (insert "\"\"")
+     (backward-char)
+     (ert-simulate-command '(self-insert-command 1 ?a))
+     (ert-simulate-command '(self-insert-command 1 ?\s))
+     (should (equal (buffer-string)
+                    "#+begin_src C\n\"a \"\n#+end_src")))))
 
 
 ;;;; Tests for `prog-mode'
@@ -371,94 +404,90 @@ even if they appear inside quotes."
 
 Test both cases depending on the value of the user option
 `auto-capitalize-comments'."
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    (auto-capitalize-mode 1)
-    (setq-local auto-capitalize-comments t)
-    (ert-simulate-command '(comment-dwim 2))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   ";; A "))
+  (auto-capitalize-tests--setup
+   emacs-lisp-mode
+   (setq-local auto-capitalize-comments t)
+   (ert-simulate-command '(comment-dwim 2))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  ";; A "))
 
-    (erase-buffer)
-    (setq-local auto-capitalize-comments nil)
-    (ert-simulate-command '(comment-dwim 2))
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   ";; a "))))
+   (erase-buffer)
+   (setq-local auto-capitalize-comments nil)
+   (ert-simulate-command '(comment-dwim 2))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  ";; a "))))
 
 (ert-deftest auto-capitalize-prog-strings ()
   "Capitalize the first word in `prog-mode' strings.
 
 Test both cases depending on the value of the user option
 `auto-capitalize-strings'."
-  (with-temp-buffer
-    (emacs-lisp-mode)
-    (auto-capitalize-mode 1)
-    (setq-local auto-capitalize-strings t)
-    (insert "\"\"")
-    (backward-char)
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "\"A \""))
+  (auto-capitalize-tests--setup
+   emacs-lisp-mode
+   (setq-local auto-capitalize-strings t)
+   (insert "\"\"")
+   (backward-char)
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "\"A \""))
 
-    (erase-buffer)
-    (setq-local auto-capitalize-strings nil)
-    (insert "\"\"")
-    (backward-char)
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "\"a \""))))
+   (erase-buffer)
+   (setq-local auto-capitalize-strings nil)
+   (insert "\"\"")
+   (backward-char)
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "\"a \""))))
 
 (ert-deftest auto-capitalize-prog-ignore-bob ()
   "Don't capitalize the very first word in `prog-mode' buffers."
-  (with-temp-buffer
-    (c-mode)
-    (auto-capitalize-mode 1)
-    (ert-simulate-command '(self-insert-command 1 ?a))
-    (ert-simulate-command '(self-insert-command 1 ?\s))
-    (should (equal (buffer-string)
-                   "a "))))
+  (auto-capitalize-tests--setup
+   c-mode
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "a "))))
 
 (ert-deftest auto-capitalize-text-fixed-case ()
   "Capitalize words in `auto-capitalize-fixed-case-words'."
   (let ((cached auto-capitalize-fixed-case-words))
     (unwind-protect
-        (with-temp-buffer
-          (emacs-lisp-mode)
-          (auto-capitalize-mode 1)
-          (let ((auto-capitalize-comments nil))
-            (setopt auto-capitalize-fixed-case-words '("eMaCs"))
-            (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
-            (ert-simulate-command '(comment-dwim 2))
-            (insert "emacs")
-            (ert-simulate-command `(self-insert-command 1 ?\s))
-            (should (equal (buffer-string)
-                           "\n;; eMaCs ")))
-          (erase-buffer)
-          (let ((auto-capitalize-strings nil))
-            (setopt auto-capitalize-fixed-case-words '("eMaCs"))
-            (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
-            (insert "\"\"")
-            (backward-char)
-            (insert "emacs")
-            (ert-simulate-command `(self-insert-command 1 ?\s))
-            (should (equal (buffer-string)
-                           "\n\"eMaCs \"")))
-          (erase-buffer)
-          (let ((auto-capitalize-strings nil))
-            (setopt auto-capitalize-fixed-case-words '("eMaCs" "Emacsen"))
-            (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
-            (insert "\"\"")
-            (backward-char)
-            (insert "emacsen")
-            (ert-simulate-command `(self-insert-command 1 ?\s))
-            (should (equal (buffer-string)
-                           "\n\"Emacsen \""))))
+        (auto-capitalize-tests--setup
+         emacs-lisp-mode
+         (let ((auto-capitalize-comments t))
+           (setopt auto-capitalize-fixed-case-words '("eMaCs"))
+           (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
+           (ert-simulate-command '(comment-dwim 2))
+           (insert "emacs")
+           (ert-simulate-command `(self-insert-command 1 ?\s))
+           (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                          "\n;; eMaCs ")))
+         (erase-buffer)
+         (let ((auto-capitalize-strings t))
+           (setopt auto-capitalize-fixed-case-words '("eMaCs"))
+           (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
+           (insert "\"\"")
+           (backward-char)
+           (insert "emacs")
+           (ert-simulate-command `(self-insert-command 1 ?\s))
+           (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                          "\n\"eMaCs \"")))
+         (erase-buffer)
+         (let ((auto-capitalize-strings t))
+           (setopt auto-capitalize-fixed-case-words '("eMaCs" "Emacsen"))
+           (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
+           (insert "\"\"")
+           (backward-char)
+           (insert "emacsen")
+           (ert-simulate-command `(self-insert-command 1 ?\s))
+           (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                          "\n\"Emacsen \""))))
       (setopt auto-capitalize-fixed-case-words cached))))
 
 (provide 'auto-capitalize-tests)
