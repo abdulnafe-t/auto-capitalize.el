@@ -342,11 +342,16 @@ comment, and `auto-capitalize-comments' is non-nil."
                    (looking-at outline-regexp)))))
 
    ;; Beginning of paragraph?
-   (= word-start
-      (save-excursion
-        (start-of-paragraph-text)
-        (skip-syntax-forward "^w")
-        (point)))
+   (or (= word-start
+          (save-excursion
+            (start-of-paragraph-text)
+            (skip-syntax-forward "^w")
+            (point)))
+       (save-excursion
+         (goto-char word-start)
+         (skip-syntax-backward "\s")
+         (backward-char)
+         (looking-at "\n")))
 
    ;; Beginning of a sentence?
    (when-let* ((bounds (car (bounds-of-thing-at-point 'sentence))))
