@@ -176,6 +176,17 @@ even if they appear inside quotes."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "\\section{A }"))))
 
+(ert-deftest auto-capitalize-tex-after-section-labels ()
+  "Capitalize the first word in `tex-mode' after a \\label{} entry."
+  (auto-capitalize-tests--setup
+   tex-mode
+   (insert "\\section{}\n")
+   (insert "\\label{}\n")
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "\\section{}\n\\label{}\nA "))))
+
 (ert-deftest auto-capitalize-tex-after-sections ()
   "Capitalize the first word after a `tex-mode' \\section{} title.
 
