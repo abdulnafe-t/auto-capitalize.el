@@ -454,6 +454,22 @@ Test both cases depending on the value of the user option
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "a "))))
 
+(ert-deftest auto-capitalize-prog-defun-docstring ()
+  "Capitalize the first word (and no other words) in `prog-mode' function
+docstrings."
+  (auto-capitalize-tests--setup
+   emacs-lisp-mode
+   (insert "(defun test-func ()")
+   (ert-simulate-command '(newline))
+   (insert "\"\"")
+   (backward-char)
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "(defun test-func ()\n\"A a \""))))
+
 (ert-deftest auto-capitalize-text-fixed-case ()
   "Capitalize words in `auto-capitalize-fixed-case-words'."
   (let ((cached auto-capitalize-fixed-case-words))
