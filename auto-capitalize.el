@@ -482,6 +482,7 @@ If BUFFER-LOCAL is non-nil, only set the buffer-local value."
 ;; are code, but are technically still part of a text-mode buffer.
 
 (declare-function org-in-src-block-p "org")
+(declare-function org-at-comment-p "org")
 
 (defun auto-capitalize-org-blocking-function ()
   "Returns non-nil if not in org mode, or not inside an org source block.
@@ -489,13 +490,18 @@ If BUFFER-LOCAL is non-nil, only set the buffer-local value."
 This predicate is added to `auto-capitalize-blocking-functions' (which
 see)."
   (or (not (derived-mode-p 'org-mode))
-      (not (org-in-src-block-p))
 
-      (and (nth 3 (syntax-ppss))
+      (and (nth 3 (syntax-ppss))         ; Are we in a string?
            auto-capitalize-strings)
 
-      (and (nth 4 (syntax-ppss))
-           auto-capitalize-comments)))
+      (and (or (nth 4 (syntax-ppss))
+               (org-at-comment-p))       ; Are we in a comment?
+           auto-capitalize-comments)
+
+      (and (not (nth 3 (syntax-ppss)))   ; Not in a string
+           (not (or (nth 4 (syntax-ppss))
+                    (org-at-comment-p))) ; Not in a comment
+           (not (org-in-src-block-p))))) ; Not in a src-block
 
 
 ;; User options:
