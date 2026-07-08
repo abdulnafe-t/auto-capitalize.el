@@ -332,14 +332,7 @@ comment, and `auto-capitalize-comments' is non-nil."
                    (goto-char (line-beginning-position))
                    (when (looking-at outline-regexp)
                      (goto-char (match-end 0))
-                     (skip-syntax-forward "^w" (line-end-position))
-                     (= (point) word-start))))
-
-            ;; Beginning of line after an outline heading?
-            (save-excursion
-              (and (bound-and-true-p outline-regexp)
-                   (zerop (forward-line -1))
-                   (looking-at outline-regexp)))))
+                     (skip-syntax-forward "^w" (line-end-position)))))))
 
    ;; Beginning of paragraph?
    (or (= word-start
