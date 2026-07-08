@@ -471,7 +471,12 @@ This predicate is added to `auto-capitalize-blocking-functions' (which
 see)."
   (or (not (derived-mode-p 'org-mode))
       (not (org-in-src-block-p))
-      (nth 8 (syntax-ppss))))
+
+      (and (nth 3 (syntax-ppss))
+           auto-capitalize-strings)
+
+      (and (nth 4 (syntax-ppss))
+           auto-capitalize-comments)))
 
 
 ;; User options:
