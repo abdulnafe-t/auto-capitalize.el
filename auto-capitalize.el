@@ -96,8 +96,6 @@
   "Holds match data across recursive calls in `auto-capitalize-capitalize'.")
 
 (defconst auto-capitalize-regexp-lower "[[:lower:]]+")
-(defconst auto-capitalize-abbrev-regexp
-  "\\<\\([[:upper:]]?[[:lower:]]+\\.\\)+\\=")
 
 (defvar auto-capitalize--fixed-case-regexp
   (if (default-boundp 'auto-capitalize-fixed-case-words)
