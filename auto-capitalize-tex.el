@@ -75,7 +75,9 @@ are already handled by the outline-heading check in
 
 This predicate is added to `auto-capitalize-blocking-functions'."
   (or (not (bound-and-true-p TeX-mode-p))
-      (not (texmathp))))
+      (save-excursion
+        (and (not (progn (backward-word) (TeX-escaped-p)))
+             (not (texmathp))))))
 
 (defun auto-capitalize-tex-trigger-function (_text-start word-start)
   "Return non-nil if capitalization should occur at WORD-START.
