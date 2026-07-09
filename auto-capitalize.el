@@ -584,7 +584,7 @@ which see."
   :type '(repeat (string :tag "Non-sentence ending word."))
   :set #'auto-capitalize--set-abbrevs)
 
-(defcustom auto-capitalize-trigger-chars '(?\s ?, ?. ?? ?' ?’ ?: ?\; ?- ?!)
+(defcustom auto-capitalize-trigger-chars '(?\s ?, ?. ?? ?' ?’ ?: ?\; ?- ?! ?\n)
   "List of chars that trigger auto-capitalization on the preceding word.
 
 This variable is checked by `auto-capitalize-default-blocking-function'.
