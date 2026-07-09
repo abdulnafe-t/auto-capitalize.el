@@ -486,6 +486,23 @@ see)."
                     (org-at-comment-p))) ; Not in a comment
            (not (org-in-src-block-p))))) ; Not in a src-block
 
+(defun auto-capitalize-org-trigger-function (_text-start word-start)
+  "Trigger capitalization in org-mode buffers.
+
+Returns non-nil if WORD-START should be capitalized based on
+org-specific context that the default trigger function cannot handle.
+
+Currently checks if WORD-START is the first word of an org comment
+\(lines starting with `#'), since org comments do not play nice with
+`bounds-of-thing-at-point' or `start-of-paragraph-text'."
+  (and (derived-mode-p 'org-mode)
+       (org-at-comment-p)
+       (= word-start
+          (save-excursion
+            (goto-char (line-beginning-position))
+            (skip-syntax-forward "^w")
+            (point)))))
+
 
 ;; User options:
 
@@ -610,7 +627,9 @@ block capitalization in the current context."
   :options (list #'auto-capitalize-default-blocking-function
                  #'auto-capitalize-org-blocking-function))
 
-(defcustom auto-capitalize-trigger-functions '(auto-capitalize-default-trigger-function)
+(defcustom auto-capitalize-trigger-functions
+  '(auto-capitalize-default-trigger-function
+    auto-capitalize-org-trigger-function)
   "Hook for triggering capitalization at specific buffer positions.
 
 Each function is called with two arguments, (TEXT-START WORD-START), and
@@ -623,7 +642,8 @@ functions run first and always take precedence.  Only if all blocking
 functions pass are the trigger functions consulted."
   :group 'auto-capitalize
   :type 'hook
-  :options (list #'auto-capitalize-default-trigger-function))
+  :options (list #'auto-capitalize-default-trigger-function
+                 #'auto-capitalize-org-trigger-function))
 
 
 ;; Commands:
