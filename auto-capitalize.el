@@ -329,7 +329,8 @@ non-nil."
                    (goto-char (line-beginning-position))
                    (when (looking-at outline-regexp)
                      (goto-char (match-end 0))
-                     (skip-syntax-forward "^w" (line-end-position)))))))
+                     (skip-syntax-forward "^w" (line-end-position))
+                     (= word-start (point)))))))
 
    ;; Beginning of paragraph?
    (or (= word-start
