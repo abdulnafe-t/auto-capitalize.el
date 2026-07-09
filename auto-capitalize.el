@@ -181,28 +181,16 @@ and the corresponding user option (`auto-capitalize-comments' or
                                      ,(command-remapping 'self-insert-command))))
            (memq last-command-event auto-capitalize-trigger-chars))))
 
-(defun auto-capitalize-inserted-non-word-p (beg end length)
-  "Return non-nil if the last event was an insertion of a non-word character.
+(defun auto-capitalize-inserted-trigger-char (beg end length)
+  "Return non-nil if the inserted text ends with a trigger character.
 
 BEG, END, and LENGTH are the position in the buffer where the change
 started, where it ended, and the length of that section before the
 change, respectively, as defined by the documentation of
 `after-change-functions' (which see)."
-  (condition-case error
-      (or (memq this-command '(newline newline-and-indent))
-          (and (or (memq this-command
-                         `(self-insert-command
-                           ,(command-remapping 'self-insert-command)))
-                   (let ((key (this-command-keys)))
-                     (and (eq (lookup-key global-map key t)
-                              'self-insert-command)
-                          (= length 0)
-                          (= (- end beg) 1))))
-               (or (not (equal (char-syntax last-command-event) ?w))
-                   (and auto-capitalize-trigger-chars
-                        (member last-command-event
-                                auto-capitalize-trigger-chars)))))
-    (error (message "auto-capitalize error: %S" error) nil)))
+  (and (= length 0)
+       (> (- end beg) 0)
+       (memq (char-before end) auto-capitalize-trigger-chars)))
 
 (defun auto-capitalize-capitalize (beg end length)
   "If `auto-capitalize-mode' is enabled, then start the capitalization logic.
@@ -225,7 +213,7 @@ word before point (or the yanked text) should be capitalized."
                 (run-hook-with-args-until-failure
                  'auto-capitalize-blocking-functions))
 
-        (cond ((auto-capitalize-inserted-non-word-p beg end length)
+        (cond ((auto-capitalize-inserted-trigger-char beg end length)
                ;; self-inserting, non-word character
                (when (and (> beg (point-min))
                           (equal (char-syntax (char-after (1- beg))) ?w))
