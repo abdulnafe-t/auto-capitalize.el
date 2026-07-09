@@ -296,18 +296,27 @@ This predicate returns non-nil if any of the following conditions hold:
 
 1) TEXT-START is at the beginning of the buffer
 
-2) WORD-START is the first char of a paragraph (identified through the
-function `start-of-paragraph-text', which see)
+2) WORD-START is the first word in a heading, as defined by the
+buffer-local value of `outline-regexp', and
+`auto-capitalize-outline-headings' is non-nil
 
-3) WORD-START is the first char of a sentence (identified through the
-function `bounds-of-thing-at-point', which see)
+3) WORD-START is the first word of a paragraph, as identified by either
+`start-of-paragraph-text', or a simple newline preceding the word
 
-4) WORD-START is the first char after a heading, as defined by the
-buffer-local value of `outline-regexp'.
+4) WORD-START is the first char of a sentence, identified through the
+function `bounds-of-thing-at-point'. If that function returns nil, check
+to see if the preceding text matches the return value of function
+`sentence-end'
 
-5) in either `prog-mode' buffers, or `text-mode' buffers that have
-markup syntax (Org, markdown, TeX...), the text of interest is inside a
-comment, and `auto-capitalize-comments' is non-nil."
+5) WORD-START is the first word of a comment, as determined by
+`syntax-ppss', and `auto-capitalize-comments' (and
+`auto-capitalize-start-of-inline-comments', if the comment is inline) is
+non-nil.
+
+6) WORD-START is the first word of a string, as determined by
+`syntax-ppss', and `auto-capitalize-strings' (and
+`auto-capitalize-start-of-inline-strings', if the string is inline) are
+non-nil."
 
   (goto-char text-start)
   (or
@@ -345,7 +354,18 @@ comment, and `auto-capitalize-comments' is non-nil."
        (skip-syntax-backward "^w" (line-beginning-position))
        (looking-at (sentence-end))))
 
-   ;; Beginning of a string starting its own line (like docstrings)?
+   ;; Beginning of a comment?
+   (and auto-capitalize-comments
+        auto-capitalize-start-of-inline-comments
+        (save-excursion
+          (when-let* ((comment-start (nth 8 (syntax-ppss))))
+            (= word-start
+               (save-excursion
+                 (goto-char comment-start)
+                 (skip-syntax-forward "^w")
+                 (point))))))
+
+   ;; Beginning of a string?
    (and auto-capitalize-strings
         (save-excursion
           (goto-char word-start)
@@ -359,33 +379,7 @@ comment, and `auto-capitalize-comments' is non-nil."
                     (save-excursion
                       (goto-char string-start)
                       (skip-syntax-forward "^w")
-                      (point)))))))
-
-   ;; Beginning of a comment?
-   ;; We need to check this here because org/tex comments don't play nice
-   ;; with paragraph/sentence bounds
-   (and auto-capitalize-comments
-        (or (save-excursion
-              (and comment-start-skip
-                   (re-search-backward comment-start-skip nil t)
-                   (= (match-end 0) text-start)
-                   (or auto-capitalize-start-of-inline-comments
-                       (save-excursion
-                         (goto-char (match-beginning 0))
-                         (skip-chars-backward " \t")
-                         (bolp)))))
-            (save-excursion
-              (when-let* ((comment-start (nth 8 (syntax-ppss))))
-                (and (or auto-capitalize-start-of-inline-comments
-                         (save-excursion
-                           (goto-char comment-start)
-                           (skip-chars-backward " \t")
-                           (bolp)))
-                     (= word-start
-                        (save-excursion
-                          (goto-char comment-start)
-                          (skip-syntax-forward "^w")
-                          (point))))))))))
+                      (point)))))))))
 
 (defun auto-capitalize--ask ()
   "Ask the user whether the last typed word should be capitalized or not."
