@@ -173,8 +173,10 @@ even if they appear inside quotes."
    (backward-char)
    (ert-simulate-command '(self-insert-command 1 ?a))
    (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                  "\\section{A }"))))
+                  "\\section{A a }"))))
 
 (ert-deftest auto-capitalize-tex-after-section-labels ()
   "Capitalize the first word in `tex-mode' after a \\label{} entry."
