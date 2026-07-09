@@ -199,6 +199,15 @@ even if they appear inside quotes."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "\\section{}\nA "))))
 
+(ert-deftest auto-capitalize-tex-ignore-braceless-macro ()
+  "Do not capitalize TeX macros."
+  (auto-capitalize-tests--setup
+   tex-mode
+   (insert "\\bigskip")
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "\\bigskip "))))
+
 
 ;;;; Tests for `TeX-mode'
 
