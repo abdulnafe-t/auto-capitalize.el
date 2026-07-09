@@ -342,16 +342,27 @@ even if they appear inside quotes."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "A # b "))))
 
-(ert-deftest auto-capitalize-org-headings ()
-  "Capitalize the first word in `org-mode' headings."
+(ert-deftest auto-capitalize-org-headings-space ()
+  "Capitalize the first word in `org-mode' headings after SPC."
   (auto-capitalize-tests--setup
    org-mode
    (ert-simulate-command '(self-insert-command 1 ?*))
    (ert-simulate-command '(self-insert-command 1 ?\s))
    (ert-simulate-command '(self-insert-command 1 ?a))
-   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-play-keys "SPC")
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "* A "))))
+
+(ert-deftest auto-capitalize-org-headings-newline ()
+  "Capitalize the first word in `org-mode' headings after RET."
+  (auto-capitalize-tests--setup
+   org-mode
+   (ert-simulate-command '(self-insert-command 1 ?*))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-play-keys "RET")
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "* A\n"))))
 
 (ert-deftest auto-capitalize-org-src-code ()
   "Don’t capitalize source code in `org-mode' src blocks."
