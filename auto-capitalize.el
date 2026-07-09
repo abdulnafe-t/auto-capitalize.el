@@ -335,12 +335,15 @@ comment, and `auto-capitalize-comments' is non-nil."
          (looking-at "\n")))
 
    ;; Beginning of a sentence?
-   (when-let* ((bounds (car (bounds-of-thing-at-point 'sentence))))
-     (= word-start
-        (save-excursion
-          (goto-char bounds)
-          (skip-syntax-forward "^w")
-          (point))))
+   (if-let* ((bounds (car (bounds-of-thing-at-point 'sentence))))
+       (= word-start
+          (save-excursion
+            (goto-char bounds)
+            (skip-syntax-forward "^w")
+            (point)))
+     (save-excursion
+       (skip-syntax-backward "^w" (line-beginning-position))
+       (looking-at (sentence-end))))
 
    ;; Beginning of a string starting its own line (like docstrings)?
    (and auto-capitalize-strings
