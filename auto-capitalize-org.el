@@ -102,7 +102,7 @@ will be enabled automatically."
     (remove-hook 'auto-capitalize-trigger-functions
                  #'auto-capitalize-org-trigger-function t))
    (t
-    (unless auto-capitalize-mode
+    (unless (or auto-capitalize-mode auto-capitalize-global-mode)
       (auto-capitalize-mode 1)
       (message "auto-capitalize-mode enabled for Org support."))
     (add-hook 'auto-capitalize-blocking-functions

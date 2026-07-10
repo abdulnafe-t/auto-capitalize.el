@@ -124,7 +124,7 @@ will be enabled automatically."
                  #'auto-capitalize-tex-trigger-function t))
 
    (t
-    (unless auto-capitalize-mode
+    (unless (or auto-capitalize-mode auto-capitalize-global-mode)
       (auto-capitalize-mode 1)
       (message "auto-capitalize-mode enabled for TeX support."))
     (add-hook 'auto-capitalize-blocking-functions
