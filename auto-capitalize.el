@@ -618,9 +618,7 @@ This will install `auto-capitalize-capitalize' in
 
    ;; Turn on
    (t
-    (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t)
-    (add-hook 'auto-capitalize-blocking-functions
-              #'auto-capitalize-default-blocking-function))))
+    (add-hook 'after-change-functions #'auto-capitalize-capitalize nil t))))
 
 ;;;###autoload
 (define-globalized-minor-mode auto-capitalize-global-mode
