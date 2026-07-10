@@ -561,7 +561,7 @@ capitalized. This is ensured by the function
   :type '(repeat (string :tag "Word list"))
   :set #'auto-capitalize--set-fixed-case)
 
-(defcustom auto-capitalize-abbrevs '("e.g." "i.e." "vs." "Mr." "Messrs." "Mrs." "Mmes." "Ms." "Mses.")
+(defcustom auto-capitalize-abbrevs '("e.g." "i.e." "vs.")
   "List of common abbreviations that shouldn’t count as sentence endings.
 This means that they will not cause a word that comes after them to get
 capitalized, unless it appears, capitalized, in
