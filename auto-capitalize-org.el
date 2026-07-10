@@ -107,9 +107,9 @@ will be enabled automatically."
       (auto-capitalize-mode 1)
       (message "auto-capitalize-mode enabled for Org support."))
     (add-hook 'auto-capitalize-blocking-functions
-              #'auto-capitalize-org-blocking-function t)
+              #'auto-capitalize-org-blocking-function nil t)
     (add-hook 'auto-capitalize-trigger-functions
-              #'auto-capitalize-org-trigger-function t))))
+              #'auto-capitalize-org-trigger-function nil t))))
 
 (provide 'auto-capitalize-org)
 ;;; auto-capitalize-org.el ends here
