@@ -70,6 +70,8 @@ You can set the following boolean options for more fine-grained control:
 
 More explanations are in each variable’s respective doc string.
 
+The mode is defined by =define-globalized-minor-mode=, which means you get access to =auto-capitalize-global-modes=, which is a list of modes in which to enable (or disable if preceded with a =not=) the global mode.
+
 =auto-capitalize-fixed-case-words= is a list of words whose case will always be exactly how it appears in the list. For example, the English pronoun "I" - the only default entry - will replace any lowercase "i" followed by any character in =auto-capitalize-trigger-chars=. You can, of course, customize =auto-capitalize-trigger-chars= as well!
 
 No capitalization takes place if the word of interest happens to be right after one of the entries in =auto-capitalize-abbrevs=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not capitalize the "y".
