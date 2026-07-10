@@ -220,31 +220,37 @@ word before point (or the yanked text) should be capitalized."
                   (not (run-hook-with-args-until-success
                         'auto-capitalize-blocking-functions))))
 
-        (cond ((auto-capitalize-inserted-trigger-char beg end length)
-               ;; self-inserting, non-word character
-               (when (and (> beg (point-min))
-                          (equal (char-syntax (char-after (1- beg))) ?w))
-                 (auto-capitalize-maybe-capitalize-preceding-word)))
-              ((and auto-capitalize-yank
-                    ;; `yank' sets `this-command' to t, and the
-                    ;; after-change-functions are run before it has been
-                    ;; reset:
-                    (or (eq this-command 'yank)
-                        (and (= length 0) ; insertion?
-                             (eq this-command 't))))
-               (save-excursion
-                 (goto-char beg)
-                 (save-match-data
-                   (while (re-search-forward "\\Sw" end t)
-                     (setq auto-capitalize--match-data (match-data))
-                     ;; recursion!
-                     (let* ((this-command 'self-insert-command)
-                            (non-word-char (char-after (match-beginning 0)))
-                            (last-command-event non-word-char))
-                       (set-match-data auto-capitalize--match-data)
-                       (auto-capitalize-capitalize (match-beginning 0)
-                                                   (match-end 0)
-                                                   0))))))))
+        (cond
+         ;; We need to check for yanking before checking for trigger chars,
+         ;; because if the yanked text ends in a trigger char, only that trigger
+         ;; char gets processed, meaning the rest of the text does not get
+         ;; capitalized correctly. Checking for yanking first solves this issue.
+         ((and auto-capitalize-yank
+               ;; `yank' sets `this-command' to t, and the
+               ;; after-change-functions are run before it has been
+               ;; reset:
+               (or (eq this-command 'yank)
+                   (and (= length 0) ; insertion?
+                        (eq this-command 't))))
+          (save-excursion
+            (goto-char beg)
+            (save-match-data
+              (while (re-search-forward "\\Sw" end t)
+                (setq auto-capitalize--match-data (match-data))
+                ;; recursion!
+                (let* ((this-command 'self-insert-command)
+                       (non-word-char (char-after (match-beginning 0)))
+                       (last-command-event non-word-char))
+                  (set-match-data auto-capitalize--match-data)
+                  (auto-capitalize-capitalize (match-beginning 0)
+                                              (match-end 0)
+                                              0))))))
+
+         ((auto-capitalize-inserted-trigger-char beg end length)
+          ;; self-inserting, non-word character
+          (when (and (> beg (point-min))
+                     (equal (char-syntax (char-after (1- beg))) ?w))
+            (auto-capitalize-maybe-capitalize-preceding-word)))))
     (error (message "auto-capitalize error: %S" error) nil)))
 
 (defun auto-capitalize-handle-fixed-case (m-beg m-end)

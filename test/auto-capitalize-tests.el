@@ -83,11 +83,11 @@
            (interprogram-cut-function nil)  ;; avoid clipboard interaction
            (interprogram-paste-function nil)
            (auto-capitalize-yank t))
-      (kill-new (concat "testing bob." sep "testing sentence." sep "testing i’m.\ntesting newline"))
+      (kill-new (concat "testing bob." sep "testing sentence." sep "testing i’m.\ntesting newline\n"))
       (unwind-protect
           (ert-simulate-command '(yank))
         (should (equal (buffer-substring-no-properties (point-min) (point-max))
-                       (concat "Testing bob." sep "Testing sentence." sep "Testing I’m.\nTesting newline")))
+                       (concat "Testing bob." sep "Testing sentence." sep "Testing I’m.\nTesting newline\n")))
         (setq kill-ring old-kill-ring
               kill-ring-yank-pointer old-kill-ring-yank-pointer)))))
 
