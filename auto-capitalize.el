@@ -211,8 +211,14 @@ word before point (or the yanked text) should be capitalized."
 
   (condition-case error
       (when (or (null auto-capitalize-blocking-functions)
-                (not (run-hook-with-args-until-success
-                      'auto-capitalize-blocking-functions)))
+                (save-excursion
+                  ;; HACK: we move back one char to account for newline possibly
+                  ;; leaving the actual word's context, such as at the end of a
+                  ;; comment
+                  (unless (bobp)
+                    (backward-char))
+                  (not (run-hook-with-args-until-success
+                        'auto-capitalize-blocking-functions))))
 
         (cond ((auto-capitalize-inserted-trigger-char beg end length)
                ;; self-inserting, non-word character
