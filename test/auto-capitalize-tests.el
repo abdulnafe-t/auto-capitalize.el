@@ -477,6 +477,18 @@ Test both cases depending on the value of the user option
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   ";; a "))))
 
+(ert-deftest auto-capitalize-prog-comments-newline ()
+  "Capitalize the last word in a comment after a newline."
+  (auto-capitalize-tests--setup
+   emacs-lisp-mode
+   (erase-buffer)
+   (setq-local auto-capitalize-comments t)
+   (ert-simulate-command '(comment-dwim 2))
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(newline))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  ";; A\n"))))
+
 (ert-deftest auto-capitalize-prog-strings ()
   "Capitalize the first word in `prog-mode' strings.
 
