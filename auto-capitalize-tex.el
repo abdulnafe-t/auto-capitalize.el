@@ -118,11 +118,10 @@ will be enabled automatically."
   :group 'auto-capitalize-tex
   (cond
    ((not auto-capitalize-tex-mode)
-    (progn
-      (remove-hook 'auto-capitalize-blocking-functions
-                   #'auto-capitalize-tex-blocking-function t)
-      (remove-hook 'auto-capitalize-trigger-functions
-                   #'auto-capitalize-tex-trigger-function t)))
+    (remove-hook 'auto-capitalize-blocking-functions
+                 #'auto-capitalize-tex-blocking-function t)
+    (remove-hook 'auto-capitalize-trigger-functions
+                 #'auto-capitalize-tex-trigger-function t))
 
    (t
     (unless auto-capitalize-mode

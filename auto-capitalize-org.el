@@ -97,11 +97,10 @@ will be enabled automatically."
   :group 'auto-capitalize-org
   (cond
    ((not auto-capitalize-org-mode)
-    (progn
-      (remove-hook 'auto-capitalize-blocking-functions
-                   #'auto-capitalize-org-blocking-function t)
-      (remove-hook 'auto-capitalize-trigger-functions
-                   #'auto-capitalize-org-trigger-function t)))
+    (remove-hook 'auto-capitalize-blocking-functions
+                 #'auto-capitalize-org-blocking-function t)
+    (remove-hook 'auto-capitalize-trigger-functions
+                 #'auto-capitalize-org-trigger-function t))
    (t
     (unless auto-capitalize-mode
       (auto-capitalize-mode 1)
