@@ -107,6 +107,7 @@ the regexp on every keystroke.")
 ;; Forward declarations to satisfy the compiler
 
 (defvar auto-capitalize-ask)
+(defvar auto-capitalize-excluded-buffers)
 (defvar auto-capitalize-yank)
 (defvar auto-capitalize-strings)
 (defvar auto-capitalize-start-of-inline-strings)
@@ -566,7 +567,7 @@ If this variable is nil, it is ignored."
                     :tag "Characters that trigger capitalization on the preceding word"))
            (const nil)))
 
-(defcustom auto-capitalize-inhibit-buffers nil
+(defcustom auto-capitalize-excluded-buffers nil
   "List of buffer names in which to suppress auto-capitalization."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Buffer name")))
@@ -620,7 +621,7 @@ This will install `auto-capitalize-capitalize' in
     ;; Turn off
     ((or (not auto-capitalize-mode)
          buffer-read-only
-         (member (buffer-name) auto-capitalize-inhibit-buffers))
+         (member (buffer-name) auto-capitalize-excluded-buffers))
      (remove-hook 'after-change-functions 'auto-capitalize-capitalize t))
 
     ;; Turn on
