@@ -43,9 +43,9 @@
 ;; you can add your own predicates to. The `auto-capitalize-blocking-functions'
 ;; hook gives you the right of first refusal over capitalization: each function
 ;; in that hook is called with no arguments and returns non-nil to block
-;; capitalization. If any function returns nil, the check fails and no word is
+;; capitalization. If any function returns non-nil, the check fails and no word is
 ;; capitalized. Note, however, that even if every function in this hook returns
-;; non-nil, that does not guarantee a word will be capitalized.
+;; nil, that does not guarantee a word will be capitalized.
 ;;
 ;; By default, this hook only contains
 ;; `auto-capitalize-default-blocking-function'. Additional plugins, like the
@@ -57,7 +57,7 @@
 ;; word, and if any of them returns non-nil, capitalization occurs.
 ;;
 ;; Note that the blocking functions take precedence: they are called first, and
-;; only if they all return non-nil, the trigger functions get called.
+;; only if they all return nil, the trigger functions get called.
 ;;
 ;; Alternatively, if you do not want to write a whole new predicate, you can
 ;; always customize some of the user options in the `auto-capitalize' group.
@@ -133,7 +133,10 @@ return non-nil to block capitalization if any of them hold:
 
 3) if in `prog-mode', the current text is in neither a comment nor a
 string, or it is but the corresponding user
-option (`auto-capitalize-comments' or `auto-capitalize-strings') is nil
+option (`auto-capitalize-comments' or `auto-capitalize-strings') is nil.
+Outside of `prog-mode', text outside of comments or strings is not
+blocked, while capitalization in comments/strings is similarly gated by
+the corresponding user options.
 
 4) if the previous word is in `auto-capitalize-abbrevs'
 
@@ -263,11 +266,11 @@ the variable `auto-capitalize-fixed-case-words', typing \"i \" produces
   "Return non-nil if the word beginning at WORD-START should be capitalized.
 
 In practice, TEXT-START is almost always one character before
-WORD-START.
+WORD-START, having skipped back over opening quotes, parens, etc.
 
-This function returns non-nil if the last command was an insertion of a
-lower-case character, and any of the functions in
-`auto-capitalize-trigger-functiions' returns non-nil.
+This function returns non-nil if the word starts with a lower-case
+letter, and any function in `auto-capitalize-trigger-functions' returns
+non-nil.
 
 In addition, if `auto-capitalize-ask' is non-nil, query the user and
 only capitalize if the user answered \"y\"."
@@ -292,7 +295,7 @@ only capitalize if the user answered \"y\"."
 
 This predicate returns non-nil if any of the following conditions hold:
 
-1) TEXT-START is at the beginning of the buffer
+1) in `text-mode', TEXT-START is at the beginning of the buffer
 
 2) WORD-START is the first word in a heading, as defined by the
 buffer-local value of `outline-regexp', and
@@ -528,7 +531,7 @@ which see."
   :group 'auto-capitalize
   :type 'boolean)
 
-(defcustom auto-capitalize-fixed-case-words '("I") ;  "Stallman" "GNU" "http"
+(defcustom auto-capitalize-fixed-case-words '("I")
   "If non-nil, a list of words that will always be in the case they appear in here.
 
 If `auto-capitalize' mode is on, and as long as
@@ -606,7 +609,7 @@ their own trigger functions to this hook buffer-locally."
   "Toggle `auto-capitalize' minor mode in the current buffer.
 
 This will install `auto-capitalize-capitalize' in
-`after-change-functions' in the current buffer."
+`after-change-functions' in the current buffer'."
 
   :init-value nil
   :lighter " ACap"

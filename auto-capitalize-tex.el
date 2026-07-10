@@ -68,9 +68,13 @@ are already handled by the outline-heading check in
   :type '(repeat (string :tag "Macro name")))
 
 (defun auto-capitalize-tex-blocking-function ()
-  "Block capitalization in TeX math environment, detected with `texmathp'.
+  "Block capitalization in TeX when appropriate.
 
-This predicate is added to `auto-capitalize-blocking-functions'."
+This predicate blocks capitalization in `TeX-mode' buffers inside of
+math envs. It also prevents capitalization of TeX macros.
+
+This predicate is added to `auto-capitalize-blocking-functions' when
+`auto-capitalize-tex-mode' is enabled."
   (and (bound-and-true-p TeX-mode-p)
        (save-excursion
          (or (progn

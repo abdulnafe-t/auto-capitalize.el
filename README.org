@@ -90,7 +90,7 @@ Note the symmetry in semantics: the blocking functions are OR’ed together, suc
 
 Note also that just because no blocking function blocks capitalization in a given context does not mean it will occur: at least one trigger function must return non-nil for capitalization to actually happen.
 
-By default, only =auto-capitalize-default-blocking-function= and =auto-capitalize-default-trigger-function= are included in the hooks. The companion Org and TeX plugins, =auto-capitalize-tex.el= and =auto-capitalize-org.el=, also register their own blocking and trigger functions when they are loaded.
+By default, only =auto-capitalize-default-blocking-function= and =auto-capitalize-default-trigger-function= are included in the hooks. The companion Org and TeX plugins, =auto-capitalize-tex.el= and =auto-capitalize-org.el=, also register their own blocking and trigger functions when their respective modes are enabled.
 
 * How it works
 
@@ -104,13 +104,13 @@ If all tests pass, voilà! Your word gets capitalized automatically.
 
 * Writing plugins
 
-The package is designed to be extensible to cover a number of limitations that the core can never fully address by itself, most importantly that  markup languages have their own syntax which should never be capitalized. For instance, the package does not understand HTML syntax, and so will happily capitalize HTML tags.
+The package is designed to be extensible to cover a number of limitations that the core can never fully address by itself, most importantly the fact that markup languages have their own syntax which should never be capitalized. For instance, the package does not understand HTML syntax, and so will happily (and incorrectly) capitalize HTML tags.
 
 If you’re interested in writing a plugin for some markup language, you need to do three things:
 
   1. Define a blocking function
   2. Define a trigger function
-  3. Define a minor-mode that adds those functions to the appropriate hooks when enabled
+  3. Define a minor-mode that adds those functions to the appropriate hooks buffer-locally
 
 The Org and TeX plugins can serve as examples of what that might look like.
 

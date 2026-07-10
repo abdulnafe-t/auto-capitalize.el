@@ -45,7 +45,7 @@
 
 Specifically, return non-nil to block capitalization if either:
 
-1) Inside a src-block but not in comment a or a string
+1) Inside a src-block but not in a comment or a string
 
 2) In a comment/string (either in src-blocks or not) and the
 corresponding user option is nil
