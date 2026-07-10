@@ -106,11 +106,34 @@ This function is added to `auto-capitalize-trigger-functions'."
     (auto-capitalize-default-trigger-function
      (1- macro-start) macro-start)))
 
-;; Install hooks at load time
-(add-hook 'auto-capitalize-blocking-functions
-          #'auto-capitalize-tex-blocking-function)
-(add-hook 'auto-capitalize-trigger-functions
-          #'auto-capitalize-tex-trigger-function)
+;;;###autoload
+(define-minor-mode auto-capitalize-tex-mode
+  "Toggle TeX-specific capitalization support in this buffer.
+
+When enabled, this mode adds TeX-specific blocking and trigger
+functions to `auto-capitalize-blocking-functions' and
+`auto-capitalize-trigger-functions' buffer-locally.
+
+Note that this mode requires `AUCTeX'.
+
+If `auto-capitalize-mode' is not yet enabled in this buffer, it
+will be enabled automatically."
+  :lighter nil
+  :group 'auto-capitalize-tex
+  (cond
+   ((not auto-capitalize-tex-mode)
+    (progn
+      (remove-hook 'auto-capitalize-blocking-functions
+                   #'auto-capitalize-tex-blocking-function t)
+      (remove-hook 'auto-capitalize-trigger-functions
+                   #'auto-capitalize-tex-trigger-function t)))
+
+   (t
+    (progn
+      (add-hook 'auto-capitalize-blocking-functions
+                   #'auto-capitalize-tex-blocking-function nil t)
+      (add-hook 'auto-capitalize-trigger-functions
+                   #'auto-capitalize-tex-trigger-function nil t)))))
 
 (provide 'auto-capitalize-tex)
 ;;; auto-capitalize-tex.el ends here

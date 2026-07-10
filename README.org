@@ -13,7 +13,7 @@ Put =auto-capitalize.el= somewhere in your load-path, then put this in your =.em
   (auto-capitalize-global-mode)
 #+end_src
 
-This enables capitalization in all =text-mode= buffers, as well as in comments and strings in =prog-mode= and any other mode that defines them, such as Org and TeX.
+This enables capitalization in all =text-mode= buffers, as well as in comments and strings in =prog-mode= and any other mode that defines them.
 
 If you use =use-package=, you can use this snippet instead:
 
@@ -23,20 +23,24 @@ If you use =use-package=, you can use this snippet instead:
     (auto-capitalize-global-mode))
 #+end_src
 
-If you’re interested in using this package in your TeX documents and are using [[https://www.gnu.org/software/auctex/manual/auctex/index.html][AUCTeX]], then consider using the provided =auto-capitalize-tex.el=, like so:
+If you’re interested in using this package in your Org or TeX documents, then consider using the provided plugins =auto-capitalize-org.el= and/or =auto-capitalize-tex.el=, like so:
 
 #+begin_src elisp
   (use-package auto-capitalize
     :init
-    (auto-capitalize-global-mode))
-
-  (use-package auto-capitalize-tex
-    :after auto-capitalize)
+    (auto-capitalize-global-mode)
+    :hook
+    ((TeX-mode-hook . auto-capitalize-tex-mode)
+     (org-mode-hook . auto-capitalize-org-mode)))
 #+end_src
 
-This will give you capitalization inside a number of macros, listed in the user option =auto-capitalize-tex-macro-whitelist=, as well as prevent capitalization in environments such as math, equation etc.
+This will give you markup-aware capitalization in those modes, such as capitalizing text inside of any TeX macro listed in the user option =auto-capitalize-tex-macro-whitelist=, as well as preventing capitalization in environments such as math, equation etc.
 
 And that’s pretty much it. Start typing to try it out!
+
+* Requirements
+
+The core package requires =font-lock= to detect comments and strings, since it relies heavily on =syntax-ppss=. =auto-capitalize-tex.el= requires [[https://www.gnu.org/software/auctex/][AUCTeX]].
 
 * Customization
 
@@ -72,6 +76,8 @@ More explanations are in each variable’s respective doc string.
 
 No capitalization takes place if the word of interest happens to be right after one of the entries in =auto-capitalize-abbrevs=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not capitalize the "y".
 
+Note that the lists =auto-capitalize-abbrevs= and =auto-capitalize-fixed-case-words= must be set with either =setopt= or the =customize= interface, otherwise your changes will not take effect. In specific, it is not enough to just use =add-to-list= to add elements to either of these variables.
+
 Finally, for true control, there is the core of the capitalization logic. The package exposes two hooks as user-options: =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=. You can add your own predicates to either of these two hooks.
 
 ** =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=
@@ -84,7 +90,7 @@ Note the symmetry in semantics: the blocking functions are OR’ed together, suc
 
 Note also that just because no blocking function blocks capitalization in a given context does not mean it will occur: at least one trigger function must return non-nil for capitalization to actually happen.
 
-By default, only =auto-capitalize-default-blocking-function=, =auto-capitalize-org-blocking-function=, and =auto-capitalize-default-trigger-function= are included in the hooks. The companion TeX plugin, =auto-capitalize-tex.el=, also registers =auto-capitalize-tex-trigger-function= and =auto-capitalize-tex-blocking-function= when it is loaded.
+By default, only =auto-capitalize-default-blocking-function= and =auto-capitalize-default-trigger-function= are included in the hooks. The companion Org and TeX plugins, =auto-capitalize-tex.el= and =auto-capitalize-org.el=, also register their own blocking and trigger functions when they are loaded.
 
 * How it works
 
@@ -96,19 +102,33 @@ Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= calls =auto-capital
 
 If all tests pass, voilà! Your word gets capitalized automatically.
 
+* Writing plugins
+
+The package is designed to be extensible to cover a number of limitations that the core can never fully address by itself, most importantly that  markup languages have their own syntax which should never be capitalized. For instance, the package does not understand HTML syntax, and so will happily capitalize HTML tags.
+
+If you’re interested in writing a plugin for some markup language, you need to do three things:
+
+  1. Define a blocking function
+  2. Define a trigger function
+  3. Define a minor-mode that adds those functions to the appropriate hooks when enabled
+
+The Org and TeX plugins can serve as examples of what that might look like.
+
 * Known issues
 
 - =auto-capitalize-outline-headings= doesn’t work in =markdown-mode= buffers. This is because of the value that mode sets =outline-regexp= to, which differs in its semantics from other text modes. We could add specific support for it in the future, but that would add some complexity to the code.
 
   It also only affects the first word in a heading for now. Subsequent sentences within a heading are handled by the usual sentence-based rules.
 
-- Quoted text in =TeX-mode= buffers, such as
+- Even with =auto-capitalize-tex-mode=, quoted text in =TeX-mode= buffers, such as
 
   #+begin_src TeX
     ``some text here``
   #+end_src
 
   does not get capitalized. Again, this only affects the first word ("some" in the example), as the other rules apply as usual (beginning of a sentence, comment, etc).
+
+- The package struggles with markup languages in general, hence the need for plugins that teach =auto-capitalize= different markup syntaxes.
 
 Of course, if you have ideas on how to solve any of these issues or otherwise improve the package, PRs are more than welcome :)
 

@@ -50,9 +50,9 @@
 ;; non-nil, that does not guarantee a word will be capitalized.
 ;;
 ;; By default, this hook only contains
-;; `auto-capitalize-default-blocking-function' and
-;; `auto-capitalize-org-blocking-function'. Additional plugins, like the
-;; provided `auto-capitalize-tex', can add their own predicates.
+;; `auto-capitalize-default-blocking-function'. Additional plugins, like the
+;; provided `auto-capitalize-tex' and `auto-capitalize-org', can add their own
+;; predicates buffer-locally.
 ;;
 ;; The second hook is `auto-capitalize-trigger-functions'. These functions are
 ;; called with the starting positions of both the current text and the current
@@ -462,56 +462,6 @@ If BUFFER-LOCAL is non-nil, only set the buffer-local value."
             nil))))
 
 
-;; Org mode: We need to handle org-mode source blocks specifically, since they
-;; are code, but are technically still part of a text-mode buffer.
-
-(declare-function org-in-src-block-p "org")
-(declare-function org-at-comment-p "org")
-
-(defun auto-capitalize-org-blocking-function ()
-  "Block capitalization in org mode if appropriate.
-
-Specifically, return non-nil to block capitalization if either:
-
-1) Inside a src-block but not in comment a or a string
-
-2) In a comment/string (either in src-blocks or not) and the
-corresponding user option is nil
-
-This predicate is added to `auto-capitalize-blocking-functions' (which
-see)."
-  (and (derived-mode-p 'org-mode)
-
-       (or (not (nth 3 (syntax-ppss)))
-           (not auto-capitalize-strings))
-
-       (or (and (not (nth 4 (syntax-ppss)))
-                (not (org-at-comment-p)))
-           (not auto-capitalize-comments))
-
-       (or (nth 3 (syntax-ppss))
-           (nth 4 (syntax-ppss))
-           (org-at-comment-p)
-           (org-in-src-block-p))))
-
-(defun auto-capitalize-org-trigger-function (_text-start word-start)
-  "Trigger capitalization in org-mode buffers.
-
-Returns non-nil if WORD-START should be capitalized based on
-org-specific context that the default trigger function cannot handle.
-
-Currently checks if WORD-START is the first word of an org comment
-\(lines starting with `#'), since org comments do not play nice with
-`bounds-of-thing-at-point' or `start-of-paragraph-text'."
-  (and (derived-mode-p 'org-mode)
-       (org-at-comment-p)
-       (= word-start
-          (save-excursion
-            (goto-char (line-beginning-position))
-            (skip-syntax-forward "^w")
-            (point)))))
-
-
 ;; User options:
 
 (defcustom auto-capitalize-ask nil
@@ -624,20 +574,20 @@ If this variable is nil, it is ignored."
   :type '(repeat (string :tag "Buffer name")))
 
 (defcustom auto-capitalize-blocking-functions
-  (list #'auto-capitalize-default-blocking-function
-        #'auto-capitalize-org-blocking-function)
+  (list #'auto-capitalize-default-blocking-function)
   "Hook providing the right of first refusal over capitalization.
 
 Each function is called with no arguments and should return non-nil to
-block capitalization in the current context."
+block capitalization in the current context.
+
+Plugins like `auto-capitalize-org' and `auto-capitalize-tex' can add
+their own blocking functions to this hook buffer-locally."
   :group 'auto-capitalize
   :type 'hook
-  :options (list #'auto-capitalize-default-blocking-function
-                 #'auto-capitalize-org-blocking-function))
+  :options (list #'auto-capitalize-default-blocking-function))
 
 (defcustom auto-capitalize-trigger-functions
-  '(auto-capitalize-default-trigger-function
-    auto-capitalize-org-trigger-function)
+  '(auto-capitalize-default-trigger-function)
   "Hook for triggering capitalization at specific buffer positions.
 
 Each function is called with two arguments, (TEXT-START WORD-START), and
@@ -647,11 +597,13 @@ occurs.
 
 This hook complements `auto-capitalize-blocking-functions': blocking
 functions run first and always take precedence.  Only if all blocking
-functions pass are the trigger functions consulted."
+functions pass are the trigger functions consulted.
+
+Plugins like `auto-capitalize-org' and `auto-capitalize-tex' can add
+their own trigger functions to this hook buffer-locally."
   :group 'auto-capitalize
   :type 'hook
-  :options (list #'auto-capitalize-default-trigger-function
-                 #'auto-capitalize-org-trigger-function))
+  :options (list #'auto-capitalize-default-trigger-function))
 
 
 ;; Commands:

@@ -27,6 +27,7 @@
 (require 'ert)
 (require 'ert-x)                        ; For `ert-simulate-command'
 (require 'auto-capitalize)
+(require 'auto-capitalize-org)
 (when (featurep 'auctex)
   (require 'auto-capitalize-tex))
 (require 'font-lock)                    ; For `font-lock-ensure', `font-lock-mode'
@@ -38,6 +39,12 @@
               :selected t)
      (,mode)
      (auto-capitalize-mode 1)
+     (when (and (derived-mode-p 'TeX-mode)
+                (fboundp 'auto-capitalize-tex-mode))
+       (auto-capitalize-tex-mode 1))
+     (when (and (derived-mode-p 'org-mode)
+                (fboundp 'auto-capitalize-org-mode))
+       (auto-capitalize-org-mode 1))
      (font-lock-mode 1)
      (progn ,@body)))
 
