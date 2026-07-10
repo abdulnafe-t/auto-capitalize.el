@@ -71,13 +71,16 @@ are already handled by the outline-heading check in
   :type '(repeat (string :tag "Macro name")))
 
 (defun auto-capitalize-tex-blocking-function ()
-  "Return nil if in TeX math environment, using `texmathp' (which see).
+  "Block capitalization in TeX math environment, using `texmathp' (which
+see).
 
 This predicate is added to `auto-capitalize-blocking-functions'."
-  (or (not (bound-and-true-p TeX-mode-p))
-      (save-excursion
-        (and (not (progn (backward-word) (TeX-escaped-p)))
-             (not (texmathp))))))
+  (and (bound-and-true-p TeX-mode-p)
+       (save-excursion
+         (or (progn
+               (backward-word)
+               (TeX-escaped-p))
+             (texmathp)))))
 
 (defun auto-capitalize-tex-trigger-function (_text-start word-start)
   "Return non-nil if capitalization should occur at WORD-START.

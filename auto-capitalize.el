@@ -44,7 +44,7 @@
 ;; entry point for the capitalization logic, which is based on two hooks that
 ;; you can add your own predicates to. The `auto-capitalize-blocking-functions'
 ;; hook gives you the right of first refusal over capitalization: each function
-;; in that hook is called with no arguments and returns nil to block
+;; in that hook is called with no arguments and returns non-nil to block
 ;; capitalization. If any function returns nil, the check fails and no word is
 ;; capitalized. Note, however, that even if every function in this hook returns
 ;; non-nil, that does not guarantee a word will be capitalized.
@@ -124,62 +124,62 @@ the regexp on every keystroke.")
 ;; Internal functions:
 
 (defun auto-capitalize-default-blocking-function ()
-  "Return nil to block auto-capitalization in the current context.
+  "Block auto-capitalization if the current context demands it.
 
 Specifically, check the current buffer for the following conditions, and
-return nil if any of them return nil:
+return non-nil to block capitalization if any of them hold:
 
-1) It is not read-only
+1) It is read-only
 
-2) it is not a minibuffer
+2) it is a minibuffer
 
-3) if in `prog-mode', the current text is either a comment or a string,
-and the corresponding user option (`auto-capitalize-comments' or
-`auto-capitalize-strings') is non-nil
+3) if in `prog-mode', the current text is in neither a comment nor a
+string, or it is but the corresponding user
+option (`auto-capitalize-comments' or `auto-capitalize-strings') is nil
 
-4) if the previous word isn’t in `auto-capitalize-abbrevs'
+4) if the previous word is in `auto-capitalize-abbrevs'
 
-5) the last typed character was one of
-`auto-capitalize-trigger-chars' (skipped if that list is empty)."
+5) the last typed character was not one of
+`auto-capitalize-trigger-chars'."
 
-  (and (not buffer-read-only)
-       (not (minibufferp))
+  (or buffer-read-only
+      (minibufferp)
 
-       ;; If in prog-mode, don't block inside comments or strings if the
-       ;; corresponding option is non-nil
-       ;;
-       ;; If not in prog-mode, don't block if outside of comments or strings,
-       ;; and only block inside comments or strings if the corresponding option
-       ;; is nil.
-       (if (derived-mode-p 'prog-mode)
-           (or (and auto-capitalize-strings (nth 3 (syntax-ppss)))
-               (and auto-capitalize-comments (nth 4 (syntax-ppss))))
-         (and
-          (or (not (nth 3 (syntax-ppss))) auto-capitalize-strings)
-          (or (not (nth 4 (syntax-ppss))) auto-capitalize-comments)))
+      ;; If in prog-mode, don't block inside comments or strings if the
+      ;; corresponding option is non-nil
+      ;;
+      ;; If not in prog-mode, don't block if outside of comments or strings,
+      ;; and only block inside comments or strings if the corresponding option
+      ;; is nil.
+      (if (derived-mode-p 'prog-mode)
+          (and
+           (or (not auto-capitalize-strings) (not (nth 3 (syntax-ppss))))
+           (or (not auto-capitalize-comments) (not (nth 4 (syntax-ppss)))))
+        (or
+         (and (nth 3 (syntax-ppss)) (not auto-capitalize-strings))
+         (and (nth 4 (syntax-ppss)) (not auto-capitalize-comments))))
 
-       ;; do not activate after any word in
-       ;; `auto-capitalize-abbrevs'
-       (save-excursion
-         (backward-word)
-         (let ((word-start (point)))
-           (not (and (re-search-backward
-                      auto-capitalize--abbrevs-regexp
-                      (line-beginning-position) t)
-                     (= (match-end 0) word-start)))))
+      ;; Block capitalization after any word in `auto-capitalize-abbrevs'
+      (save-excursion
+        (backward-word)
+        (let ((word-start (point)))
+          (and (re-search-backward
+                auto-capitalize--abbrevs-regexp
+                (line-beginning-position) t)
+               (= (match-end 0) word-start))))
 
-       ;; don’t capitalize words that look like "[a-z].[a-z].". This is
-       ;; mainly to prevent capitalizing "i.e." or "e.g.")
-       (not (and (eq last-command-event ?.)
-                 (memq (char-before (max (point-min) (- (point) 2)))
-                       '(?\s ?\( ?. ?\"))))
+      ;; don’t capitalize words that look like "[a-z].[a-z].". This is
+      ;; mainly to prevent capitalizing "i.e." or "e.g.")
+      (and (eq last-command-event ?.)
+           (memq (char-before (max (point-min) (- (point) 2)))
+                 '(?\s ?\( ?. ?\")))
 
-       ;; activate after only specific characters you type, or after yanking
-       ;; text instead of typing
-       (or (null auto-capitalize-trigger-chars)
-           (not (memq this-command `(self-insert-command
-                                     ,(command-remapping 'self-insert-command))))
-           (memq last-command-event auto-capitalize-trigger-chars))))
+      ;; Only capitalize after typing or yanking text, but only after
+      ;; `auto-capitalize-trigger-chars'
+      (and auto-capitalize-trigger-chars
+           (memq this-command `(self-insert-command
+                                ,(command-remapping 'self-insert-command)))
+           (not (memq last-command-event auto-capitalize-trigger-chars)))))
 
 (defun auto-capitalize-inserted-trigger-char (beg end length)
   "Return non-nil if the inserted text ends with a trigger character.
@@ -210,8 +210,8 @@ word before point (or the yanked text) should be capitalized."
 
   (condition-case error
       (when (or (null auto-capitalize-blocking-functions)
-                (run-hook-with-args-until-failure
-                 'auto-capitalize-blocking-functions))
+                (not (run-hook-with-args-until-success
+                      'auto-capitalize-blocking-functions)))
 
         (cond ((auto-capitalize-inserted-trigger-char beg end length)
                ;; self-inserting, non-word character
@@ -469,23 +469,30 @@ If BUFFER-LOCAL is non-nil, only set the buffer-local value."
 (declare-function org-at-comment-p "org")
 
 (defun auto-capitalize-org-blocking-function ()
-  "Returns non-nil if not in org mode, or not inside an org source block.
+  "Block capitalization in org mode if appropriate.
+
+Specifically, return non-nil to block capitalization if either:
+
+1) Inside a src-block but not in comment a or a string
+
+2) In a comment/string (either in src-blocks or not) and the
+corresponding user option is nil
 
 This predicate is added to `auto-capitalize-blocking-functions' (which
 see)."
-  (or (not (derived-mode-p 'org-mode))
+  (and (derived-mode-p 'org-mode)
 
-      (and (nth 3 (syntax-ppss))         ; Are we in a string?
-           auto-capitalize-strings)
+       (or (not (nth 3 (syntax-ppss)))
+           (not auto-capitalize-strings))
 
-      (and (or (nth 4 (syntax-ppss))
-               (org-at-comment-p))       ; Are we in a comment?
-           auto-capitalize-comments)
+       (or (and (not (nth 4 (syntax-ppss)))
+                (not (org-at-comment-p)))
+           (not auto-capitalize-comments))
 
-      (and (not (nth 3 (syntax-ppss)))   ; Not in a string
-           (not (or (nth 4 (syntax-ppss))
-                    (org-at-comment-p))) ; Not in a comment
-           (not (org-in-src-block-p))))) ; Not in a src-block
+       (or (nth 3 (syntax-ppss))
+           (nth 4 (syntax-ppss))
+           (org-at-comment-p)
+           (org-in-src-block-p))))
 
 (defun auto-capitalize-org-trigger-function (_text-start word-start)
   "Trigger capitalization in org-mode buffers.
@@ -621,7 +628,7 @@ If this variable is nil, it is ignored."
         #'auto-capitalize-org-blocking-function)
   "Hook providing the right of first refusal over capitalization.
 
-Each function is called with no arguments and should return nil to
+Each function is called with no arguments and should return non-nil to
 block capitalization in the current context."
   :group 'auto-capitalize
   :type 'hook

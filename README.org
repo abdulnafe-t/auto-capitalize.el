@@ -76,19 +76,19 @@ Finally, for true control, there is the core of the capitalization logic. The pa
 
 ** =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=
 
-- =auto-capitalize-blocking-functions= get called first. These are predicates that take no input and return nil to indicate that they want to block capitalization in the current context. If any of these functions return nil, capitalization does not occur.
+- =auto-capitalize-blocking-functions= get called first. These are predicates that take no input and return non-nil to indicate that they want to block capitalization in the current context. If any of these functions return non-nil, capitalization does not occur.
 
 - =auto-capitalize-trigger-functions= get called later. These are predicates that take two arguments, =text-start= and =word-start=, and return non-nil to trigger capitalization.
 
-Note the difference in semantics: the blocking functions are AND’ed together, such that a single one of them returning nil blocks capitalization. Conversely, trigger functions are OR’ed together, so any of them returning non-nil will cause capitalization.
+Note the symmetry in semantics: the blocking functions are OR’ed together, such that a single one of them returning non-nil blocks capitalization. Similarly, assuming no blocking has occurred, any trigger function returning non-nil will cause capitalization.
 
-Note also that just because no blocking functions block capitalization in a given context does not mean it will occur: at least one trigger function must return non-nil for capitalization to actually happen.
+Note also that just because no blocking function blocks capitalization in a given context does not mean it will occur: at least one trigger function must return non-nil for capitalization to actually happen.
 
 By default, only =auto-capitalize-default-blocking-function=, =auto-capitalize-org-blocking-function=, and =auto-capitalize-default-trigger-function= are included in the hooks. The companion TeX plugin, =auto-capitalize-tex.el=, also registers =auto-capitalize-tex-trigger-function= and =auto-capitalize-tex-blocking-function= when it is loaded.
 
 * How it works
 
-The package’s main entry point is the function =auto-capitalize-capitalize=. The minor-mode adds it to =after-change-functions=, so it gets called as you type, delete, yank, etc. Its job is to run the first layer of logic: it calls all functions in =auto-capitalize-blocking-functions=, and if they all return non-nil, either calls =auto-capitalize-maybe-capitalize-preceding-word= if you are simply typing, or recursively analyzes the text if you are yanking (and =auto-capitalize-yank= is non-nil).
+The package’s main entry point is the function =auto-capitalize-capitalize=. The minor-mode adds it to =after-change-functions=, so it gets called as you type, delete, yank, etc. Its job is to run the first layer of logic: it calls all functions in =auto-capitalize-blocking-functions=, and if they all return nil, either calls =auto-capitalize-maybe-capitalize-preceding-word= if you are simply typing, or recursively analyzes the text if you are yanking (and =auto-capitalize-yank= is non-nil).
 
 =auto-capitalize-maybe-capitalize-preceding-word= and =auto-capitalize-handle-fixed-case= are the functions actually responsible for capitalizing words. The former checks if the word at point matches =auto-capitalize--fixed-case-regexp=, which is built from =auto-capitalize-fixed-case-words=. If it does, it calls =auto-capitalize-handle-fixed-case=, which simply replaces the word with its corresponding entry in =auto-capitalize-fixed-case-words=.
 
