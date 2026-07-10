@@ -94,11 +94,11 @@ By default, only =auto-capitalize-default-blocking-function= and =auto-capitaliz
 
 * How it works
 
-The package’s main entry point is the function =auto-capitalize-capitalize=. The minor-mode adds it to =after-change-functions=, so it gets called as you type, delete, yank, etc. Its job is to run the first layer of logic: it calls all functions in =auto-capitalize-blocking-functions=, and if they all return nil, either calls =auto-capitalize-maybe-capitalize-preceding-word= if you are simply typing, or recursively analyzes the text if you are yanking (and =auto-capitalize-yank= is non-nil).
+The package’s main entry point is the function =auto-capitalize-capitalize=. The minor-mode adds it to =after-change-functions=, so it gets called as you type, delete, yank, etc. Its job is to run the first layer of logic: it moves point back across quotes and parentheses, then calls all functions in =auto-capitalize-blocking-functions=, and if they all return nil, either calls =auto-capitalize-maybe-capitalize-preceding-word= if you are simply typing, or recursively analyzes the text if you are yanking (and =auto-capitalize-yank= is non-nil).
 
 =auto-capitalize-maybe-capitalize-preceding-word= and =auto-capitalize-handle-fixed-case= are the functions actually responsible for capitalizing words. The former checks if the word at point matches =auto-capitalize--fixed-case-regexp=, which is built from =auto-capitalize-fixed-case-words=. If it does, it calls =auto-capitalize-handle-fixed-case=, which simply replaces the word with its corresponding entry in =auto-capitalize-fixed-case-words=.
 
-Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= calls =auto-capitalize-trigger-functions=. Those functions then check to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence or a paragraph in text-mode, or a comment (if =auto-capitalize-comments= is non-nil), etc.
+Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= moves point back one char (so it lands right where it was before the change occured), and calls =auto-capitalize-trigger-functions=. Those functions then check to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence or a paragraph in text-mode, or a comment (if =auto-capitalize-comments= is non-nil), etc.
 
 If all tests pass, voilà! Your word gets capitalized automatically.
 
@@ -108,8 +108,8 @@ The package is designed to be extensible to cover a number of limitations that t
 
 If you’re interested in writing a plugin for some markup language, you need to do three things:
 
-  1. Define a blocking function
-  2. Define a trigger function
+  1. Define a blocking function. This is a predicate that takes no arguments, and if it returns non-nil, it blocks capitalization. When blocking functions are called, point is moved back accross opening parens and quotes.
+  2. Define a trigger function. This is a predicate that takes two arguments: =tet-start=, the position before all open parens and quotes before the word of interest, and =word-start=, the position of the first letter in the word. This function should return non-nil to trigger capitalization in the current context.
   3. Define a minor-mode that adds those functions to the appropriate hooks buffer-locally
 
 The Org and TeX plugins can serve as examples of what that might look like.
