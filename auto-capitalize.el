@@ -103,6 +103,9 @@ rebuilding the regexp on every keystroke.")
 Used by `auto-capitalize-default-blocking-function' to avoid rebuilding
 the regexp on every keystroke.")
 
+(defvar auto-capitalize--lighter " AutoCap"
+  "Mode-line lighter for `auto-capitalize-mode'.")
+
 
 ;; Forward declarations to satisfy the compiler
 
@@ -625,7 +628,7 @@ This will install `auto-capitalize-capitalize' in
 `after-change-functions' in the current buffer'."
 
   :init-value nil
-  :lighter " ACap"
+  :lighter auto-capitalize--lighter
   :keymap nil
   (cond
    ;; Turn off

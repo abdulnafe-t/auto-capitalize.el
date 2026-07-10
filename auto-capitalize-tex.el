@@ -45,6 +45,10 @@
   "TeX support for auto-capitalize."
   :group 'auto-capitalize)
 
+(defvar auto-capitalize-tex--lighter "/TeX"
+  "Text to append to `auto-capitalize-lighter' when
+`auto-capitalize-tex-mode' is enabled.")
+
 (defcustom auto-capitalize-tex-macro-whitelist
   '("intertext" "text" "textbf" "textit" "textsl" "textsc" "textrm" "textsf" "texttt"
     "textup" "textmd" "emph" "underline" "textnormal"
@@ -125,7 +129,12 @@ will be enabled automatically."
     (remove-hook 'auto-capitalize-blocking-functions
                  #'auto-capitalize-tex-blocking-function t)
     (remove-hook 'auto-capitalize-trigger-functions
-                 #'auto-capitalize-tex-trigger-function t))
+                 #'auto-capitalize-tex-trigger-function t)
+    (setq-local auto-capitalize--lighter
+                (string-replace
+                 auto-capitalize-tex--lighter
+                 ""
+                 auto-capitalize--lighter)))
 
    (t
     (unless (or auto-capitalize-mode auto-capitalize-global-mode)
@@ -134,7 +143,10 @@ will be enabled automatically."
     (add-hook 'auto-capitalize-blocking-functions
               #'auto-capitalize-tex-blocking-function nil t)
     (add-hook 'auto-capitalize-trigger-functions
-              #'auto-capitalize-tex-trigger-function nil t))))
+              #'auto-capitalize-tex-trigger-function nil t)
+    (setq-local auto-capitalize--lighter
+                (concat auto-capitalize--lighter
+                        auto-capitalize-tex--lighter)))))
 
 (provide 'auto-capitalize-tex)
 ;;; auto-capitalize-tex.el ends here

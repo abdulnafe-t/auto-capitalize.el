@@ -40,6 +40,10 @@
   "Org support for auto-capitalize."
   :group 'auto-capitalize)
 
+(defvar auto-capitalize-org--lighter "/Org"
+  "Text to append to `auto-capitalize-lighter' when
+`auto-capitalize-org-mode' is enabled.")
+
 (defun auto-capitalize-org-blocking-function ()
   "Block capitalization in org mode if appropriate.
 
@@ -100,7 +104,13 @@ will be enabled automatically."
     (remove-hook 'auto-capitalize-blocking-functions
                  #'auto-capitalize-org-blocking-function t)
     (remove-hook 'auto-capitalize-trigger-functions
-                 #'auto-capitalize-org-trigger-function t))
+                 #'auto-capitalize-org-trigger-function t)
+    (setq-local auto-capitalize--lighter
+                (string-replace
+                 auto-capitalize-org--lighter
+                 ""
+                 auto-capitalize--lighter)))
+
    (t
     (unless (or auto-capitalize-mode auto-capitalize-global-mode)
       (auto-capitalize-mode 1)
@@ -108,7 +118,10 @@ will be enabled automatically."
     (add-hook 'auto-capitalize-blocking-functions
               #'auto-capitalize-org-blocking-function nil t)
     (add-hook 'auto-capitalize-trigger-functions
-              #'auto-capitalize-org-trigger-function nil t))))
+              #'auto-capitalize-org-trigger-function nil t)
+    (setq-local auto-capitalize--lighter
+                (concat auto-capitalize--lighter
+                        auto-capitalize-org--lighter)))))
 
 (provide 'auto-capitalize-org)
 ;;; auto-capitalize-org.el ends here
