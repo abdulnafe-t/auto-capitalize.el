@@ -265,8 +265,9 @@ the variable `auto-capitalize-fixed-case-words', typing \"i \" produces
 (defun auto-capitalize-check-triggers (text-start word-start)
   "Return non-nil if the word beginning at WORD-START should be capitalized.
 
-In practice, TEXT-START is almost always one character before
-WORD-START, having skipped back over opening quotes, parens, etc.
+TEXT-START is the first open delimiter before WORD-START, having skipped
+back over opening quotes and parens. If there are no such delimiters, it
+matches WORD-START.
 
 This function returns non-nil if the word starts with a lower-case
 letter, and any function in `auto-capitalize-trigger-functions' returns
