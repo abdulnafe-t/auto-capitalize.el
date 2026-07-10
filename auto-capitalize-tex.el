@@ -96,7 +96,11 @@ member of `auto-capitalize-tex-macro-whitelist', AND the macro itself
 sits at a standard capitalization boundary (paragraph start, sentence
 start, etc.).
 
-This function is added to `auto-capitalize-trigger-functions'."
+That last check is performed by moving point to the `\\' before the
+macro, then calling `auto-capitalize-default-trigger-function'.
+
+This function is added to `auto-capitalize-trigger-functions' when
+`auto-capitalize-tex-mode' is enabled."
   (when-let* ((_ (bound-and-true-p TeX-mode-p))
               (macro (TeX-current-macro))
               (_ (member macro auto-capitalize-tex-macro-whitelist))
@@ -107,6 +111,8 @@ This function is added to `auto-capitalize-trigger-functions'."
                  (when (and (eq (char-before) ?{)
                             (not (TeX-escaped-p (1- (point)))))
                    (TeX-find-macro-start)))))
+
+    (goto-char (1- macro-start))
     (auto-capitalize-default-trigger-function
      (1- macro-start) macro-start)))
 

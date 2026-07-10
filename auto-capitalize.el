@@ -306,7 +306,7 @@ only capitalize if the user answered \"y\"."
    (run-hook-with-args-until-success
     'auto-capitalize-trigger-functions text-start word-start)))
 
-(defun auto-capitalize-default-trigger-function (text-start word-start)
+(defun auto-capitalize-default-trigger-function (_text-start word-start)
   "Check the context around TEXT-START/WORD-START.
 
 This predicate returns non-nil if any of the following conditions hold:
@@ -335,7 +335,6 @@ non-nil.
 `auto-capitalize-start-of-inline-strings', if the string is inline) are
 non-nil."
 
-  (goto-char text-start)
   (or
 
    (and (derived-mode-p 'text-mode)
