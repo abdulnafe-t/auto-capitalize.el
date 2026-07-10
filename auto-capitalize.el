@@ -291,7 +291,6 @@ non-nil.
 In addition, if `auto-capitalize-ask' is non-nil, query the user and
 only capitalize if the user answered \"y\"."
 
-  (goto-char text-start)
   (and
    ;; inserting lowercase text?
    (let ((case-fold-search nil))
@@ -303,6 +302,7 @@ only capitalize if the user answered \"y\"."
    (or (not auto-capitalize-ask)
        (auto-capitalize--ask))
 
+   (goto-char text-start)
    (run-hook-with-args-until-success
     'auto-capitalize-trigger-functions text-start word-start)))
 
