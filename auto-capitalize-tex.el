@@ -125,11 +125,13 @@ will be enabled automatically."
                    #'auto-capitalize-tex-trigger-function t)))
 
    (t
-    (progn
-      (add-hook 'auto-capitalize-blocking-functions
-                   #'auto-capitalize-tex-blocking-function nil t)
-      (add-hook 'auto-capitalize-trigger-functions
-                   #'auto-capitalize-tex-trigger-function nil t)))))
+    (unless auto-capitalize-mode
+      (auto-capitalize-mode 1)
+      (message "auto-capitalize-mode enabled for TeX support."))
+    (add-hook 'auto-capitalize-blocking-functions
+              #'auto-capitalize-tex-blocking-function nil t)
+    (add-hook 'auto-capitalize-trigger-functions
+              #'auto-capitalize-tex-trigger-function nil t))))
 
 (provide 'auto-capitalize-tex)
 ;;; auto-capitalize-tex.el ends here

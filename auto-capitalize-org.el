@@ -103,11 +103,13 @@ will be enabled automatically."
       (remove-hook 'auto-capitalize-trigger-functions
                    #'auto-capitalize-org-trigger-function t)))
    (t
-    (progn
-      (add-hook 'auto-capitalize-blocking-functions
-                #'auto-capitalize-org-blocking-function t)
-      (add-hook 'auto-capitalize-trigger-functions
-                #'auto-capitalize-org-trigger-function t)))))
+    (unless auto-capitalize-mode
+      (auto-capitalize-mode 1)
+      (message "auto-capitalize-mode enabled for Org support."))
+    (add-hook 'auto-capitalize-blocking-functions
+              #'auto-capitalize-org-blocking-function t)
+    (add-hook 'auto-capitalize-trigger-functions
+              #'auto-capitalize-org-trigger-function t))))
 
 (provide 'auto-capitalize-org)
 ;;; auto-capitalize-org.el ends here
