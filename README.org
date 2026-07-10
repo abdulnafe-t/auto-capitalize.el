@@ -86,9 +86,9 @@ Finally, for true control, there is the core of the capitalization logic. The pa
 
 - =auto-capitalize-trigger-functions= get called later. These are predicates that take two arguments, =text-start= and =word-start=, and return non-nil to trigger capitalization.
 
-Note the symmetry in semantics: the blocking functions are OR’ed together, such that a single one of them returning non-nil blocks capitalization. Similarly, assuming no blocking has occurred, any trigger function returning non-nil will cause capitalization.
+Note the symmetry in semantics: a single blocking function returning non-nil will block capitalization, whereas, assuming all blocking functions pass, a single trigger function returning non-nil will trigger capitalization.
 
-Note also that just because no blocking function blocks capitalization in a given context does not mean it will occur: at least one trigger function must return non-nil for capitalization to actually happen.
+Note also that just because no blocking function blocks capitalization in a given context does not mean it will occur: /at least one/ trigger function must return non-nil for capitalization to actually happen.
 
 By default, only =auto-capitalize-default-blocking-function= and =auto-capitalize-default-trigger-function= are included in the hooks. The companion Org and TeX plugins, =auto-capitalize-tex.el= and =auto-capitalize-org.el=, also register their own blocking and trigger functions when their respective modes are enabled.
 
