@@ -56,8 +56,6 @@ If you want to limit auto-capitalization to certain modes instead of enabling it
 
 ** User options
 
-The user option =auto-capitalize-excluded-buffers= is a list of buffer names where you want to disable auto-capitalization.
-
 You can set the following boolean options for more fine-grained control:
    
    | Variable                                 | Default value | Description                                                                                          |
