@@ -68,8 +68,7 @@ are already handled by the outline-heading check in
   :type '(repeat (string :tag "Macro name")))
 
 (defun auto-capitalize-tex-blocking-function ()
-  "Block capitalization in TeX math environment, using `texmathp' (which
-see).
+  "Block capitalization in TeX math environment, detected with `texmathp'.
 
 This predicate is added to `auto-capitalize-blocking-functions'."
   (and (bound-and-true-p TeX-mode-p)
