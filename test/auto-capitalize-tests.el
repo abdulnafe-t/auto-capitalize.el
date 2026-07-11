@@ -144,6 +144,27 @@ even if they appear inside quotes."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   (concat "\tA " )))))
 
+(ert-deftest auto-capitalize-text-fixed-case-with-triggers ()
+  "Capitalize words in `auto-capitalize-fixed-case-words' after all members
+of `auto-capitalize-trigger-chars'."
+  (let ((cached auto-capitalize-fixed-case-words))
+    (unwind-protect
+        (auto-capitalize-tests--setup
+         text-mode
+         (setopt auto-capitalize-fixed-case-words '("I"))
+         (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
+         (insert "a")
+         (ert-simulate-command '(self-insert-command 1 ?\s))
+
+         (dolist (trigger auto-capitalize-trigger-chars)
+           (ert-simulate-command '(self-insert-command 1 ?i))
+           (ert-simulate-command `(self-insert-command 1 ,trigger))
+
+           (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                          (concat "\nA I" (char-to-string trigger))))
+           (backward-delete-char 2)))
+      (setopt auto-capitalize-fixed-case-words cached))))
+
 
 ;;;; Tests for `tex-mode'
 
