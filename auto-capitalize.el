@@ -641,7 +641,7 @@ This will install `auto-capitalize-capitalize' in
 ;;;###autoload
 (define-globalized-minor-mode auto-capitalize-global-mode
   auto-capitalize-mode auto-capitalize-mode
-  :predicate t)
+  :predicate '(not comint-mode))
 
 
 
