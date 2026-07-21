@@ -101,7 +101,8 @@ rebuilding the regexp on every keystroke.")
 (defvar auto-capitalize--abbrevs-regexp nil
   "Cached regexp built from `auto-capitalize-abbrevs'.
 Used by `auto-capitalize-default-blocking-function' to avoid rebuilding
-the regexp on every keystroke.")
+the regexp on every keystroke, and by
+`auto-capitalize--downcase-abbreviation' to detect abbrevs.")
 
 (defvar auto-capitalize--lighter " AutoCap"
   "Mode-line lighter for `auto-capitalize-mode'.")
@@ -191,10 +192,7 @@ change, respectively, as defined by the documentation of
        (memq (char-before end) auto-capitalize-trigger-chars)))
 
 (defun auto-capitalize--downcase-abbreviation (abbrev-start abbrev-end)
-  "Downcase the first letter of an abbreviation.
-
-ABBREV-START and ABBREV-END are buffer positions where the abbreviation
-starts and ends, respectively.
+  "Downcase the abbreviation between ABBREV-START and ABBREV-END.
 
  If the text between ABBREV-START and ABBREV-END matches an abbreviation
 in `auto-capitalize-abbrevs' case-insensitively, the user option
@@ -425,7 +423,11 @@ non-nil."
 
 1) it appears capitalized in `auto-capitalize-fixed-case-words'
 
-2) `auto-capitalize-check-triggers' returns non-nil."
+2) `auto-capitalize-check-triggers' returns non-nil.
+
+Alternatively, if the word is a member of
+`auto-capitalize-abbrevs', then it is downcased by calling
+`auto-capitalize--downcase-abbreviation'."
 
   (save-excursion
     (forward-word -1)
@@ -602,6 +604,7 @@ capitalized, unless it appears, capitalized, in
 
 This list is checked by `auto-capitalize-default-blocking-function',
 which see."
+
   :group 'auto-capitalize
   :type '(repeat (string :tag "Non-sentence ending word."))
   :set #'auto-capitalize--set-abbrevs)
@@ -611,7 +614,7 @@ which see."
 
 This is intended as a fix for the unfortunate side effect of the
 combination of `auto-capitalize-fixed-case-words' containing \"I\",
-`auto-capitalize-trigger-chars' containging \".\", and
+`auto-capitalize-trigger-chars' containing \".\", and
 `auto-capitalize-abbrevs' containing \"i.e.\", leading to the latter
 getting capitalized."
 
