@@ -132,9 +132,11 @@ org comments do not play nice with `bounds-of-thing-at-point' or
 (define-minor-mode auto-capitalize-org-mode
   "Toggle Org-specific capitalization support in this buffer.
 
-When enabled, this mode adds Org-specific blocking and trigger
-functions to `auto-capitalize-blocking-functions' and
-`auto-capitalize-trigger-functions' buffer-locally.
+When enabled, this mode adds Org-specific blocking and trigger functions
+to `auto-capitalize-blocking-functions' and
+`auto-capitalize-trigger-functions' buffer-locally, namely
+`auto-capitalize-org-blocking-function' and
+`auto-capitalize-org-trigger-function'.
 
 If `auto-capitalize-mode' is not yet enabled in this buffer, it
 will be enabled automatically."

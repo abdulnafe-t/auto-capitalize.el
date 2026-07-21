@@ -119,9 +119,11 @@ This function is added to `auto-capitalize-trigger-functions' when
 (define-minor-mode auto-capitalize-tex-mode
   "Toggle TeX-specific capitalization support in this buffer.
 
-When enabled, this mode adds TeX-specific blocking and trigger
-functions to `auto-capitalize-blocking-functions' and
-`auto-capitalize-trigger-functions' buffer-locally.
+When enabled, this mode adds TeX-specific blocking and trigger functions
+to `auto-capitalize-blocking-functions' and
+`auto-capitalize-trigger-functions' buffer-locally, namely
+`auto-capitalize-tex-blocking-function' and
+`auto-capitalize-tex-trigger-function'.
 
 Note that this mode requires `AUCTeX'.
 
