@@ -58,15 +58,16 @@ If you want to limit auto-capitalization to certain modes instead of enabling it
 
 You can set the following boolean options for more fine-grained control:
    
-   | Variable                                 | Default value | Description                                                                                          |
-   |------------------------------------------+---------------+------------------------------------------------------------------------------------------------------|
-   | =auto-capitalize-strings=                  | =t=             | Capitalize strings in modes where they are defined                                                            |
-   | =auto-capitalize-comments=                 | =t=             | Capitalize comments in modes where they are defined (prog-mode, org-mode, etc)                       |
-   | =auto-capitalize-ask=                      | =nil=           | Ask the user before automatically capitalizing anything                                              |
-   | =auto-capitalize-yank=                     | =nil=           | Capitalize yanked text as well as typed text                                                         |
-   | =auto-capitalize-outline-headings=         | =t=             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...)                    |
-   | =auto-capitalize-start-of-inline-comments= | =t=             | Capitalize the first word in inline comments. This has no effect if =auto-capitalize-comments= is nil. |
-   | =auto-capitalize-start-of-inline-strings=  | =nil=           | Capitalize the first word in inline strings. This has no effect if =auto-capitalize-strings= is nil    |
+   | Variable                                 | Default value | Description                                                                                         |
+   |------------------------------------------+---------------+-----------------------------------------------------------------------------------------------------|
+   | =auto-capitalize-strings=                  | =t=             | Capitalize strings in modes where they are defined                                                  |
+   | =auto-capitalize-comments=                 | =t=             | Capitalize comments in modes where they are defined (prog-mode, org-mode, etc)                      |
+   | =auto-capitalize-ask=                      | =nil=           | Ask the user before automatically capitalizing anything                                             |
+   | =auto-capitalize-yank=                     | =nil=           | Capitalize yanked text as well as typed text                                                        |
+   | =auto-capitalize-outline-headings=         | =t=             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...)                   |
+   | =auto-capitalize-start-of-inline-comments= | =t=             | Capitalize the first word in inline comments. This has no effect if =auto-capitalize-comments= is nil |
+   | =auto-capitalize-start-of-inline-strings=  | =nil=           | Capitalize the first word in inline strings. This has no effect if =auto-capitalize-strings= is nil   |
+   | =auto-capitalize-downcase-abbrevs=         | =t=             | Always downcase all members of =auto-capitalize-abbrevs=                                        |
 
 More explanations are in each variable’s respective doc string.
 
@@ -75,6 +76,8 @@ The mode is defined by =define-globalized-minor-mode=, which means you get acces
 =auto-capitalize-fixed-case-words= is a list of words whose case will always be exactly how it appears in the list. For example, the English pronoun "I" - the only default entry - will replace any lowercase "i" followed by any character in =auto-capitalize-trigger-chars=. You can, of course, customize =auto-capitalize-trigger-chars= as well!
 
 No capitalization takes place if the word of interest happens to be right after one of the entries in =auto-capitalize-abbrevs=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not capitalize the "y".
+
+By default, =auto-capitalize-downcase-abbrevs= is =t=, meaning that members of =auto-capitalize-abbrevs= will always be downcased. This is meant as a workaround for the fact that typing "i.e." will, by default, capitalize the "i", since it is contained in =auto-capitalize-fixed-case-words=.
 
 Note that the lists =auto-capitalize-abbrevs= and =auto-capitalize-fixed-case-words= must be set with either =setopt= or the =customize= interface, otherwise your changes will not take effect. In specific, it is not enough to just use =add-to-list= to add elements to either of these variables.
 
@@ -98,7 +101,7 @@ The package’s main entry point is the function =auto-capitalize-capitalize=. T
 
 =auto-capitalize-maybe-capitalize-preceding-word= and =auto-capitalize-handle-fixed-case= are the functions actually responsible for capitalizing words. The former checks if the word at point matches =auto-capitalize--fixed-case-regexp=, which is built from =auto-capitalize-fixed-case-words=. If it does, it calls =auto-capitalize-handle-fixed-case=, which simply replaces the word with its corresponding entry in =auto-capitalize-fixed-case-words=.
 
-Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= moves point back one char (so it lands right where it was before the change occurred), and calls =auto-capitalize-trigger-functions=. Those functions then check to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence or a paragraph in text-mode, or a comment (if =auto-capitalize-comments= is non-nil), etc.
+Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= moves point back to the start of the newly inserted word, and calls =auto-capitalize-trigger-functions=. Those functions then check to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence or a paragraph in text-mode, or a comment (if =auto-capitalize-comments= is non-nil), etc.
 
 If all tests pass, voilà! Your word gets capitalized automatically.
 
