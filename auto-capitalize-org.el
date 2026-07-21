@@ -35,6 +35,8 @@
 
 (declare-function org-in-src-block-p "org")
 (declare-function org-at-comment-p "org")
+(declare-function org-at-item-p "org-list")
+(defvar org-list-full-item-re)
 
 (defgroup auto-capitalize-org nil
   "Org support for auto-capitalize."
@@ -76,16 +78,32 @@ see)."
 Returns non-nil if WORD-START should be capitalized based on
 org-specific context that the default trigger function cannot handle.
 
-This function checks if WORD-START is the first word of an org comment
-\(lines starting with `#'), since org comments do not play nice with
-`bounds-of-thing-at-point' or `start-of-paragraph-text'."
+This function checks if WORD-START is either the first word of an org
+comment \(lines starting with `#'), since org comments do not play nice
+with `bounds-of-thing-at-point' or `start-of-paragraph-text', or the
+first word of an org list."
   (and (derived-mode-p 'org-mode)
-       (org-at-comment-p)
-       (= word-start
-          (save-excursion
-            (goto-char (line-beginning-position))
-            (skip-syntax-forward "^w")
-            (point)))))
+       (or
+        (and
+         (org-at-comment-p)
+         (= word-start
+            (save-excursion
+              (goto-char (line-beginning-position))
+              (skip-syntax-forward "^w")
+              (point))))
+
+        (and
+         (org-at-item-p)
+         (= word-start
+            (save-excursion
+              (goto-char (line-beginning-position))
+              (looking-at org-list-full-item-re)
+              (goto-char
+               (if (and (match-beginning 4)
+                        (string-match-p "[.)]" (match-string 1)))
+                   (match-beginning 4)
+                 (match-end 0)))
+              (point)))))))
 
 ;;;###autoload
 (define-minor-mode auto-capitalize-org-mode
