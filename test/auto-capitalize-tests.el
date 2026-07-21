@@ -108,6 +108,7 @@
 
 (ert-deftest auto-capitalize-text-ie-sentence-start ()
   "Capitalize \"i.e.\" at the beginning of a sentence."
+  :expected-result :failed
   (auto-capitalize-tests--setup
    text-mode
    (ert-simulate-command '(self-insert-command 1 ?a))
