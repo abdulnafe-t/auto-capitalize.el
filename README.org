@@ -67,7 +67,7 @@ You can set the following boolean options for more fine-grained control:
    | =auto-capitalize-outline-headings=         | =t=             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...)                   |
    | =auto-capitalize-start-of-inline-comments= | =t=             | Capitalize the first word in inline comments. This has no effect if =auto-capitalize-comments= is nil |
    | =auto-capitalize-start-of-inline-strings=  | =nil=           | Capitalize the first word in inline strings. This has no effect if =auto-capitalize-strings= is nil   |
-   | =auto-capitalize-downcase-abbrevs=         | =t=             | Always downcase all members of =auto-capitalize-abbrevs=                                        |
+   | =auto-capitalize-downcase-ie=         | =t=             | Always downcase the latin abbreviation "i.e."
 
 More explanations are in each variable’s respective doc string.
 
@@ -77,7 +77,7 @@ The mode is defined by =define-globalized-minor-mode=, which means you get acces
 
 No capitalization takes place if the word of interest happens to be right after one of the entries in =auto-capitalize-abbrevs=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not capitalize the "y".
 
-By default, =auto-capitalize-downcase-abbrevs= is =t=, meaning that members of =auto-capitalize-abbrevs= will always be downcased. This is meant as a workaround for the fact that typing "i.e." will, by default, capitalize the "i", since it is contained in =auto-capitalize-fixed-case-words=.
+By default, =auto-capitalize-downcase-ie= is =t=, meaning that "I.e." will always be downcased. This is meant as a workaround for the fact that typing "i.e." will, by default, capitalize the "i", since it is contained in =auto-capitalize-fixed-case-words=.
 
 Note that the lists =auto-capitalize-abbrevs= and =auto-capitalize-fixed-case-words= must be set with either =setopt= or the =customize= interface, otherwise your changes will not take effect. In specific, it is not enough to just use =add-to-list= to add elements to either of these variables.
 

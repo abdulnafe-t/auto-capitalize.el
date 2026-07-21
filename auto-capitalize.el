@@ -102,7 +102,7 @@ rebuilding the regexp on every keystroke.")
   "Cached regexp built from `auto-capitalize-abbrevs'.
 Used by `auto-capitalize-default-blocking-function' to avoid rebuilding
 the regexp on every keystroke, and by
-`auto-capitalize--downcase-abbreviation' to detect abbrevs.")
+`auto-capitalize--downcase-ie' to detect abbrevs.")
 
 (defvar auto-capitalize--lighter " AutoCap"
   "Mode-line lighter for `auto-capitalize-mode'.")
@@ -191,22 +191,16 @@ change, respectively, as defined by the documentation of
        (> (- end beg) 0)
        (memq (char-before end) auto-capitalize-trigger-chars)))
 
-(defun auto-capitalize--downcase-abbreviation (abbrev-start abbrev-end)
+(defun auto-capitalize--downcase-ie (abbrev-start abbrev-end)
   "Downcase the abbreviation between ABBREV-START and ABBREV-END.
 
- If the text between ABBREV-START and ABBREV-END matches an abbreviation
-in `auto-capitalize-abbrevs' case-insensitively, the user option
-`auto-capitalize-downcase-abbrevs' is non-nil, and the first letter is
-uppercase, downcase the whole abbreviation."
+ If the user option `auto-capitalize-downcase-ie' is non-nil, and
+the char at ABBREV-START is uppercase, downcase the whole abbreviation."
 
-  (and auto-capitalize-abbrevs
-       auto-capitalize-downcase-abbrevs
-       (let* ((abbrev-text (buffer-substring-no-properties
-                            abbrev-start abbrev-end))
-              (abbrev-first-char (char-after abbrev-start)))
-         (when (and
-                (member (downcase abbrev-text) auto-capitalize-abbrevs)
-                (eq abbrev-first-char (upcase abbrev-first-char)))
+  (and auto-capitalize-downcase-ie
+       (let ((abbrev-first-char (char-after abbrev-start)))
+         (when (eq abbrev-first-char (upcase abbrev-first-char))
+           (undo-boundary)
            (downcase-region abbrev-start abbrev-end)))))
 
 (defun auto-capitalize-capitalize (beg end length)
@@ -427,7 +421,7 @@ non-nil."
 
 Alternatively, if the word is a member of
 `auto-capitalize-abbrevs', then it is downcased by calling
-`auto-capitalize--downcase-abbreviation'."
+`auto-capitalize--downcase-ie'."
 
   (save-excursion
     (forward-word -1)
@@ -451,16 +445,20 @@ Alternatively, if the word is a member of
 
           (auto-capitalize-handle-fixed-case (match-beginning 0) (match-end 0)))
 
-         ((and auto-capitalize--abbrevs-regexp
-               (skip-chars-backward "[[:alpha:]].")
-               (looking-at auto-capitalize--abbrevs-regexp))
+         ;; HACK: we explicitly look for "I.e." in order to downcase it. The
+         ;; idea is that simply typing "i.e." will automatically cause the "i"
+         ;; to get capitalized, assuming "I" is in
+         ;; `auto-capitalize-fixed-case-words'. In order to prevent that from
+         ;; happening if the user is actually typing "i.e.", we always force the
+         ;; latter to be lowercase.
+         ;;
+         ;; The price to pay is that even if the user types capital I, with the
+         ;; intent of typing "I.e.", it gets downcased anyway.
+         ((progn
+            (skip-chars-backward "[[:alpha:]].")
+            (looking-at "I.e."))
 
-          (let ((abbrev-start (point))
-                (abbrev-end
-                 (save-excursion
-                   (skip-chars-forward "[[:alpha:]].")
-                   (point))))
-            (auto-capitalize--downcase-abbreviation abbrev-start abbrev-end)))
+          (auto-capitalize--downcase-ie (point) (+ (point) 4)))
 
          ((auto-capitalize-check-triggers
            text-start word-start)
@@ -609,14 +607,14 @@ which see."
   :type '(repeat (string :tag "Non-sentence ending word."))
   :set #'auto-capitalize--set-abbrevs)
 
-(defcustom auto-capitalize-downcase-abbrevs t
-  "If non-nil, members of `auto-capitalize-abbrevs' will be downcased.
+(defcustom auto-capitalize-downcase-ie t
+  "If non-nil, \"i.e.\" will always be downcased.
 
 This is intended as a fix for the unfortunate side effect of the
 combination of `auto-capitalize-fixed-case-words' containing \"I\",
 `auto-capitalize-trigger-chars' containing \".\", and
 `auto-capitalize-abbrevs' containing \"i.e.\", leading to the latter
-getting capitalized."
+getting capitalized when it shouldn't."
 
   :group 'auto-capitalize
   :type 'boolean)
