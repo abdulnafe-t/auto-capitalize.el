@@ -197,10 +197,12 @@ ABBREV-START and ABBREV-END are buffer positions where the abbreviation
 starts and ends, respectively.
 
  If the text between ABBREV-START and ABBREV-END matches an abbreviation
-in `auto-capitalize-abbrevs' case-insensitively, and the first letter is
+in `auto-capitalize-abbrevs' case-insensitively, the user option
+`auto-capitalize-downcase-abbrevs' is non-nil, and the first letter is
 uppercase, downcase the whole abbreviation."
 
   (and auto-capitalize-abbrevs
+       auto-capitalize-downcase-abbrevs
        (let* ((abbrev-text (buffer-substring-no-properties
                             abbrev-start abbrev-end))
               (abbrev-first-char (char-after abbrev-start)))
@@ -603,6 +605,18 @@ which see."
   :group 'auto-capitalize
   :type '(repeat (string :tag "Non-sentence ending word."))
   :set #'auto-capitalize--set-abbrevs)
+
+(defcustom auto-capitalize-downcase-abbrevs t
+  "If non-nil, members of `auto-capitalize-abbrevs' will be downcased.
+
+This is intended as a fix for the unfortunate side effect of the
+combination of `auto-capitalize-fixed-case-words' containing \"I\",
+`auto-capitalize-trigger-chars' containging \".\", and
+`auto-capitalize-abbrevs' containing \"i.e.\", leading to the latter
+getting capitalized."
+
+  :group 'auto-capitalize
+  :type 'boolean)
 
 (defcustom auto-capitalize-trigger-chars '(?\s ?, ?. ?? ?' ?’ ?: ?\; ?- ?! ?\n)
   "List of chars that trigger auto-capitalization on the preceding word.
