@@ -190,29 +190,24 @@ change, respectively, as defined by the documentation of
        (> (- end beg) 0)
        (memq (char-before end) auto-capitalize-trigger-chars)))
 
-(defun auto-capitalize--downcase-abbreviation ()
-  "Downcase the first letter of an abbreviation preceding point.
+(defun auto-capitalize--downcase-abbreviation (abbrev-start abbrev-end)
+  "Downcase the first letter of an abbreviation.
 
-If the text preceding point matches an abbreviation in
-`auto-capitalize-abbrevs' case-insensitively, and the first letter is
-uppercase, downcase it.
+ABBREV-START and ABBREV-END are buffer positions where the abbreviation
+starts and ends, respectively.
 
-Return non-nil if downcasing occurred."
+ If the text between ABBREV-START and ABBREV-END matches an abbreviation
+in `auto-capitalize-abbrevs' case-insensitively, and the first letter is
+uppercase, downcase the whole abbreviation."
 
   (and auto-capitalize-abbrevs
-       (let* ((abbrev-end (point))
-              (abbrev-start
-               (save-excursion
-                 (skip-chars-backward "[[:alpha:]].")
-                 (point)))
-              (abbrev-text (buffer-substring-no-properties
+       (let* ((abbrev-text (buffer-substring-no-properties
                             abbrev-start abbrev-end))
               (abbrev-first-char (char-after abbrev-start)))
          (when (and
                 (member (downcase abbrev-text) auto-capitalize-abbrevs)
                 (eq abbrev-first-char (upcase abbrev-first-char)))
-           (downcase-region abbrev-start (1+ abbrev-start))
-           t))))
+           (downcase-region abbrev-start abbrev-end)))))
 
 (defun auto-capitalize-capitalize (beg end length)
   "If `auto-capitalize-mode' is enabled, then start the capitalization logic.
@@ -268,12 +263,8 @@ word before point (or the yanked text) should be capitalized."
                                               0))))))
 
          ((auto-capitalize-inserted-trigger-char beg end length)
-          ;; Self-inserting, non-word character. Two triggers happen here: if
-          ;; the preceding word is an abbreviation that should be downcased, we
-          ;; downcase it. If not an abbreviation, we try to capitalize it.
-
+          ;; Self-inserting, non-word character.
           (and (> beg (point-min))
-               (not (auto-capitalize--downcase-abbreviation))
                (eq (char-syntax (char-before beg)) ?w)
                (auto-capitalize-maybe-capitalize-preceding-word)))))
     (error (message "auto-capitalize error: %S" error) nil)))
@@ -443,21 +434,36 @@ non-nil."
 		(cl-loop while (or (minusp (skip-chars-backward "\""))
 			           (minusp (skip-syntax-backward "\"("))))
 		(point))))
-        (cond ((and auto-capitalize--fixed-case-regexp
-                    (let ((case-fold-search nil))
-                      (goto-char word-start)
-                      (and (looking-at auto-capitalize--fixed-case-regexp)
-                           (let ((after (match-end 0)))
-                             (or (>= after (point-max))
-                                 (not (eq (char-syntax (char-after after)) ?w))
-                                 (memq (char-after after) '(?’ ?')))))))
-               (auto-capitalize-handle-fixed-case (match-beginning 0) (match-end 0)))
-              ((auto-capitalize-check-triggers
-                text-start word-start)
-               ;; capitalize!
-               (undo-boundary)
-               (goto-char word-start)
-               (capitalize-word 1)))))))
+        (cond
+
+         ((and auto-capitalize--fixed-case-regexp
+               (let ((case-fold-search nil))
+                 (goto-char word-start)
+                 (and (looking-at auto-capitalize--fixed-case-regexp)
+                      (let ((after (match-end 0)))
+                        (or (>= after (point-max))
+                            (not (eq (char-syntax (char-after after)) ?w))
+                            (memq (char-after after) '(?’ ?')))))))
+
+          (auto-capitalize-handle-fixed-case (match-beginning 0) (match-end 0)))
+
+         ((and auto-capitalize--abbrevs-regexp
+               (skip-chars-backward "[[:alpha:]].")
+               (looking-at auto-capitalize--abbrevs-regexp))
+
+          (let ((abbrev-start (point))
+                (abbrev-end
+                 (save-excursion
+                   (skip-chars-forward "[[:alpha:]].")
+                   (point))))
+            (auto-capitalize--downcase-abbreviation abbrev-start abbrev-end)))
+
+         ((auto-capitalize-check-triggers
+           text-start word-start)
+          ;; capitalize!
+          (undo-boundary)
+          (goto-char word-start)
+          (capitalize-word 1)))))))
 
 (defun auto-capitalize--set-fixed-case (sym val &optional buffer-local)
   "Setter for `auto-capitalize-fixed-case-words'.
