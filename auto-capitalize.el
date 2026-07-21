@@ -170,7 +170,7 @@ the corresponding user options.
           (and (re-search-backward
                 auto-capitalize--abbrevs-regexp
                 (line-beginning-position) t)
-               (= (match-end 0) word-start))))
+               (= (1+ (match-end 0)) word-start))))
 
       ;; Only capitalize after typing or yanking text, but only after
       ;; `auto-capitalize-trigger-chars'
@@ -493,14 +493,14 @@ If BUFFER-LOCAL is non-nil, only set the buffer-local value."
                     (if val
                         (concat "[[:punct:]]*"
                                 (regexp-opt auto-capitalize-abbrevs)
-                                "[^.[:space:]]*[[:space:]]")
+                                "[^.[:space:]]*")
                       nil)))
     (set-default sym val)
     (setq auto-capitalize--abbrevs-regexp
           (if val
               (concat "[[:punct:]]*"
                       (regexp-opt auto-capitalize-abbrevs)
-                      "[^.[:space:]]*[[:space:]]")
+                      "[^.[:space:]]*")
             nil))))
 
 
