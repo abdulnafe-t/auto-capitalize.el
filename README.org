@@ -67,7 +67,7 @@ You can set the following boolean options for more fine-grained control:
    | =auto-capitalize-outline-headings=         | =t=             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...)                   |
    | =auto-capitalize-start-of-inline-comments= | =t=             | Capitalize the first word in inline comments. This has no effect if =auto-capitalize-comments= is nil |
    | =auto-capitalize-start-of-inline-strings=  | =nil=           | Capitalize the first word in inline strings. This has no effect if =auto-capitalize-strings= is nil   |
-   | =auto-capitalize-downcase-ie=         | =t=             | Always downcase the latin abbreviation "i.e."
+   | =auto-capitalize-downcase-ie=              | =t=             | Always downcase the latin abbreviation "i.e."                                                       |
 
 More explanations are in each variable’s respective doc string.
 
@@ -75,13 +75,13 @@ The mode is defined by =define-globalized-minor-mode=, which means you get acces
 
 =auto-capitalize-fixed-case-words= is a list of words whose case will always be exactly how it appears in the list. For example, the English pronoun "I" - the only default entry - will replace any lowercase "i" followed by any character in =auto-capitalize-trigger-chars=. You can, of course, customize =auto-capitalize-trigger-chars= as well!
 
-No capitalization takes place if the word of interest happens to be right after one of the entries in =auto-capitalize-abbrevs=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not capitalize the "y".
+Outside of =auto-capitalize-fixed-case-words=, which are always forced to be in whatever case you specify, no capitalization takes place if the word of interest happens to be right after one of the entries in =auto-capitalize-abbrevs=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not capitalize the "y".
 
 By default, =auto-capitalize-downcase-ie= is =t=, meaning that "I.e." will always be downcased. This is meant as a workaround for the fact that typing "i.e." will, by default, capitalize the "i", since it is contained in =auto-capitalize-fixed-case-words=.
 
 Note that the lists =auto-capitalize-abbrevs= and =auto-capitalize-fixed-case-words= must be set with either =setopt= or the =customize= interface, otherwise your changes will not take effect. In specific, it is not enough to just use =add-to-list= to add elements to either of these variables.
 
-Finally, for true control, there is the core of the capitalization logic. The package exposes two hooks as user-options: =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=. You can add your own predicates to either of these two hooks.
+Finally, for finer control, there is the core of the capitalization logic. The package exposes two hooks as user-options: =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=. You can add your own predicates to either of these two hooks.
 
 ** =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=
 
@@ -111,7 +111,7 @@ The package is designed to be extensible to cover a number of limitations that t
 
 If you’re interested in writing a plugin for some markup language, you need to do three things:
 
-  1. Define a blocking function. This is a predicate that takes no arguments, and if it returns non-nil, it blocks capitalization. When blocking functions are called, point is moved back across opening parens and quotes.
+  1. Define a blocking function. This is a predicate that takes no arguments, and if it returns non-nil, it blocks capitalization. Point is moved back across opening parens and quotes right before blockgin functions are called.
   2. Define a trigger function. This is a predicate that takes two arguments: =text-start=, the position before all open parens and quotes before the word of interest, and =word-start=, the position of the first letter in the word. This function should return non-nil to trigger capitalization in the current context.
   3. Define a minor-mode that adds those functions to the appropriate hooks buffer-locally
 
@@ -132,6 +132,8 @@ The Org and TeX plugins can serve as examples of what that might look like.
   does not get capitalized. Again, this only affects the first word ("some" in the example), as the other rules apply as usual (beginning of a sentence, comment, etc).
 
 - The package struggles with markup languages in general, hence the need for plugins that teach =auto-capitalize= different markup syntaxes.
+
+- The abbreviation "i.e." is always downcased, even if it appears at the start of a sentence.
 
 Of course, if you have ideas on how to solve any of these issues or otherwise improve the package, PRs are more than welcome :)
 
