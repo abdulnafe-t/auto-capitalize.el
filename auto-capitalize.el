@@ -172,12 +172,6 @@ the corresponding user options.
                 (line-beginning-position) t)
                (= (match-end 0) word-start))))
 
-      ;; don’t capitalize words that look like "[a-z].[a-z].". This is
-      ;; mainly to prevent capitalizing "i.e." or "e.g.")
-      (and (eq last-command-event ?.)
-           (memq (char-before (max (point-min) (- (point) 2)))
-                 '(?\s ?\( ?. ?\")))
-
       ;; Only capitalize after typing or yanking text, but only after
       ;; `auto-capitalize-trigger-chars'
       (and auto-capitalize-trigger-chars
@@ -195,6 +189,30 @@ change, respectively, as defined by the documentation of
   (and (= length 0)
        (> (- end beg) 0)
        (memq (char-before end) auto-capitalize-trigger-chars)))
+
+(defun auto-capitalize--downcase-abbreviation ()
+  "Downcase the first letter of an abbreviation preceding point.
+
+If the text preceding point matches an abbreviation in
+`auto-capitalize-abbrevs' case-insensitively, and the first letter is
+uppercase, downcase it.
+
+Return non-nil if downcasing occurred."
+
+  (and auto-capitalize-abbrevs
+       (let* ((abbrev-end (point))
+              (abbrev-start
+               (save-excursion
+                 (skip-chars-backward "[[:alpha:]].")
+                 (point)))
+              (abbrev-text (buffer-substring-no-properties
+                            abbrev-start abbrev-end))
+              (abbrev-first-char (char-after abbrev-start)))
+         (when (and
+                (member (downcase abbrev-text) auto-capitalize-abbrevs)
+                (eq abbrev-first-char (upcase abbrev-first-char)))
+           (downcase-region abbrev-start (1+ abbrev-start))
+           t))))
 
 (defun auto-capitalize-capitalize (beg end length)
   "If `auto-capitalize-mode' is enabled, then start the capitalization logic.
@@ -250,10 +268,14 @@ word before point (or the yanked text) should be capitalized."
                                               0))))))
 
          ((auto-capitalize-inserted-trigger-char beg end length)
-          ;; self-inserting, non-word character
-          (when (and (> beg (point-min))
-                     (equal (char-syntax (char-after (1- beg))) ?w))
-            (auto-capitalize-maybe-capitalize-preceding-word)))))
+          ;; Self-inserting, non-word character. Two triggers happen here: if
+          ;; the preceding word is an abbreviation that should be downcased, we
+          ;; downcase it. If not an abbreviation, we try to capitalize it.
+
+          (and (> beg (point-min))
+               (not (auto-capitalize--downcase-abbreviation))
+               (eq (char-syntax (char-before beg)) ?w)
+               (auto-capitalize-maybe-capitalize-preceding-word)))))
     (error (message "auto-capitalize error: %S" error) nil)))
 
 (defun auto-capitalize-handle-fixed-case (m-beg m-end)
@@ -424,7 +446,11 @@ non-nil."
         (cond ((and auto-capitalize--fixed-case-regexp
                     (let ((case-fold-search nil))
                       (goto-char word-start)
-                      (looking-at auto-capitalize--fixed-case-regexp)))
+                      (and (looking-at auto-capitalize--fixed-case-regexp)
+                           (let ((after (match-end 0)))
+                             (or (>= after (point-max))
+                                 (not (eq (char-syntax (char-after after)) ?w))
+                                 (memq (char-after after) '(?’ ?')))))))
                (auto-capitalize-handle-fixed-case (match-beginning 0) (match-end 0)))
               ((auto-capitalize-check-triggers
                 text-start word-start)
@@ -445,12 +471,12 @@ If BUFFER-LOCAL is non-nil, only set the buffer-local value."
         (set-local sym val)
         (setq-local auto-capitalize--fixed-case-regexp
                     (if val
-                        (regexp-opt (mapcar #'downcase val) 'words)
+                        (regexp-opt (mapcar #'downcase val))
                       nil)))
     (set-default sym val)
     (setq auto-capitalize--fixed-case-regexp
           (if val
-              (regexp-opt (mapcar #'downcase val) 'words)
+              (regexp-opt (mapcar #'downcase val))
             nil))))
 
 (defun auto-capitalize--set-abbrevs (sym val &optional buffer-local)
