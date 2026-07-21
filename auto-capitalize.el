@@ -164,11 +164,14 @@ the corresponding user options.
          (and (nth 3 (syntax-ppss)) (not auto-capitalize-strings))
          (and (nth 4 (syntax-ppss)) (not auto-capitalize-comments))))
 
-      ;; Block capitalization after any word in `auto-capitalize-abbrevs'
+      ;; Block capitalization after any word in `auto-capitalize-abbrevs',
+      ;; unless the current word is one in `auto-capitalize-fixed-case-words'
+
       (save-excursion
         (backward-word)
         (let ((word-start (point)))
-          (and (re-search-backward
+          (and (not (looking-at auto-capitalize--fixed-case-regexp))
+               (re-search-backward
                 auto-capitalize--abbrevs-regexp
                 (line-beginning-position) t)
                (= (1+ (match-end 0)) word-start))))
