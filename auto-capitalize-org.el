@@ -80,10 +80,17 @@ see)."
 Returns non-nil if WORD-START should be capitalized based on
 org-specific context that the default trigger function cannot handle.
 
-This function checks if WORD-START is either the first word of an org
-comment \(lines starting with `#'), since org comments do not play nice
-with `bounds-of-thing-at-point' or `start-of-paragraph-text', or the
-first word of an org list."
+This function checks if WORD-START is either:
+
+1) The first word of an org comment \(lines starting with `#'), since
+org comments do not play nice with `bounds-of-thing-at-point' or
+`start-of-paragraph-text'
+
+2) The first word in an org heading after `org-todo-regexp' and
+`org-priority-value-regexp'
+
+3) The first word of an org list."
+
   (and (derived-mode-p 'org-mode)
        (or
         (and
@@ -94,21 +101,20 @@ first word of an org list."
               (skip-syntax-forward "^w")
               (point))))
 
-        (and
-         (save-excursion
-           (goto-char (line-beginning-position))
-           (when (and (bound-and-true-p outline-regexp)
-                      (looking-at outline-regexp))
-             (goto-char (match-end 0))
-             (when (and (bound-and-true-p org-todo-regexp)
-                        ;; We match the first word following the space right
-                        ;; after TODO-regexp
-                        (looking-at (concat org-todo-regexp "\\(?: \\|$\\)")))
-               (goto-char (match-end 0)))
-             (when (looking-at (format "\\[#\\(?:%s\\)\\]" org-priority-value-regexp))
-               (goto-char (match-end 0)))
-             (skip-syntax-forward "^w")
-             (= word-start (point)))))
+        (save-excursion
+          (goto-char (line-beginning-position))
+          (when (and (bound-and-true-p outline-regexp)
+                     (looking-at outline-regexp))
+            (goto-char (match-end 0))
+            (when (and (bound-and-true-p org-todo-regexp)
+                       ;; We match the first word following the space right
+                       ;; after TODO-regexp
+                       (looking-at (concat org-todo-regexp "\\(?: \\|$\\)")))
+              (goto-char (match-end 0)))
+            (when (looking-at (format "\\[#\\(?:%s\\)\\]" org-priority-value-regexp))
+              (goto-char (match-end 0)))
+            (skip-syntax-forward "^w")
+            (= word-start (point))))
 
         (and
          (org-at-item-p)
