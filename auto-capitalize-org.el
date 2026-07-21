@@ -45,8 +45,7 @@
   :group 'auto-capitalize)
 
 (defvar auto-capitalize-org--lighter "/Org"
-  "Text to append to `auto-capitalize-lighter' when
-`auto-capitalize-org-mode' is enabled.")
+  "Appended to `auto-capitalize--lighter' by `auto-capitalize-org-mode'.")
 
 (defun auto-capitalize-org-blocking-function ()
   "Block capitalization in org mode if appropriate.

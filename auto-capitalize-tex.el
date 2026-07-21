@@ -46,8 +46,7 @@
   :group 'auto-capitalize)
 
 (defvar auto-capitalize-tex--lighter "/TeX"
-  "Text to append to `auto-capitalize-lighter' when
-`auto-capitalize-tex-mode' is enabled.")
+  "Appended to `auto-capitalize--lighter' by `auto-capitalize-tex-mode'.")
 
 (defcustom auto-capitalize-tex-macro-whitelist
   '("intertext" "text" "textbf" "textit" "textsl" "textsc" "textrm" "textsf" "texttt"
