@@ -437,6 +437,36 @@ of `auto-capitalize-trigger-chars'."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "* A\n"))))
 
+(ert-deftest auto-capitalize-org-headings-todo ()
+  "Capitalize the first word in `org-mode' headings with a TODO keyword."
+  (auto-capitalize-tests--setup
+   org-mode
+   (insert "* TODO ")
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-play-keys "SPC")
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "* TODO A "))))
+
+(ert-deftest auto-capitalize-org-headings-priority ()
+  "Capitalize the first word in `org-mode' headings with a priority."
+  (auto-capitalize-tests--setup
+   org-mode
+   (insert "* [#B] ")
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-play-keys "SPC")
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "* [#B] A "))))
+
+(ert-deftest auto-capitalize-org-headings-todo-priority ()
+  "Capitalize the first word in `org-mode' headings with a TODO keyword and priority."
+  (auto-capitalize-tests--setup
+   org-mode
+   (insert "* TODO [#A] ")
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-play-keys "SPC")
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "* TODO [#A] A "))))
+
 (ert-deftest auto-capitalize-org-src-code ()
   "Don’t capitalize source code in `org-mode' src blocks."
   (auto-capitalize-tests--setup
