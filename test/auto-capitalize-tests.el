@@ -91,6 +91,39 @@
         (setq kill-ring old-kill-ring
               kill-ring-yank-pointer old-kill-ring-yank-pointer)))))
 
+(ert-deftest auto-capitalize-text-ie-mid-sentence ()
+  "Don’t capitalize \"i.e.\" mid-sentence."
+  (auto-capitalize-tests--setup
+   text-mode
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?i))
+   (ert-simulate-command '(self-insert-command 1 ?.))
+   (ert-simulate-command '(self-insert-command 1 ?e))
+   (ert-simulate-command '(self-insert-command 1 ?.))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "A i.e. " ))))
+
+(ert-deftest auto-capitalize-text-ie-sentence-start ()
+  "Capitalize \"i.e.\" at the beginning of a sentence."
+  (auto-capitalize-tests--setup
+   text-mode
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?.))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+
+   (ert-simulate-command '(self-insert-command 1 ?i))
+   (ert-simulate-command '(self-insert-command 1 ?.))
+   (ert-simulate-command '(self-insert-command 1 ?e))
+   (ert-simulate-command '(self-insert-command 1 ?.))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "A.  I.e. " ))))
+
 (ert-deftest auto-capitalize-text-after-abbreviations ()
   "Don’t capitalize after words in `auto-capitalize-abbrevs'."
   (auto-capitalize-tests--setup
