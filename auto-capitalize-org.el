@@ -38,6 +38,7 @@
 (declare-function org-at-item-p "org-list")
 (defvar org-list-full-item-re)
 (defvar org-todo-regexp)
+(defvar org-priority-value-regexp)
 
 (defgroup auto-capitalize-org nil
   "Org support for auto-capitalize."
@@ -98,13 +99,16 @@ first word of an org list."
            (goto-char (line-beginning-position))
            (when (and (bound-and-true-p outline-regexp)
                       (looking-at outline-regexp))
-             (goto-char (match-end 0)))
-           (and (bound-and-true-p org-todo-regexp)
-                ;; We match the first word following the space right after
-                ;; TODO-regexp
-                (looking-at (concat org-todo-regexp "\\(?: \\|$\\)"))
-                (goto-char (match-end 0)))
-           (= word-start (point))))
+             (goto-char (match-end 0))
+             (when (and (bound-and-true-p org-todo-regexp)
+                        ;; We match the first word following the space right
+                        ;; after TODO-regexp
+                        (looking-at (concat org-todo-regexp "\\(?: \\|$\\)")))
+               (goto-char (match-end 0)))
+             (when (looking-at (format "\\[#\\(?:%s\\)\\]" org-priority-value-regexp))
+               (goto-char (match-end 0)))
+             (skip-syntax-forward "^w")
+             (= word-start (point)))))
 
         (and
          (org-at-item-p)
