@@ -121,6 +121,7 @@ the regexp on every keystroke, and by
 (defvar auto-capitalize-abbrevs)
 (defvar auto-capitalize-trigger-chars)
 (defvar auto-capitalize-blocking-functions)
+(defvar auto-capitalize-downcase-ie)
 
 
 ;; Internal functions:
