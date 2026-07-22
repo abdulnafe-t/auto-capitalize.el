@@ -6,16 +6,16 @@ Automatically capitalize text as you type.
 
 * Installation
 
-Put =auto-capitalize.el= somewhere in your load-path, then put this in your =.emacs=:
+Put ~auto-capitalize.el~ somewhere in your load-path, then put this in your =.emacs=:
 
 #+begin_src elisp
   (require 'auto-capitalize)
   (auto-capitalize-global-mode)
 #+end_src
 
-This enables capitalization in all =text-mode= buffers, as well as in comments and strings in =prog-mode= and any other mode that defines them.
+This enables capitalization in all ~text-mode~ buffers, as well as in comments and strings in ~prog-mode~ and any other mode that defines them.
 
-If you use =use-package=, you can use this snippet instead:
+If you use ~use-package~, you can use this snippet instead:
 
 #+begin_src elisp
   (use-package auto-capitalize
@@ -34,19 +34,19 @@ If you’re interested in using this package in your Org or TeX documents, then 
      (org-mode-hook . auto-capitalize-org-mode)))
 #+end_src
 
-This will give you markup-aware capitalization in those modes, such as capitalizing text inside of any TeX macro listed in the user option =auto-capitalize-tex-macro-whitelist=, as well as preventing capitalization in environments such as math, equation etc.
+This will give you markup-aware capitalization in those modes, such as capitalizing text inside of any TeX macro listed in the user option ~auto-capitalize-tex-macro-whitelist~, as well as preventing capitalization in environments such as math, equation etc.
 
 And that’s pretty much it. Start typing to try it out!
 
 * Requirements
 
-The core package requires =font-lock= to detect comments and strings, since it relies heavily on =syntax-ppss=. =auto-capitalize-tex.el= requires [[https://www.gnu.org/software/auctex/][AUCTeX]].
+The core package requires ~font-lock~ to detect comments and strings, since it relies heavily on ~syntax-ppss~. =auto-capitalize-tex.el= requires [[https://www.gnu.org/software/auctex/][AUCTeX]].
 
 * Customization
 
-Things should just work for most users, with sensible defaults. However, there are customization options in the =auto-capitalize= group. Those should let you get the behavior you want.
+Things should just work for most users, with sensible defaults. However, there are customization options in the ~auto-capitalize~ group. Those should let you get the behavior you want.
 
-If you want to limit auto-capitalization to certain modes instead of enabling it globally, replace =auto-capitalize-global-mode= in the snippets above with =auto-capitalize-mode=, which is the buffer-local version. You can add that to any mode’s hook you want. For example, to only enable =auto-capitalize.el= in text-mode buffers, but not prog-mode, you could say:
+If you want to limit auto-capitalization to certain modes instead of enabling it globally, replace ~auto-capitalize-global-mode~ in the snippets above with ~auto-capitalize-mode~, which is the buffer-local version. You can add that to any mode’s hook you want. For example, to only enable =auto-capitalize.el= in text-mode buffers, but not prog-mode, you could say:
 
 #+begin_src elisp
   (use-package auto-capitalize
@@ -60,48 +60,48 @@ You can set the following boolean options for more fine-grained control:
    
    | Variable                                 | Default value | Description                                                                                         |
    |------------------------------------------+---------------+-----------------------------------------------------------------------------------------------------|
-   | =auto-capitalize-strings=                  | =t=             | Capitalize strings in modes where they are defined                                                  |
-   | =auto-capitalize-comments=                 | =t=             | Capitalize comments in modes where they are defined (prog-mode, org-mode, etc)                      |
-   | =auto-capitalize-ask=                      | =nil=           | Ask the user before automatically capitalizing anything                                             |
-   | =auto-capitalize-yank=                     | =nil=           | Capitalize yanked text as well as typed text                                                        |
-   | =auto-capitalize-outline-headings=         | =t=             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...)                   |
-   | =auto-capitalize-start-of-inline-comments= | =t=             | Capitalize the first word in inline comments. This has no effect if =auto-capitalize-comments= is nil |
-   | =auto-capitalize-start-of-inline-strings=  | =nil=           | Capitalize the first word in inline strings. This has no effect if =auto-capitalize-strings= is nil   |
-   | =auto-capitalize-downcase-ie=              | =t=             | Always downcase the latin abbreviation "i.e."                                                       |
+   | ~auto-capitalize-strings~                  | ~t~             | Capitalize strings in modes where they are defined                                                  |
+   | ~auto-capitalize-comments~                 | ~t~             | Capitalize comments in modes where they are defined (prog-mode, org-mode, etc)                      |
+   | ~auto-capitalize-ask~                      | ~nil~           | Ask the user before automatically capitalizing anything                                             |
+   | ~auto-capitalize-yank~                     | ~nil~           | Capitalize yanked text as well as typed text                                                        |
+   | ~auto-capitalize-outline-headings~         | ~t~             | Capitalize the first word in headings in text-mode-derived buffers (Org, TeX,...)                   |
+   | ~auto-capitalize-start-of-inline-comments~ | ~t~             | Capitalize the first word in inline comments. This has no effect if ~auto-capitalize-comments~ is nil |
+   | ~auto-capitalize-start-of-inline-strings~  | ~nil~           | Capitalize the first word in inline strings. This has no effect if ~auto-capitalize-strings~ is nil   |
+   | ~auto-capitalize-downcase-ie~              | ~t~             | Always downcase the latin abbreviation "i.e."                                                       |
 
 More explanations are in each variable’s respective doc string.
 
-The mode is defined by =define-globalized-minor-mode=, which means you get access to =auto-capitalize-global-modes=, which is a list of modes in which to enable (or disable if preceded with a =not=) the global mode. By default, this contains =comint-mode=.
+The mode is defined by ~define-globalized-minor-mode~, which means you get access to ~auto-capitalize-global-modes~, which is a list of modes in which to enable (or disable if preceded with a ~not~) the global mode. By default, this contains ~comint-mode~.
 
-=auto-capitalize-fixed-case-words= is a list of words whose case will always be exactly how it appears in the list. For example, the English pronoun "I" - the only default entry - will replace any lowercase "i" followed by any character in =auto-capitalize-trigger-chars=. You can, of course, customize =auto-capitalize-trigger-chars= as well!
+~auto-capitalize-fixed-case-words~ is a list of words whose case will always be exactly how it appears in the list. For example, the English pronoun "I" - the only default entry - will replace any lowercase "i" followed by any character in ~auto-capitalize-trigger-chars~. You can, of course, customize ~auto-capitalize-trigger-chars~ as well!
 
-Outside of =auto-capitalize-fixed-case-words=, which are always forced to be in whatever case you specify, no capitalization takes place if the word of interest happens to be right after one of the entries in =auto-capitalize-abbrevs=. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not capitalize the "y".
+Outside of ~auto-capitalize-fixed-case-words~, which are always forced to be in whatever case you specify, no capitalization takes place if the word of interest happens to be right after one of the entries in ~auto-capitalize-abbrevs~. This is a list of abbreviations, such as "i.e." and "e.g.", which contain periods but don’t actually mark the end of a sentence. Thus, typing "i.e. you" will not capitalize the "y".
 
-By default, =auto-capitalize-downcase-ie= is =t=, meaning that "I.e." will always be downcased. This is meant as a workaround for the fact that typing "i.e." will, by default, capitalize the "i", since it is contained in =auto-capitalize-fixed-case-words=.
+By default, ~auto-capitalize-downcase-ie~ is ~t~, meaning that "I.e." will always be downcased. This is meant as a workaround for the fact that typing "i.e." will, by default, capitalize the "i", since it is contained in ~auto-capitalize-fixed-case-words~.
 
-Note that the lists =auto-capitalize-abbrevs= and =auto-capitalize-fixed-case-words= must be set with either =setopt=, the =customize= interface, or the corresponding functions =auto-capitalize-add-abbrevs= and =auto-capitalize-add-fixed-case-words=, otherwise your changes will not take effect. In specific, it is not enough to just use =add-to-list= to add elements to either of these variables.
+Note that the lists ~auto-capitalize-abbrevs~ and ~auto-capitalize-fixed-case-words~ must be set with either ~setopt~, the ~customize~ interface, or the corresponding functions ~auto-capitalize-add-abbrevs~ and ~auto-capitalize-add-fixed-case-words~, otherwise your changes will not take effect. In specific, it is not enough to just use ~add-to-list~ to add elements to either of these variables.
 
-Finally, for finer control, there is the core of the capitalization logic. The package exposes two hooks as user-options: =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=. You can add your own predicates to either of these two hooks.
+Finally, for finer control, there is the core of the capitalization logic. The package exposes two hooks as user-options: ~auto-capitalize-blocking-functions~ and ~auto-capitalize-trigger-functions~. You can add your own predicates to either of these two hooks.
 
-** =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=
+** ~auto-capitalize-blocking-functions~ and ~auto-capitalize-trigger-functions~
 
-- =auto-capitalize-blocking-functions= get called first. These are predicates that take no input and return non-nil to indicate that they want to block capitalization in the current context. If any of these functions return non-nil, capitalization does not occur.
+- ~auto-capitalize-blocking-functions~ get called first. These are predicates that take no input and return non-nil to indicate that they want to block capitalization in the current context. If any of these functions return non-nil, capitalization does not occur.
 
-- =auto-capitalize-trigger-functions= get called later. These are predicates that take two arguments, =text-start= and =word-start=, and return non-nil to trigger capitalization.
+- ~auto-capitalize-trigger-functions~ get called later. These are predicates that take two arguments, ~text-start~ and ~word-start~, and return non-nil to trigger capitalization.
 
 Note the symmetry in semantics: a single blocking function returning non-nil will block capitalization, whereas, assuming all blocking functions pass, a single trigger function returning non-nil will trigger capitalization.
 
 Note also that just because no blocking function blocks capitalization in a given context does not mean it will occur: /at least one/ trigger function must return non-nil for capitalization to actually happen.
 
-By default, only =auto-capitalize-default-blocking-function= and =auto-capitalize-default-trigger-function= are included in the hooks. The companion Org and TeX plugins, =auto-capitalize-tex.el= and =auto-capitalize-org.el=, also register their own blocking and trigger functions when their respective modes are enabled.
+By default, only ~auto-capitalize-default-blocking-function~ and ~auto-capitalize-default-trigger-function~ are included in the hooks. The companion Org and TeX plugins, =auto-capitalize-tex.el= and =auto-capitalize-org.el=, also register their own blocking and trigger functions when their respective modes are enabled.
 
 * How it works
 
-The package’s main entry point is the function =auto-capitalize-capitalize=. The minor-mode adds it to =after-change-functions=, so it gets called as you type, delete, yank, etc. Its job is to run the first layer of logic: it moves point back across quotes and parentheses, then calls all functions in =auto-capitalize-blocking-functions=, and if they all return nil, either calls =auto-capitalize-maybe-capitalize-preceding-word= if you are simply typing, or recursively analyzes the text if you are yanking (and =auto-capitalize-yank= is non-nil).
+The package’s main entry point is the function ~auto-capitalize-capitalize~. The minor-mode adds it to ~after-change-functions~, so it gets called as you type, delete, yank, etc. Its job is to run the first layer of logic: it moves point back across quotes and parentheses, then calls all functions in ~auto-capitalize-blocking-functions~, and if they all return nil, either calls ~auto-capitalize-maybe-capitalize-preceding-word~ if you are simply typing, or recursively analyzes the text if you are yanking (and ~auto-capitalize-yank~ is non-nil).
 
-=auto-capitalize-maybe-capitalize-preceding-word= and =auto-capitalize-handle-fixed-case= are the functions actually responsible for capitalizing words. The former checks if the word at point matches =auto-capitalize--fixed-case-regexp=, which is built from =auto-capitalize-fixed-case-words=. If it does, it calls =auto-capitalize-handle-fixed-case=, which simply replaces the word with its corresponding entry in =auto-capitalize-fixed-case-words=.
+~auto-capitalize-maybe-capitalize-preceding-word~ and ~auto-capitalize-handle-fixed-case~ are the functions actually responsible for capitalizing words. The former checks if the word at point matches ~auto-capitalize--fixed-case-regexp~, which is built from ~auto-capitalize-fixed-case-words~. If it does, it calls ~auto-capitalize-handle-fixed-case~, which simply replaces the word with its corresponding entry in ~auto-capitalize-fixed-case-words~.
 
-Otherwise, =auto-capitalize-maybe-capitalize-preceding-word= moves point back to the start of the newly inserted word, and calls =auto-capitalize-trigger-functions=. Those functions then check to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence or a paragraph in text-mode, or a comment (if =auto-capitalize-comments= is non-nil), etc.
+Otherwise, ~auto-capitalize-maybe-capitalize-preceding-word~ moves point back to the start of the newly inserted word, and calls ~auto-capitalize-trigger-functions~. Those functions then check to see if capitalization is appropriate in the current context, i.e. that the word is at the beginning of a sentence or a paragraph in text-mode, or a comment (if ~auto-capitalize-comments~ is non-nil), etc.
 
 If all tests pass, voilà! Your word gets capitalized automatically.
 
@@ -112,18 +112,18 @@ The package is designed to be extensible to cover a number of limitations that t
 If you’re interested in writing a plugin for some markup language, you need to do three things:
 
   1. Define a blocking function. This is a predicate that takes no arguments, and if it returns non-nil, it blocks capitalization. Point is moved back across opening parens and quotes right before blockgin functions are called.
-  2. Define a trigger function. This is a predicate that takes two arguments: =text-start=, the position before all open parens and quotes before the word of interest, and =word-start=, the position of the first letter in the word. This function should return non-nil to trigger capitalization in the current context.
+  2. Define a trigger function. This is a predicate that takes two arguments: ~text-start~, the position before all open parens and quotes before the word of interest, and ~word-start~, the position of the first letter in the word. This function should return non-nil to trigger capitalization in the current context.
   3. Define a minor-mode that adds those functions to the appropriate hooks buffer-locally
 
 The Org and TeX plugins can serve as examples of what that might look like.
 
 * Known issues
 
-- =auto-capitalize-outline-headings= doesn’t work in =markdown-mode= buffers. This is because of the value that mode sets =outline-regexp= to, which differs in its semantics from other text modes. We could add specific support for it in the future, but that would add some complexity to the code.
+- ~auto-capitalize-outline-headings~ doesn’t work in ~markdown-mode~ buffers. This is because of the value that mode sets ~outline-regexp~ to, which differs in its semantics from other text modes. We could add specific support for it in the future, but that would add some complexity to the code.
 
   It also only affects the first word in a heading for now. Subsequent sentences within a heading are handled by the usual sentence-based rules.
 
-- Even with =auto-capitalize-tex-mode=, quoted text in =TeX-mode= buffers, such as
+- Even with ~auto-capitalize-tex-mode~, quoted text in ~TeX-mode~ buffers, such as
 
   #+begin_src TeX
     ``some text here``
@@ -131,7 +131,7 @@ The Org and TeX plugins can serve as examples of what that might look like.
 
   does not get capitalized. Again, this only affects the first word ("some" in the example), as the other rules apply as usual (beginning of a sentence, comment, etc).
 
-- The package struggles with markup languages in general, hence the need for plugins that teach =auto-capitalize= different markup syntaxes.
+- The package struggles with markup languages in general, hence the need for plugins that teach ~auto-capitalize~ different markup syntaxes.
 
 - The abbreviation "i.e." is always downcased, even if it appears at the start of a sentence.
 
