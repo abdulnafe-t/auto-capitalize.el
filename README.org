@@ -79,7 +79,7 @@ Outside of =auto-capitalize-fixed-case-words=, which are always forced to be in 
 
 By default, =auto-capitalize-downcase-ie= is =t=, meaning that "I.e." will always be downcased. This is meant as a workaround for the fact that typing "i.e." will, by default, capitalize the "i", since it is contained in =auto-capitalize-fixed-case-words=.
 
-Note that the lists =auto-capitalize-abbrevs= and =auto-capitalize-fixed-case-words= must be set with either =setopt= or the =customize= interface, otherwise your changes will not take effect. In specific, it is not enough to just use =add-to-list= to add elements to either of these variables.
+Note that the lists =auto-capitalize-abbrevs= and =auto-capitalize-fixed-case-words= must be set with either =setopt=, the =customize= interface, or the corresponding functions =auto-capitalize-add-abbrevs= and =auto-capitalize-add-fixed-case-words=, otherwise your changes will not take effect. In specific, it is not enough to just use =add-to-list= to add elements to either of these variables.
 
 Finally, for finer control, there is the core of the capitalization logic. The package exposes two hooks as user-options: =auto-capitalize-blocking-functions= and =auto-capitalize-trigger-functions=. You can add your own predicates to either of these two hooks.
 
