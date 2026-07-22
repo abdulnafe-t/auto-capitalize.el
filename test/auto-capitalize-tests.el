@@ -186,6 +186,7 @@ of `auto-capitalize-trigger-chars'."
         (auto-capitalize-tests--setup
          text-mode
          (setopt auto-capitalize-fixed-case-words '("I"))
+         (electric-quote-local-mode -1)
          (ert-simulate-command '(newline))   ; Avoid repeating `auto-capitalize-bob'
          (insert "a")
          (ert-simulate-command '(self-insert-command 1 ?\s))
