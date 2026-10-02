@@ -571,8 +571,7 @@ corresponding user option (`auto-capitalize-comments' or
              (line-beginning-position) t)
             (= (1+ (match-end 0)) word-start)))))
 
-      ;; Block capitalization if inserting chars with word-syntax. This ensures
-      ;; that capitalization only triggers once a non-word char is inserted.
+      ;; Block capitalization if inserting chars with word-syntax.
       (and
        ;; We explicitly check for `this-command' being nil, otherwise the `memq'
        ;; test below would pass if command-remapping returns nil:
@@ -722,8 +721,7 @@ word before point (or the yanked text) should be capitalized."
            ;; We need to check for yanking before checking for trigger chars,
            ;; because if the yanked text ends in a trigger char, only that
            ;; trigger char gets processed, meaning the rest of the text does
-           ;; not get capitalized correctly. Checking for yanking first solves
-           ;; this issue.
+           ;; not get capitalized correctly.
            ((and auto-capitalize-yank
                  ;; `yank' sets `this-command' to t, and the
                  ;; after-change-functions are run before it has been
@@ -758,7 +756,8 @@ word before point (or the yanked text) should be capitalized."
                   text-start word-start))))))
     (error (message "auto-capitalize error: %S" error) nil)))
 
-;; Commands
+
+;; Commands
 
 (defun auto-capitalize-add-abbrevs (abbrevs &optional buffer-local)
   "Add one or more abbreviations to `auto-capitalize-abbrevs'.
