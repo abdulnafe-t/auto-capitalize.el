@@ -42,11 +42,13 @@
 
 (defun auto-capitalize-xml-blocking-function (_text-start word-start)
   "Block if the word at WORD-START is not in data or a comment."
-  (not (nxml-get-inside word-start))
   (save-excursion
     (goto-char word-start)
-    (nxml-token-after)
-    (not (memq xmltok-type auto-capitalize-xml-allowed-types))))
+    (and
+     (progn
+       (nxml-token-after)
+       (not (memq xmltok-type auto-capitalize-xml-allowed-types)))
+     (not (nxml-get-inside word-start)))))
 
 (defun auto-capitalize-xml-trigger-function (_text-start word-start)
   "Capitalize the word at WORD-START if it comes right after an opening tag."
