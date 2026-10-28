@@ -29,6 +29,7 @@
 (require 'auto-capitalize)
 (require 'auto-capitalize-org)
 (require 'auto-capitalize-sgml)
+(require 'auto-capitalize-xml)
 (when (featurep 'auctex)
   (require 'auto-capitalize-tex))
 
@@ -52,6 +53,8 @@ Inlines `ert-play-keys' (Emacs 31.1+) via `execute-kbd-macro'."
        (auto-capitalize-org-mode 1))
      (when (derived-mode-p 'sgml-mode)
        (auto-capitalize-sgml-mode 1))
+     (when (derived-mode-p 'nxml-mode)
+       (auto-capitalize-xml-mode 1))
      (save-window-excursion
        (with-current-buffer (current-buffer)
          (with-selected-window (display-buffer (current-buffer))
@@ -845,6 +848,18 @@ for both inline comments and newline-based (BOL) comments."
      (ert-simulate-command '(self-insert-command 1 ?\s))
      (should (equal (buffer-substring-no-properties (point-min) (point-max))
                     "<!--- a  --->")))))
+
+(ert-deftest auto-capitalize-nxml-data ()
+  "Capitalize data in XML."
+  (auto-capitalize-tests--setup
+   nxml-mode
+   (insert "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tag></tag>")
+   (search-backward "<tag>")
+   (forward-char 5)
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tag>A </tag>"))))
 
 
 ;;;; Tests for `sgml-mode'
