@@ -37,7 +37,7 @@
   :group 'auto-capitalize)
 
 (defcustom auto-capitalize-xml-allowed-types '(comment data)
-  "List of `xmltok-type's where capitalization is allowed."
+  "List of `xmltok-type's where capitalization is not blocked."
   :type '(repeat (symbol :tag "XML token type")))
 
 (defun auto-capitalize-xml-blocking-function (_text-start word-start)
