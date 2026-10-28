@@ -27,15 +27,24 @@
 (require 'auto-capitalize)
 
 (declare-function nxml-get-inside "nxml-rap")
+(declare-function nxml-token-after "nxml-rap")
 
 (defgroup auto-capitalize-xml
   nil
   "Customization group for auto-capitalize-xml."
   :group 'auto-capitalize)
 
+(defcustom auto-capitalize-xml-allowed-types '(comment data)
+  "List of `xmltok-type's where capitalization is allowed."
+  :type '(repeat (symbol :tag "XML token type")))
+
 (defun auto-capitalize-xml-blocking-function (_text-start word-start)
-  "Block if the word at WORD-START is not in text, a comment, or a string."
-  (not (nxml-get-inside word-start)))
+  "Block if the word at WORD-START is not in data or a comment."
+  (not (nxml-get-inside word-start))
+  (save-excursion
+    (goto-char word-start)
+    (nxml-token-after)
+    (not (memq xmltok-type auto-capitalize-xml-allowed-types))))
 
 (defvar auto-capitalize-xml--lighter "/XML"
   "Appended to `auto-capitalize--lighter' by `auto-capitalize-xml-mode'.")
