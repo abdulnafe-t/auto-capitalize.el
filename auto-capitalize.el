@@ -914,9 +914,11 @@ a space, this command does nothing."
                 ;; Unsupported without `auto-capitalize-org-mode'
                 org-mode
 
+                ;; Unsupported without `auto-capitalize-xml-mode'
+                nxml-mode
+
                 ;; TODO: we should add plugins to support these.
                 texinfo-mode
-                nxml-mode
                 php-mode
 
                 ;; Technically text-modes, but capitalization
