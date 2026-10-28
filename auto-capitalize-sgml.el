@@ -51,7 +51,7 @@
   "Toggle SGML-specific capitalization support in this buffer.
 
 When enabled, this mode adds `auto-capitalize-sgml-blocking-function' to
-`auto-capitalize-blocking-functions' and buffer-locally.
+`auto-capitalize-blocking-functions' buffer-locally.
 
 If `auto-capitalize-mode' is not yet enabled in this buffer, it
 will be enabled automatically."
