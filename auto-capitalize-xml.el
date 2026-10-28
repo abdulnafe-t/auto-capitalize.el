@@ -28,6 +28,8 @@
 
 (declare-function nxml-get-inside "nxml-rap")
 (declare-function nxml-token-after "nxml-rap")
+(declare-function nxml-token-before "nxml-rap")
+(defvar xmltok-type)
 
 (defgroup auto-capitalize-xml
   nil
@@ -45,6 +47,13 @@
     (goto-char word-start)
     (nxml-token-after)
     (not (memq xmltok-type auto-capitalize-xml-allowed-types))))
+
+(defun auto-capitalize-xml-trigger-function (_text-start word-start)
+  "Capitalize the word at WORD-START if it comes right after an opening tag."
+  (save-excursion
+    (goto-char word-start)
+    (nxml-token-before)
+    (eq xmltok-type 'start-tag)))
 
 (defvar auto-capitalize-xml--lighter "/XML"
   "Appended to `auto-capitalize--lighter' by `auto-capitalize-xml-mode'.")
@@ -64,6 +73,8 @@ will be enabled automatically."
    ((not auto-capitalize-xml-mode)
     (remove-hook 'auto-capitalize-blocking-functions
                  #'auto-capitalize-xml-blocking-function t)
+    (remove-hook 'auto-capitalize-trigger-functions
+                 #'auto-capitalize-xml-trigger-function t)
     (setq-local auto-capitalize--lighter
                 (string-replace
                  auto-capitalize-xml--lighter
@@ -76,7 +87,8 @@ will be enabled automatically."
       (message "auto-capitalize-mode enabled for XML support."))
     (add-hook 'auto-capitalize-blocking-functions
               #'auto-capitalize-xml-blocking-function nil t)
-
+    (add-hook 'auto-capitalize-trigger-functions
+              #'auto-capitalize-xml-trigger-function nil t)
     (setq-local auto-capitalize--lighter
                 (concat auto-capitalize--lighter
                         auto-capitalize-xml--lighter)))))
