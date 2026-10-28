@@ -51,9 +51,10 @@
      (not (nxml-get-inside word-start)))))
 
 (defun auto-capitalize-xml-trigger-function (_text-start word-start)
-  "Capitalize the word at WORD-START if it comes right after an opening tag."
+  "Capitalize the word at WORD-START if it's the first word after an opening tag."
   (save-excursion
     (goto-char word-start)
+    (skip-syntax-backward "\s")
     (nxml-token-before)
     (eq xmltok-type 'start-tag)))
 
