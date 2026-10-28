@@ -73,10 +73,10 @@ need a plugin for the ones that do.
 ** Enabling plugins
 By itself, ~auto-capitalize-mode~ makes too many mistakes in markup documents, and so
 ~auto-capitalize-global-mode~ does not enable it in such modes. Plugins solve this problem
-by teaching ~auto-capitalize-mode~ about specific markup rules. Currently, there are three
+by teaching ~auto-capitalize-mode~ about specific markup rules. Currently, there are four
 such plugins: =auto-capitalize-org.el= for Org, =auto-capitalize-tex.el= for TeX/LaTeX,
-assuming you have ~AUCTeX~, and =auto-capitalize-sgml.el= for SGML (and its derivatives, like
-HTML).
+assuming you have ~AUCTeX~, =auto-capitalize-sgml.el= for SGML (and its derivatives, like
+HTML)., and =auto-capitalize-xml.el= for XML.
 
 To make use of these plugins, simply add the corresponding minor mode to the appropriate
 hook:
@@ -88,7 +88,8 @@ hook:
     :hook
     ((TeX-mode . auto-capitalize-tex-mode)
      (org-mode . auto-capitalize-org-mode)
-     (sgml-mode . auto-capitalize-sgml-mode))
+     (sgml-mode . auto-capitalize-sgml-mode)
+     (nxml-mode . auto-capitalize-xml-mode))
 #+end_src
 
 This will give you markup-aware capitalization in those modes, such as capitalizing text
@@ -237,7 +238,7 @@ things:
      ~auto-capitalize-global-modes~ excludes, the plugin must enable ~auto-capitalize-mode~
      itself.
 
-The Org, TeX, and SGML plugins can serve as examples of what that might look like.
+The provided plugins can serve as examples of what that might look like.
 
 * Known issues
 
