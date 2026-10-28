@@ -76,7 +76,7 @@ By itself, ~auto-capitalize-mode~ makes too many mistakes in markup documents, a
 by teaching ~auto-capitalize-mode~ about specific markup rules. Currently, there are four
 such plugins: =auto-capitalize-org.el= for Org, =auto-capitalize-tex.el= for TeX/LaTeX,
 assuming you have ~AUCTeX~, =auto-capitalize-sgml.el= for SGML (and its derivatives, like
-HTML)., and =auto-capitalize-xml.el= for XML.
+HTML), and =auto-capitalize-xml.el= for XML.
 
 To make use of these plugins, simply add the corresponding minor mode to the appropriate
 hook:
