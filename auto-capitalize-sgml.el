@@ -20,7 +20,8 @@
 
 ;;; Commentary:
 
-;; This plugin adds Org support to `auto-capitalize'. This includes HTML
+;; This plugin adds SGML support to `auto-capitalize'. This includes modes such
+;; as `html-mode', `html-ts-mode', and `mhtml-ts-mode'.
 
 ;;; Code:
 
