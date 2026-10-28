@@ -861,6 +861,18 @@ for both inline comments and newline-based (BOL) comments."
    (should (equal (buffer-substring-no-properties (point-min) (point-max))
                   "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tag>A </tag>"))))
 
+(ert-deftest auto-capitalize-nxml-data-after-space ()
+  "Capitalize the first word after an opening tag, even if preceded by whitespace."
+  (auto-capitalize-tests--setup
+   nxml-mode
+   (insert "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tag> </tag>")
+   (search-backward "<tag>")
+   (forward-char 6)
+   (ert-simulate-command '(self-insert-command 1 ?a))
+   (ert-simulate-command '(self-insert-command 1 ?\s))
+   (should (equal (buffer-substring-no-properties (point-min) (point-max))
+                  "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<tag> A </tag>"))))
+
 
 ;;;; Tests for `sgml-mode'
 
